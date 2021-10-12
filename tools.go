@@ -53,6 +53,11 @@ func Protoc() {
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
+	// Check if binary already exist
+	if _, err := os.Stat(binary); err == nil {
+		return
+	}
+
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == "amd64" {
@@ -107,6 +112,11 @@ func GoogleProtoScrubber() {
 	archive := binary + ".tar.gz"
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	// Check if binary already exist
+	if _, err := os.Stat(binary); err == nil {
+		return
+	}
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
