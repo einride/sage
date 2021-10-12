@@ -48,7 +48,8 @@ func Protoc() {
 	}
 	version := "3.15.7"
 	binDir := filepath.Join(cwd, "tools", "protoc", version)
-	binary := filepath.Join(binDir, "protoc")
+	zip := filepath.Join(binDir, "protoc.zip")
+	binary := filepath.Join(binDir, "bin", "protoc")
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -60,7 +61,6 @@ func Protoc() {
 
 	binURL := fmt.Sprintf("https://github.com/protocolbuffers/protobuf/releases/download/v%s/protoc-%s-%s-%s.zip", version, version, hostOS, hostArch)
 
-	zip := binary + ".zip"
 	DownloadBinary(binDir, binURL, zip)
 
 	_, err = ExtractZip(zip, binDir)
@@ -71,6 +71,7 @@ func Protoc() {
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
 		panic(err)
 	}
+
 }
 
 func Buf() {
