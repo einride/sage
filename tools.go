@@ -76,7 +76,6 @@ func Protoc() {
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
 		panic(err)
 	}
-
 }
 
 func Buf() {
@@ -130,7 +129,7 @@ func GoogleProtoScrubber() {
 	if err != nil {
 		panic(err)
 	}
-	if !ok {
+	if ok {
 		f, err := os.Open(archive)
 		if err != nil {
 			panic(err)
@@ -143,7 +142,7 @@ func GoogleProtoScrubber() {
 		tarReader := tar.NewReader(uncompressedStream)
 
 	LOOP:
-		for true {
+		for {
 			header, err := tarReader.Next()
 			if err == io.EOF {
 				panic("Found no files in the tar.gz archive")
