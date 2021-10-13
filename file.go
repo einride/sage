@@ -154,3 +154,10 @@ func ExtractTarGz(src string, dest string) error {
 	}
 	return nil
 }
+
+func FileExist(file string) error {
+	if _, err := os.Stat(file); err != nil {
+		return err
+	}
+	return nil
+}
