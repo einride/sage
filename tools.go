@@ -86,7 +86,7 @@ func Terraform() {
 	version := "1.0.0"
 	binDir := filepath.Join(cwd, "tools", "terraform", version)
 	zip := filepath.Join(binDir, "terraform.zip")
-	binary := filepath.Join(binDir, "bin", "terraform")
+	binary := filepath.Join(binDir, "terraform")
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
