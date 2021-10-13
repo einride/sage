@@ -78,6 +78,36 @@ func Protoc() {
 	}
 }
 
+func Terraform() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	version := "1.0.0"
+	binDir := filepath.Join(cwd, "tools", "terraform", version)
+	zip := filepath.Join(binDir, "terraform.zip")
+	binary := filepath.Join(binDir, "bin", "terraform")
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	// Check if binary already exist
+	if _, err := os.Stat(binary); err == nil {
+		return
+	}
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+
+	binURL := fmt.Sprintf("https://releases.hashicorp.com/terraform/%s/terraform_%s_%s_%s.zip", version, version, hostOS, hostArch)
+
+	DownloadBinary(binDir, binURL, zip)
+
+	_, err = ExtractZip(zip, binDir)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func Buf() {
 	cwd, err := os.Getwd()
 	if err != nil {
