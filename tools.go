@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 	"io"
 	"os"
 	"path/filepath"
@@ -196,6 +198,143 @@ func GoogleProtoScrubber() {
 				}
 				break LOOP
 			}
+		}
+	}
+}
+
+func GH() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+
+	version := "1.4.0"
+
+
+	ghFolder := fmt.Sprintf("gh_%s_%s_%s", version, hostOS, hostArch)
+	dir := filepath.Join(cwd, "tools", "gh")
+	binDir := filepath.Join(dir, ghFolder, "bin")
+	binary := filepath.Join(binDir, "gh")
+	archive := dir + "/gh.tar.gz"
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	// Check if binary already exist
+	if _, err := os.Stat(binary); err == nil {
+		return
+	}
+
+	binURL := fmt.Sprintf("https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz", version, version, hostOS, hostArch)
+
+	ok, err := DownloadBinary(binDir, binURL, archive)
+	if err != nil {
+		panic(err)
+	}
+	if ok {
+		f, err := os.Open(archive)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		uncompressedStream, err := gzip.NewReader(f)
+		if err != nil {
+			panic(err)
+		}
+		tarReader := tar.NewReader(uncompressedStream)
+
+	LOOP:
+		for {
+			header, err := tarReader.Next()
+			if err == io.EOF {
+				panic("Found no files in the tar.gz archive")
+			}
+			if err != nil {
+				panic(err)
+			}
+
+			switch header.Typeflag {
+			case tar.TypeReg:
+				if header.Name != ghFolder + "/bin/gh" {
+					continue
+				}
+				outFile, err := os.OpenFile(filepath.Join(dir, header.Name), os.O_RDWR|os.O_CREATE, 0o755)
+				if err != nil {
+					panic(err)
+				}
+				defer outFile.Close()
+				if _, err := io.Copy(outFile, tarReader); err != nil {
+					panic(err)
+				}
+				break LOOP
+			}
+		}
+	}
+}
+
+func GHComment() {
+	mg.Deps(GH)
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	version := "0.2.1"
+	binDir := filepath.Join(cwd, "tools", "ghcomment", version)
+	binary := filepath.Join(binDir, "ghcomment")
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	// Check if binary already exist
+	if _, err := os.Stat(binary); err == nil {
+		return
+	}
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+	ghVersion := "v" + version
+	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
+	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
+	println(archive)
+
+	sh.Run("gh", "release", "download", "--repo", "einride/ghcomment", ghVersion, "--pattern", pattern, "--dir", binDir)
+
+	f, err := os.Open(archive)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	uncompressedStream, err := gzip.NewReader(f)
+	if err != nil {
+		panic(err)
+	}
+	tarReader := tar.NewReader(uncompressedStream)
+
+LOOP:
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			panic("Found no files in the tar.gz archive")
+		}
+		if err != nil {
+			panic(err)
+		}
+
+		switch header.Typeflag {
+		case tar.TypeReg:
+			if header.Name != "ghcomment" {
+				continue
+			}
+			outFile, err := os.OpenFile(filepath.Join(binDir, header.Name), os.O_RDWR|os.O_CREATE, 0o755)
+			if err != nil {
+				panic(err)
+			}
+			defer outFile.Close()
+			if _, err := io.Copy(outFile, tarReader); err != nil {
+				panic(err)
+			}
+			break LOOP
 		}
 	}
 }
