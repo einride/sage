@@ -44,7 +44,6 @@ func Init(config TfConfig) {
 	mg.Deps(tools.Terraform)
 	backendConfigBucket := "-backend-config=bucket=" + config.StateBucket
 	backendConfigServiceAccount := "-backend-config=impersonate_service_account=" + config.ServiceAccount
-	println(config.Upgrade)
 	fmt.Println("Initing...")
 	out, _ := sh.Output(
 		"terraform",
