@@ -13,80 +13,79 @@ var ProdConfig TfConfig
 type TfConfig struct {
 	ServiceAccount string
 	StateBucket    string
-	Upgrade        string
-	Refresh        string
+	Upgrade        bool
+	Refresh        bool
 	VarFile        string
 }
 
 func SetupDev(config TfConfig) error {
 	DevConfig = config
-	if DevConfig.Refresh == "" {
-		DevConfig.Refresh = "-refresh-only=false"
-	}
-	if DevConfig.Upgrade == "" {
-		DevConfig.Upgrade = "-upgrade=false"
-	}
 	return nil
 }
 
 func SetupProd(config TfConfig) error {
 	ProdConfig = config
-	if ProdConfig.Refresh == "" {
-		ProdConfig.Refresh = "-refresh-only=false"
-	}
-	if ProdConfig.Upgrade == "" {
-		ProdConfig.Upgrade = "-upgrade=false"
-	}
 	return nil
 }
 
 func Init(config TfConfig) {
 	mg.Deps(tools.Terraform)
-	backendConfigBucket := "-backend-config=bucket=" + config.StateBucket
-	backendConfigServiceAccount := "-backend-config=impersonate_service_account=" + config.ServiceAccount
-	fmt.Println("Initing...")
-	out, _ := sh.Output(
-		"terraform",
+	args := []string{
 		"init",
 		"-input=false",
 		"-reconfigure",
-		backendConfigBucket,
-		backendConfigServiceAccount,
-		config.Upgrade,
+		"-backend-config=bucket=" + config.StateBucket,
+		"-backend-config=impersonate_service_account=" + config.ServiceAccount,
+	}
+	if config.Upgrade {
+		args = append(args, "-upgrade=true")
+	}
+	fmt.Println("Initing...")
+	out, _ := sh.Output(
+		"terraform",
+		args...,
 	)
 	fmt.Println(out)
 }
 
 func Plan(config TfConfig) {
-	varFile := "-var-file=" + config.VarFile
 	mg.Deps(tools.Terraform)
 	fmt.Println("Planning...")
-	out, _ := sh.Output(
-		"terraform",
+	args := []string{
 		"plan",
 		"-input=false",
 		"-no-color",
 		"-lock-timeout=120s",
-		varFile,
 		"-out=terraform.plan",
-		config.Refresh,
+		"-var-file=" + config.VarFile,
+	}
+	if config.Refresh {
+		args = append(args, "-refresh-only=true")
+	}
+	out, _ := sh.Output(
+		"terraform",
+		args...,
 	)
 	fmt.Println(out)
 }
 
 func Apply(config TfConfig) {
-	varFile := "-var-file=" + config.VarFile
 	mg.Deps(tools.Terraform)
 	fmt.Println("Applying...")
-	out, _ := sh.Output(
-		"terraform",
+	args := []string{
 		"apply",
 		"-input=false",
 		"-no-color",
 		"-lock-timeout=120s",
 		"-auto-approve=true",
-		varFile,
-		config.Refresh,
+		"-var-file=" + config.VarFile,
+	}
+	if config.Refresh {
+		args = append(args, "-refresh-only=true")
+	}
+	out, _ := sh.Output(
+		"terraform",
+		args...,
 	)
 	fmt.Println(out)
 }
@@ -96,7 +95,7 @@ func InitDev() {
 }
 
 func InitDevUpgrade() {
-	DevConfig.Upgrade = "-upgrade=true"
+	DevConfig.Upgrade = true
 	mg.Deps(InitDev)
 }
 
@@ -105,7 +104,7 @@ func InitProd() {
 }
 
 func InitProdUpgrade() {
-	DevConfig.Upgrade = "-upgrade=true"
+	DevConfig.Upgrade = true
 	mg.Deps(InitProd)
 }
 
@@ -114,7 +113,7 @@ func PlanDev() {
 }
 
 func PlanRefreshDev() {
-	DevConfig.Refresh = "-refresh-only=true"
+	DevConfig.Refresh = true
 	mg.Deps(PlanDev)
 }
 
@@ -123,7 +122,7 @@ func PlanProd() {
 }
 
 func PlanRefreshProd() {
-	DevConfig.Refresh = "-refresh-only=true"
+	DevConfig.Refresh = true
 	mg.Deps(PlanProd)
 }
 
@@ -132,7 +131,7 @@ func ApplyDev() {
 }
 
 func ApplyRefreshDev() {
-	DevConfig.Refresh = "-refresh-only=true"
+	DevConfig.Refresh = true
 	mg.Deps(ApplyDev)
 }
 
@@ -141,6 +140,6 @@ func ApplyProd() {
 }
 
 func ApplyRefreshProd() {
-	DevConfig.Refresh = "-refresh-only=true"
+	DevConfig.Refresh = true
 	mg.Deps(ApplyProd)
 }
