@@ -7,8 +7,8 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-var DevConfig TfConfig
-var ProdConfig TfConfig
+var devConfig TfConfig
+var prodConfig TfConfig
 
 type TfConfig struct {
 	ServiceAccount string
@@ -19,12 +19,12 @@ type TfConfig struct {
 }
 
 func SetupDev(config TfConfig) error {
-	DevConfig = config
+	devConfig = config
 	return nil
 }
 
 func SetupProd(config TfConfig) error {
-	ProdConfig = config
+	prodConfig = config
 	return nil
 }
 
@@ -91,55 +91,55 @@ func Apply(config TfConfig) {
 }
 
 func InitDev() {
-	Init(DevConfig)
+	Init(devConfig)
 }
 
 func InitDevUpgrade() {
-	DevConfig.Upgrade = true
+	devConfig.Upgrade = true
 	mg.Deps(InitDev)
 }
 
 func InitProd() {
-	Init(ProdConfig)
+	Init(prodConfig)
 }
 
 func InitProdUpgrade() {
-	DevConfig.Upgrade = true
+	devConfig.Upgrade = true
 	mg.Deps(InitProd)
 }
 
 func PlanDev() {
-	Plan(DevConfig)
+	Plan(devConfig)
 }
 
 func PlanRefreshDev() {
-	DevConfig.Refresh = true
+	devConfig.Refresh = true
 	mg.Deps(PlanDev)
 }
 
 func PlanProd() {
-	Plan(ProdConfig)
+	Plan(prodConfig)
 }
 
 func PlanRefreshProd() {
-	DevConfig.Refresh = true
+	devConfig.Refresh = true
 	mg.Deps(PlanProd)
 }
 
 func ApplyDev() {
-	Apply(DevConfig)
+	Apply(devConfig)
 }
 
 func ApplyRefreshDev() {
-	DevConfig.Refresh = true
+	devConfig.Refresh = true
 	mg.Deps(ApplyDev)
 }
 
 func ApplyProd() {
-	Apply(ProdConfig)
+	Apply(prodConfig)
 }
 
 func ApplyRefreshProd() {
-	DevConfig.Refresh = true
+	devConfig.Refresh = true
 	mg.Deps(ApplyProd)
 }
