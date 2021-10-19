@@ -38,7 +38,17 @@ func PrintMakeTargets() error {
 		parts := strings.Fields(l)
 		if len(parts) > 0 {
 			// Remove spaces and default mark (*)
-			targets = append(targets, strings.TrimRight(strings.TrimSpace(parts[0]), "*"))
+			parts[0] = strings.TrimRight(strings.TrimSpace(parts[0]), "*")
+
+			// Remove this mage target from the output
+			if strings.Contains(parts[0], "printMakeTargets") {
+				continue
+			}
+
+			// Replace namespace splitter since it's not compatible with make
+			parts[0] = strings.Replace(parts[0], ":", "_", 1)
+
+			targets = append(targets, parts[0])
 		}
 	}
 	fmt.Println(strings.Join(targets, " "))
