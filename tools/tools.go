@@ -78,8 +78,10 @@ func Protoc() {
 	}
 }
 
-func Terraform() {
-	version := "1.0.0"
+func Terraform(version string) {
+	if version == "" {
+		version = "1.0.0"
+	}
 	binDir := filepath.Join(toolsPath(), "terraform", version)
 	binary := filepath.Join(binDir, "terraform")
 
