@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -78,14 +79,31 @@ func Protoc() {
 	}
 }
 
-func Terraform(version string) {
+func Terraform(version string) error {
+	const defaultVersion = "1.0.0"
+
 	if version == "" {
-		version = "1.0.0"
+		version = defaultVersion
 	}
+
+	supportedVersions := []string{
+		"1.0.0",
+		"1.0.5",
+	}
+	if !contains(supportedVersions, version) {
+		return errors.New(
+			fmt.Sprintf(
+				"The following Terraform versions are supported: %s",
+				strings.Join(supportedVersions, ", "),
+			),
+		)
+	}
+
 	binDir := filepath.Join(toolsPath(), "terraform", version)
 	binary := filepath.Join(binDir, "terraform")
+	path := fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH"))
 
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	os.Setenv("PATH", path)
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -98,8 +116,9 @@ func Terraform(version string) {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		panic(fmt.Sprintf("Unable to download terraform: %v", err))
+		return errors.New(fmt.Sprintf("Unable to download terraform: %v", err))
 	}
+	return nil
 }
 
 func Buf() {
@@ -213,4 +232,13 @@ func GHComment() {
 	); err != nil {
 		panic(fmt.Sprintf("Unable to download gh: %v", err))
 	}
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
