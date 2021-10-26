@@ -13,7 +13,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
 		mg.F(tools.Terraform, tfVersion),
-		tools.GHComment,
+		mg.F(tools.GHComment),
 		mg.F(file.Exists, terraformPlanFile),
 	)
 
@@ -33,7 +33,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 %s
 `, gcpProject, comment)
 
-	out, _ := sh.Output(
+	err := sh.RunV(
 		"ghcomment",
 		"--pr",
 		prNumber,
@@ -42,5 +42,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 		"--comment",
 		ghComment,
 	)
-	fmt.Println(out)
+	if err != nil {
+		panic(err)
+	}
 }

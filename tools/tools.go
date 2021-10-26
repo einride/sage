@@ -236,7 +236,7 @@ func GH() error {
 }
 
 func GHComment() error {
-	mg.Deps(GH)
+	mg.Deps(mg.F(GH))
 
 	version := "0.2.1"
 	binDir := filepath.Join(path(), "ghcomment", version, "bin")
@@ -245,7 +245,7 @@ func GHComment() error {
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
 	// Check if binary already exist
-	if _, err := os.Stat(binary); err == nil {
+	if file.Exists(binary) == nil {
 		return nil
 	}
 
