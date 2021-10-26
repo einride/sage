@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 )
 
-// This should only be used to set a custom value.
-// Targets should use toolsPath() instead which performs
+// Path This should only be used to set a custom value.
+// Targets should use path() instead which performs
 // validation on whether a path is set
-var ToolsPath = cwdPath("tools")
+var Path = cwdPath("tools")
 
 func cwdPath(path string) string {
 	cwd, err := os.Getwd()
@@ -18,9 +18,9 @@ func cwdPath(path string) string {
 	return filepath.Join(cwd, path)
 }
 
-func toolsPath() string {
-	if ToolsPath == "" {
+func path() string {
+	if Path == "" {
 		panic("No tools path set")
 	}
-	return ToolsPath
+	return Path
 }
