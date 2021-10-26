@@ -1,7 +1,7 @@
 package terraform
 
 import (
-	"github.com/einride/mage-tools"
+	"github.com/einride/mage-tools/tools"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -9,6 +9,7 @@ import (
 
 var devConfig TfConfig
 var prodConfig TfConfig
+var tfVersion string
 
 type TfConfig struct {
 	ServiceAccount string `validate:"required,email"`
@@ -16,6 +17,11 @@ type TfConfig struct {
 	Upgrade        bool
 	Refresh        bool
 	VarFile        string `validate:"required"`
+}
+
+func SetVersion(v string) (error, string) {
+	tfVersion = v
+	return nil, tfVersion
 }
 
 func SetupDev(config TfConfig) {
@@ -135,7 +141,7 @@ func ApplyRefreshProd() {
 }
 
 func runTf(args []string) {
-	mg.Deps(tools.Terraform)
+	mg.Deps(mg.F(tools.Terraform, tfVersion))
 	err := sh.RunV("terraform", args...)
 	if err != nil {
 		panic(err)

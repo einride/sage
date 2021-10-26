@@ -2,8 +2,8 @@ package terraform
 
 import (
 	"fmt"
+	"github.com/einride/mage-tools/tools"
 
-	tools "github.com/einride/mage-tools"
 	"github.com/einride/mage-tools/file"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -12,7 +12,7 @@ import (
 func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
-		tools.Terraform,
+		mg.F(tools.Terraform, tfVersion),
 		tools.GHComment,
 		mg.F(file.Exists, terraformPlanFile),
 	)
