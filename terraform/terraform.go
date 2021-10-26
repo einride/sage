@@ -140,6 +140,14 @@ func ApplyRefreshProd() {
 	mg.Deps(ApplyProd)
 }
 
+func Sops(file string) {
+	mg.Deps(mg.F(tools.Sops))
+	err := sh.RunV("sops", file)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func runTf(args []string) {
 	mg.Deps(mg.F(tools.Terraform, tfVersion))
 	err := sh.RunV("terraform", args...)
