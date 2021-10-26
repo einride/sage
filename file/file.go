@@ -300,6 +300,9 @@ func (s *FileState) extractTar(reader io.Reader) error {
 			if err != nil {
 				return fmt.Errorf("extractTar: Create() failed: %w", err)
 			}
+			if err := os.Chmod(path, 0775); err != nil {
+				return fmt.Errorf("extractTar: Chmod() failed: %s", err)
+			}
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return fmt.Errorf("extractTar: Copy() failed: %s", err)
 			}
