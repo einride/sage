@@ -121,6 +121,30 @@ func Terraform(version string) error {
 	return nil
 }
 
+func Sops() error {
+	version := "3.7.1"
+
+	binDir := filepath.Join(toolsPath(), "sops", version)
+	binary := filepath.Join(binDir, "sops")
+
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	hostOS := runtime.GOOS
+
+	binURL := fmt.Sprintf("https://github.com/mozilla/sops/releases/download/v%s/sops-v%s.%s", version, version, hostOS)
+
+	if err := file.FromRemote(
+		binURL,
+		file.WithDestinationDir(binDir),
+		file.WithRenameFile("", "sops"),
+		file.WithSkipIfFileExists(binary),
+	); err != nil {
+		errors.New(fmt.Sprintf("Unable to download Sops: %v", err))
+	}
+	return nil
+}
+
 func Buf() {
 	version := "0.55.0"
 	binDir := filepath.Join(toolsPath(), "buf", version, "bin")
