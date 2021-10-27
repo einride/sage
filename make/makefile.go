@@ -3,13 +3,19 @@ package make
 import (
 	"bytes"
 	"fmt"
-	"github.com/einride/mage-tools/tools"
 	"os"
-	"regexp"
 	"strings"
+	"text/template"
 
+	"github.com/iancoleman/strcase"
 	"github.com/magefile/mage/mage"
 )
+
+type templateTargets struct {
+	MakeTarget string
+	MageTarget string
+	Args       []string
+}
 
 func GenerateMakefile(makefile string) error {
 	targets, err := listTargets()
@@ -17,7 +23,7 @@ func GenerateMakefile(makefile string) error {
 		return err
 	}
 	// Write makefile to disk
-	f, err := os.Create(tools.CwdPath(makefile))
+	f, err := os.Create(makefile)
 	if err != nil {
 		return err
 	}
@@ -25,31 +31,63 @@ func GenerateMakefile(makefile string) error {
 	defer f.Close()
 
 	// This part will be written to the start of the makefile
-	staticContent := fmt.Sprintf(
-		`mage_cwd := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-make_dir := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
-
+	t, _ := template.New("statc").Parse(
+		`make_dir := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 `,
 	)
-	_, err = f.WriteString(staticContent)
+	err = t.Execute(f, "")
 	if err != nil {
 		return err
 	}
 
-	for _, i := range targets {
-		makeFormat := toMakeFormat(strings.Fields(i)[0])
-		dynamicContent := fmt.Sprintf(
-			`.PHONY: %s
-%s:
-%s@cd $(mage_cwd) && $(mage) -w $(make_dir) %s
-
-`, makeFormat, makeFormat, "\t", i)
-		_, err = f.WriteString(dynamicContent)
+	for _, target := range targets {
+		parts := strings.Fields(target)
+		target := templateTargets{
+			MakeTarget: toMakeTarget(parts[0]),
+			MageTarget: toMageTarget(target),
+			Args:       toMakeVars(parts[1:]),
+		}
+		t, _ = template.New("dynamic").Parse(`
+.PHONY: {{.MakeTarget}}
+{{.MakeTarget}}:{{range .Args}}
+ifndef {{.}}
+{{"\t"}}$(error missing argument {{.}}="...")
+endif{{end}}
+{{"\t"}}@cd $(mage_folder) && $(mage) -w $(make_dir) {{.MageTarget}}
+`)
+		err = t.Execute(f, target)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// toMakeVars converts input to make vars
+func toMakeVars(args []string) []string {
+	var list []string
+	for _, arg := range args {
+		arg = strcase.ToSnakeWithIgnore(arg, " ")
+		arg = strings.ReplaceAll(arg, "<", "")
+		arg = strings.ReplaceAll(arg, ">", "")
+		list = append(list, arg)
+	}
+	return list
+}
+
+// toMakeTarget converts input to make target format
+func toMakeTarget(str string) string {
+	output := strcase.ToKebab(str)
+	output = strings.ReplaceAll(output, ":", "-")
+	return strings.ToLower(output)
+}
+
+// toMageTarget converts input to mage target format
+func toMageTarget(str string) string {
+	str = strcase.ToSnakeWithIgnore(str, " ")
+	str = strings.ReplaceAll(str, "<", "$(")
+	str = strings.ReplaceAll(str, ">", ")")
+	return str
 }
 
 func listTargets() ([]string, error) {
@@ -60,7 +98,7 @@ func listTargets() ([]string, error) {
 		Stderr: os.Stderr,
 	})
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
 	lines := strings.Split(strings.TrimSpace(b.String()), "\n")
@@ -84,13 +122,13 @@ func listTargets() ([]string, error) {
 			parts[0] = strings.TrimRight(strings.TrimSpace(parts[0]), "*")
 
 			// Remove this mage target from the output
-			if strings.Contains(parts[0], "printMakeTargets") {
+			if strings.Contains(parts[0], "generateMakefile") {
 				continue
 			}
 			// Get input arguments for mage target
 			args, err := getTargetArguments(parts[0])
 			if err != nil {
-				return []string{}, err
+				return nil, err
 			} else if args != "" {
 				parts[0] = parts[0] + " " + args
 			}
@@ -100,16 +138,6 @@ func listTargets() ([]string, error) {
 	}
 
 	return targets, nil
-}
-
-func toMakeFormat(str string) string {
-	matchFirstCap := regexp.MustCompile("([A-Z])([A-Z][a-z])")
-	matchAllCap := regexp.MustCompile("([a-z0-9])([A-Z])")
-
-	output := matchFirstCap.ReplaceAllString(str, "${1}-${2}")
-	output = matchAllCap.ReplaceAllString(output, "${1}-${2}")
-	output = strings.ReplaceAll(output, ":", "-")
-	return strings.ToLower(output)
 }
 
 func getTargetArguments(name string) (string, error) {
@@ -130,15 +158,13 @@ func getTargetArguments(name string) (string, error) {
 	}
 
 	var arguments string
-	for _, a := range lines {
-		parts := strings.Fields(a)[2:]
+	for _, arg := range lines {
+		parts := strings.Fields(arg)[2:]
 		if len(parts) == 0 {
 			continue
 		}
-		a = strings.Join(parts, " ")
-		a = strings.ReplaceAll(a, "<", "$(")
-		a = strings.ReplaceAll(a, ">", ")")
-		arguments = a
+		arg = strings.Join(parts, " ")
+		arguments = arg
 	}
 
 	return arguments, nil

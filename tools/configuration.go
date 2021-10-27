@@ -8,9 +8,9 @@ import (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set
-var Path = CwdPath("tools")
+var Path = cwdPath("tools")
 
-func CwdPath(path string) string {
+func cwdPath(path string) string {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
