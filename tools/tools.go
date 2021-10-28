@@ -328,6 +328,82 @@ func Goreview() error {
 	return nil
 }
 
+func SemanticRelease(branch string) error {
+	// Check if npm is installed
+	if err := sh.Run("npm", "version"); err != nil {
+		return err
+	}
+
+	toolDir := filepath.Join(path(), "semantic-release")
+	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
+	releasercJson := filepath.Join(toolDir, ".releaserc.json")
+	packageJson := filepath.Join(toolDir, "package.json")
+
+	packageFileContent := fmt.Sprintf(`{
+    "devDependencies": {
+        "semantic-release": "^17.3.7",
+        "@semantic-release/github": "^7.2.0",
+        "@semantic-release/release-notes-generator": "^9.0.1",
+        "conventional-changelog-conventionalcommits": "^4.5.0"
+    }
+}`)
+	releasercFileContent := fmt.Sprintf(`{
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          {
+            "type": "chore",
+            "release": "patch"
+          },
+          {
+            "breaking": true,
+            "release": "minor"
+          }
+        ]
+      }
+    ],
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/github"
+  ],
+  "branches": [
+    "%s"
+  ],
+  "success": false,
+  "fail": false
+}`, branch)
+
+	fp, err := os.Create(packageJson)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	if _, err = fp.WriteString(packageFileContent); err != nil {
+		return err
+	}
+
+	fr, err := os.Create(releasercJson)
+	if err != nil {
+		return err
+	}
+	defer fr.Close()
+
+	if _, err = fr.WriteString(releasercFileContent); err != nil {
+		return err
+	}
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	err = sh.Run("npm", "--silent", "install", "--prefix", toolDir, "--no-save", "--no-audit", "--ignore-script")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
