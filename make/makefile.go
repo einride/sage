@@ -44,7 +44,7 @@ func GenerateMakefile(makefile string) error {
 		parts := strings.Fields(target)
 		target := templateTargets{
 			MakeTarget: toMakeTarget(parts[0]),
-			MageTarget: toMageTarget(target),
+			MageTarget: target,
 			Args:       toMakeVars(parts[1:]),
 		}
 		t, _ = template.New("dynamic").Parse(`
@@ -68,8 +68,8 @@ func toMakeVars(args []string) []string {
 	var list []string
 	for _, arg := range args {
 		arg = strcase.ToSnakeWithIgnore(arg, " ")
-		arg = strings.ReplaceAll(arg, "<", "")
-		arg = strings.ReplaceAll(arg, ">", "")
+		arg = strings.ReplaceAll(arg, "$(", "")
+		arg = strings.ReplaceAll(arg, ")", "")
 		list = append(list, arg)
 	}
 	return list
@@ -80,14 +80,6 @@ func toMakeTarget(str string) string {
 	output := strcase.ToKebab(str)
 	output = strings.ReplaceAll(output, ":", "-")
 	return strings.ToLower(output)
-}
-
-// toMageTarget converts input to mage target format
-func toMageTarget(str string) string {
-	str = strcase.ToSnakeWithIgnore(str, " ")
-	str = strings.ReplaceAll(str, "<", "$(")
-	str = strings.ReplaceAll(str, ">", ")")
-	return str
 }
 
 func listTargets() ([]string, error) {
@@ -164,6 +156,9 @@ func getTargetArguments(name string) (string, error) {
 			continue
 		}
 		arg = strings.Join(parts, " ")
+		arg = strcase.ToSnakeWithIgnore(arg, " ")
+		arg = strings.ReplaceAll(arg, "<", "$(")
+		arg = strings.ReplaceAll(arg, ">", ")")
 		arguments = arg
 	}
 
