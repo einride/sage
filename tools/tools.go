@@ -290,6 +290,44 @@ func GolangciLint() error {
 	return nil
 }
 
+func Goreview() error {
+	mg.Deps(mg.F(GH))
+
+	version := "0.18.0"
+	binDir := filepath.Join(path(), "goreview", version, "bin")
+	binary := filepath.Join(binDir, "goreview")
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	// Check if binary already exist
+	if file.Exists(binary) == nil {
+		return nil
+	}
+
+	hostOS := strings.Title(runtime.GOOS)
+	hostArch := runtime.GOARCH
+	if hostArch == "amd64" {
+		hostArch = "x86_64"
+	}
+	goreviewVersion := "v" + version
+	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
+	archive := fmt.Sprintf("%s/goreview_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
+
+	if err := sh.Run("gh", "release", "download", "--repo", "einride/goreview", goreviewVersion, "--pattern", pattern, "--dir", binDir); err != nil {
+		return fmt.Errorf("unable to download goreview: %v", err)
+	}
+
+	if err := file.FromLocal(
+		archive,
+		file.WithDestinationDir(binDir),
+		file.WithUntarGz(),
+	); err != nil {
+		return fmt.Errorf("unable to download goreview: %v", err)
+	}
+
+	return nil
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
