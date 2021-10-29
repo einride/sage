@@ -46,7 +46,7 @@ func GrpcJava() error {
 		file.WithRenameFile("", "protoc-gen-grpc-java"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download grpc-java: %v", err))
+		return fmt.Errorf("unable to download grpc-java: %v", err)
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func Protoc() error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download protoc: %v", err))
+		return fmt.Errorf("unable to download protoc: %v", err)
 	}
 
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
@@ -95,12 +95,7 @@ func Terraform(version string) error {
 		"1.0.5",
 	}
 	if !contains(supportedVersions, version) {
-		return errors.New(
-			fmt.Sprintf(
-				"The following Terraform versions are supported: %s",
-				strings.Join(supportedVersions, ", "),
-			),
-		)
+		return fmt.Errorf("the following Terraform versions are supported: %s", strings.Join(supportedVersions, ", "))
 	}
 
 	binDir := filepath.Join(path(), "terraform", version)
@@ -120,7 +115,7 @@ func Terraform(version string) error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download terraform: %v", err))
+		return fmt.Errorf("unable to download terraform: %v", err)
 	}
 	return nil
 }
@@ -130,7 +125,6 @@ func Sops() error {
 
 	binDir := filepath.Join(path(), "sops", version)
 	binary := filepath.Join(binDir, "sops")
-
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -144,7 +138,7 @@ func Sops() error {
 		file.WithRenameFile("", "sops"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		errors.New(fmt.Sprintf("Unable to download Sops: %v", err))
+		return fmt.Errorf("unable to download Sops: %v", err)
 	}
 	return nil
 }
@@ -170,7 +164,7 @@ func Buf() error {
 		file.WithRenameFile("", "buf"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download buf: %v", err))
+		return fmt.Errorf("unable to download buf: %v", err)
 	}
 
 	return nil
@@ -197,11 +191,11 @@ func GoogleProtoScrubber() error {
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download google-cloud-proto-scrubber: %v", err))
+		return fmt.Errorf("unable to download google-cloud-proto-scrubber: %v", err)
 	}
 
 	if err := os.Chmod(binary, 0o755); err != nil {
-		return errors.New(fmt.Sprintf("Unable to make google-cloud-proto-scrubber executable: %v", err))
+		return fmt.Errorf("unable to make google-cloud-proto-scrubber executable: %v", err)
 	}
 
 	return nil
@@ -229,7 +223,7 @@ func GH() error {
 		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), "gh"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download gh: %v", err))
+		return fmt.Errorf("unable to download gh: %v", err)
 	}
 
 	return nil
@@ -256,7 +250,7 @@ func GHComment() error {
 	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
 	if err := sh.Run("gh", "release", "download", "--repo", "einride/ghcomment", ghVersion, "--pattern", pattern, "--dir", binDir); err != nil {
-		return errors.New(fmt.Sprintf("unable to download ghcomment: %v", err))
+		return fmt.Errorf("unable to download ghcomment: %v", err)
 	}
 
 	if err := file.FromLocal(
@@ -264,7 +258,33 @@ func GHComment() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return errors.New(fmt.Sprintf("Unable to download gh: %v", err))
+		return fmt.Errorf("unable to download gh: %v", err)
+	}
+
+	return nil
+}
+
+func GolangciLint() error {
+	version := "1.42.1"
+	binDir := filepath.Join(path(), "golangci-lint", version, "bin")
+	binary := filepath.Join(binDir, "golangci-lint")
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", version, hostOS, hostArch)
+
+	binURL := fmt.Sprintf("https://github.com/golangci/golangci-lint/releases/download/v%s/%s.tar.gz", version, golangciLint)
+
+	if err := file.FromRemote(
+		binURL,
+		file.WithDestinationDir(binDir),
+		file.WithUntarGz(),
+		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), "golangci-lint"),
+		file.WithSkipIfFileExists(binary),
+	); err != nil {
+		return fmt.Errorf("unable to download gh: %v", err)
 	}
 
 	return nil
