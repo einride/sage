@@ -314,7 +314,8 @@ func (s *FileState) extractTar(reader io.Reader) error {
 			return fmt.Errorf(
 				"extractTar: uknown type: %v in %s",
 				header.Typeflag,
-				header.Name)
+				header.Name,
+			)
 		}
 	}
 	return nil
