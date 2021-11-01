@@ -2,7 +2,7 @@ module github.com/einride/mage-tools/.mage
 
 go 1.17
 
-require github.com/einride/mage-tools v0.0.0-20211029133512-38197f785fd2
+require github.com/einride/mage-tools v0.0.0-20211101160420-5dddc584a6f7
 
 require (
 	github.com/google/uuid v1.3.0 // indirect

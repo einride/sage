@@ -30,16 +30,6 @@ func GenerateMakefile(makefile string) error {
 
 	defer f.Close()
 
-	// This part will be written to the start of the makefile
-	t, _ := template.New("statc").Parse(
-		`make_dir := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
-`,
-	)
-	err = t.Execute(f, "")
-	if err != nil {
-		return err
-	}
-
 	for _, target := range targets {
 		parts := strings.Fields(target)
 		target := templateTargets{
@@ -47,13 +37,13 @@ func GenerateMakefile(makefile string) error {
 			MageTarget: target,
 			Args:       toMakeVars(parts[1:]),
 		}
-		t, _ = template.New("dynamic").Parse(`
+		t, _ := template.New("dynamic").Parse(`
 .PHONY: {{.MakeTarget}}
 {{.MakeTarget}}:{{range .Args}}
 ifndef {{.}}
 {{"\t"}}$(error missing argument {{.}}="...")
 endif{{end}}
-{{"\t"}}@cd $(mage_folder) && $(mage) -w $(make_dir) {{.MageTarget}}
+{{"\t"}}@$(mage) {{.MageTarget}}
 `)
 		err = t.Execute(f, target)
 		if err != nil {
