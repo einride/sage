@@ -142,7 +142,7 @@ func Sops() error {
 		file.WithRenameFile("", "sops"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download Sops: %v", err)
+		return fmt.Errorf("unable to download sops: %v", err)
 	}
 	return nil
 }
@@ -265,7 +265,7 @@ func GHComment() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return fmt.Errorf("unable to download gh: %v", err)
+		return fmt.Errorf("unable to download ghcomment: %v", err)
 	}
 
 	return nil
@@ -292,7 +292,7 @@ func GolangciLint() error {
 		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), "golangci-lint"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download gh: %v", err)
+		return fmt.Errorf("unable to download golangci-lint: %v", err)
 	}
 
 	return nil

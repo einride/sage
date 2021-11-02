@@ -7,6 +7,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 	"io/fs"
 	"net/http"
@@ -14,9 +15,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"github.com/go-playground/validator/v10"
-
-	"github.com/google/uuid"
 )
 
 type archiveType int
@@ -30,9 +28,9 @@ const (
 type opt func(f *FileState)
 
 type FileState struct {
-	name 		 string `validate:"required"`
+	name         string
 	archiveType  archiveType
-	dstPath      string `validate:"required"`
+	dstPath      string
 	archiveFiles map[string]string
 	skipFile     string
 }
@@ -40,12 +38,6 @@ type FileState struct {
 func FromRemote(addr string, opts ...opt) error {
 	s := &FileState{
 		archiveFiles: make(map[string]string),
-	}
-
-	validate := validator.New()
-	err := validate.Struct(s)
-	if err != nil {
-		panic(err)
 	}
 
 	for _, o := range opts {
@@ -59,6 +51,9 @@ func FromRemote(addr string, opts ...opt) error {
 		}
 	}
 
+	if s.name == "" {
+		return fmt.Errorf("fileState.name is empty")
+	}
 	fmt.Printf("[%s] Fetching %s\n", s.name, addr)
 
 	rStream, cleanup, err := downloadBinary(addr)
