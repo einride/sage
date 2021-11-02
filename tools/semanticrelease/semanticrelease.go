@@ -1,4 +1,4 @@
-package semantic_release
+package semanticrelease
 
 import (
 	"github.com/einride/mage-tools/tools"

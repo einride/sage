@@ -7,7 +7,7 @@ import (
 	// mage:import
 	_ "github.com/einride/mage-tools/make"
 	// mage:import
-	_ "github.com/einride/mage-tools/tools/golangci_lint"
+	_ "github.com/einride/mage-tools/tools/golangcilint"
 )
 
 func init() {

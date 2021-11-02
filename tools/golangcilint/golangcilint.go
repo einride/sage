@@ -1,4 +1,4 @@
-package golangci_lint
+package golangcilint
 
 import (
 	"fmt"
