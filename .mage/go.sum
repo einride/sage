@@ -1,8 +1,6 @@
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/einride/mage-tools v0.0.0-20211102115831-e53eb88c721c h1:tLKkcBxgILERN2YjGcDUBpwFNphgoVv+Ukj61/FBbpc=
-github.com/einride/mage-tools v0.0.0-20211102115831-e53eb88c721c/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
 github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26 h1:AMxQt5dwRB5ZT6yAte4R3aL5+5uEvYKJkfuuGq2uXaI=
 github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
