@@ -23,6 +23,7 @@ jobs:
       env:
         TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
       run: git config --global url."https://einride-bot:${TOKEN}@github.com/einride/".insteadOf "https://github.com/einride/"
+      if: ${{ github.actor != 'dependabot[bot]' }}
 
     - name: Lint
       run: make golangci-lint
