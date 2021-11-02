@@ -3,6 +3,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/einride/mage-tools v0.0.0-20211102115831-e53eb88c721c h1:tLKkcBxgILERN2YjGcDUBpwFNphgoVv+Ukj61/FBbpc=
 github.com/einride/mage-tools v0.0.0-20211102115831-e53eb88c721c/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
+github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26 h1:AMxQt5dwRB5ZT6yAte4R3aL5+5uEvYKJkfuuGq2uXaI=
+github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
 github.com/go-playground/locales v0.14.0/go.mod h1:sawfccIbzZTqEDETgFXqTho0QybSa7l++s0DH+LDiLs=
 github.com/go-playground/universal-translator v0.18.0/go.mod h1:UvRDBj+xPUEGrFYl+lu/H90nyDXpg0fqeB/AQUGNTVA=
