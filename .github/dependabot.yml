@@ -9,3 +9,5 @@ updates:
     directory: ".mage/"
     schedule:
       interval: "daily"
+    commit-message:
+      prefix: "[skip release]"
