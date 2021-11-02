@@ -339,6 +339,10 @@ func SemanticRelease(branch string) error {
 	releasercJson := filepath.Join(toolDir, ".releaserc.json")
 	packageJson := filepath.Join(toolDir, "package.json")
 
+	if err := os.MkdirAll(toolDir, 0o755); err != nil {
+		return err
+	}
+	
 	packageFileContent := `{
     "devDependencies": {
         "semantic-release": "^17.3.7",
