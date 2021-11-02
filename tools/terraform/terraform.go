@@ -141,7 +141,7 @@ func ApplyRefreshProd() {
 }
 
 func Sops(file string) {
-	mg.Deps(mg.F(tools.Sops))
+	mg.Deps(tools.Sops)
 	err := sh.RunV("sops", file)
 	if err != nil {
 		panic(err)

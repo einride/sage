@@ -230,7 +230,7 @@ func GH() error {
 }
 
 func GHComment() error {
-	mg.Deps(mg.F(GH))
+	mg.Deps(GH)
 
 	version := "0.2.1"
 	binDir := filepath.Join(path(), "ghcomment", version, "bin")
@@ -291,7 +291,7 @@ func GolangciLint() error {
 }
 
 func Goreview() error {
-	mg.Deps(mg.F(GH))
+	mg.Deps(GH)
 
 	version := "0.18.0"
 	binDir := filepath.Join(path(), "goreview", version, "bin")
@@ -339,14 +339,14 @@ func SemanticRelease(branch string) error {
 	releasercJson := filepath.Join(toolDir, ".releaserc.json")
 	packageJson := filepath.Join(toolDir, "package.json")
 
-	packageFileContent := fmt.Sprintf(`{
+	packageFileContent := `{
     "devDependencies": {
         "semantic-release": "^17.3.7",
         "@semantic-release/github": "^7.2.0",
         "@semantic-release/release-notes-generator": "^9.0.1",
         "conventional-changelog-conventionalcommits": "^4.5.0"
     }
-}`)
+}`
 	releasercFileContent := fmt.Sprintf(`{
   "plugins": [
     [

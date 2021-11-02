@@ -12,7 +12,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
 		mg.F(tools.Terraform, tfVersion),
-		mg.F(tools.GHComment),
+		tools.GHComment,
 		mg.F(file.Exists, terraformPlanFile),
 	)
 

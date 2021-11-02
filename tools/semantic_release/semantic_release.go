@@ -9,7 +9,11 @@ import (
 
 func Run(branch string, ci bool) error {
 	mg.Deps(mg.F(tools.SemanticRelease, branch))
-	releaserc := filepath.Join(tools.Path, "semantic-release", ".releaserc.json")
+	path, err := filepath.Abs(tools.Path)
+	if err != nil {
+		return err
+	}
+	releaserc := filepath.Join(path, "semantic-release", ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -17,7 +21,7 @@ func Run(branch string, ci bool) error {
 	if ci {
 		args = append(args, "--ci")
 	}
-	err := sh.RunV("semantic-release", args...)
+	err = sh.RunV("semantic-release", args...)
 	if err != nil {
 		return err
 	}

@@ -17,3 +17,5 @@ $(mage_target): $(mage_folder)/go.mod $(mage_folder)/magefile.go
 		go run mage.go -compile $(mage) && \
 		$(mage) generateMakefile $(@)
 
+clean:
+	@git clean $(mage_gen)/ -fdx
