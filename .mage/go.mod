@@ -9,5 +9,3 @@ require (
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/magefile/mage v1.11.1-0.20210928193738-dd944245e253 // indirect
 )
-
-replace github.com/einride/mage-tools => ../
