@@ -8,6 +8,8 @@ import (
 	_ "github.com/einride/mage-tools/make"
 	// mage:import
 	_ "github.com/einride/mage-tools/tools/golangcilint"
+	// mage:import semantic-release
+	_ "github.com/einride/mage-tools/tools/semanticrelease"
 )
 
 func init() {
