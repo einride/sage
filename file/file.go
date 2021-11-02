@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/google/uuid"
 )
@@ -29,9 +30,9 @@ const (
 type opt func(f *FileState)
 
 type FileState struct {
+	name 		 string `validate:"required"`
 	archiveType  archiveType
-	dstPath      string
-	dstIsFolder  bool
+	dstPath      string `validate:"required"`
 	archiveFiles map[string]string
 	skipFile     string
 }
@@ -40,6 +41,13 @@ func FromRemote(addr string, opts ...opt) error {
 	s := &FileState{
 		archiveFiles: make(map[string]string),
 	}
+
+	validate := validator.New()
+	err := validate.Struct(s)
+	if err != nil {
+		panic(err)
+	}
+
 	for _, o := range opts {
 		o(s)
 	}
@@ -50,6 +58,8 @@ func FromRemote(addr string, opts ...opt) error {
 			return nil
 		}
 	}
+
+	fmt.Printf("[%s] Fetching %s\n", s.name, addr)
 
 	rStream, cleanup, err := downloadBinary(addr)
 	if err != nil {
@@ -170,10 +180,15 @@ func WithUntarGz() opt {
 	}
 }
 
+func WithName(name string) opt {
+	return func(f *FileState) {
+		f.name = name
+	}
+}
+
 func WithDestinationDir(path string) opt {
 	return func(f *FileState) {
 		f.dstPath = path
-		f.dstIsFolder = true
 	}
 }
 

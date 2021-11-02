@@ -1,6 +1,7 @@
 package semanticrelease
 
 import (
+	"fmt"
 	"github.com/einride/mage-tools/tools"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -21,6 +22,7 @@ func Run(branch string, ci bool) error {
 	if ci {
 		args = append(args, "--ci")
 	}
+	fmt.Println("[semantic-release] creating release...")
 	err = sh.RunV("semantic-release", args...)
 	if err != nil {
 		return err

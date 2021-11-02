@@ -18,6 +18,7 @@ type templateTargets struct {
 }
 
 func GenerateMakefile(makefile string) error {
+	fmt.Println("[generate-makefile] generating makefile...")
 	targets, err := listTargets()
 	if err != nil {
 		return err

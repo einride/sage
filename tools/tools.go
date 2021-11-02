@@ -42,6 +42,7 @@ func GrpcJava() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithRenameFile("", "protoc-gen-grpc-java"),
 		file.WithSkipIfFileExists(binary),
@@ -69,6 +70,7 @@ func Protoc() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
@@ -111,6 +113,7 @@ func Terraform(version string) error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
@@ -134,6 +137,7 @@ func Sops() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithRenameFile("", "sops"),
 		file.WithSkipIfFileExists(binary),
@@ -160,6 +164,7 @@ func Buf() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithRenameFile("", "buf"),
 		file.WithSkipIfFileExists(binary),
@@ -187,6 +192,7 @@ func GoogleProtoScrubber() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
@@ -207,7 +213,6 @@ func GH() error {
 
 	version := "1.4.0"
 
-	// ghFolder := fmt.Sprintf("gh_%s_%s_%s", version, hostOS, hostArch)
 	dir := filepath.Join(path(), "gh")
 	binDir := filepath.Join(dir, version, "bin")
 	binary := filepath.Join(binDir, "gh")
@@ -218,6 +223,7 @@ func GH() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), "gh"),
@@ -249,6 +255,7 @@ func GHComment() error {
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
+	fmt.Printf("[ghcomment] Fetching GHComment %s\n", version)
 	if err := sh.Run("gh", "release", "download", "--repo", "einride/ghcomment", ghVersion, "--pattern", pattern, "--dir", binDir); err != nil {
 		return fmt.Errorf("unable to download ghcomment: %v", err)
 	}
@@ -279,6 +286,7 @@ func GolangciLint() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), "golangci-lint"),
@@ -313,6 +321,7 @@ func Goreview() error {
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/goreview_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
+	fmt.Printf("[goreview] Fetching Goreview %s\n", version)
 	if err := sh.Run("gh", "release", "download", "--repo", "einride/goreview", goreviewVersion, "--pattern", pattern, "--dir", binDir); err != nil {
 		return fmt.Errorf("unable to download goreview: %v", err)
 	}
@@ -342,7 +351,7 @@ func SemanticRelease(branch string) error {
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
-	
+
 	packageFileContent := `{
     "devDependencies": {
         "semantic-release": "^17.3.7",
@@ -400,7 +409,7 @@ func SemanticRelease(branch string) error {
 	}
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
-
+	fmt.Println("[semantic-release] installing packages...")
 	err = sh.Run("npm", "--silent", "install", "--prefix", toolDir, "--no-save", "--no-audit", "--ignore-script")
 	if err != nil {
 		return err
@@ -422,6 +431,7 @@ func Ko() error {
 
 	if err := file.FromRemote(
 		binURL,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),

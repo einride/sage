@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"fmt"
 	"github.com/einride/mage-tools/tools"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
@@ -150,6 +151,7 @@ func Sops(file string) {
 
 func runTf(args []string) {
 	mg.Deps(mg.F(tools.Terraform, tfVersion))
+	fmt.Println("[terraform] running terraform...")
 	err := sh.RunV("terraform", args...)
 	if err != nil {
 		panic(err)

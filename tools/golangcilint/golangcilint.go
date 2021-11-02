@@ -9,7 +9,7 @@ import (
 
 func GolangciLint() error {
 	mg.Deps(tools.GolangciLint)
-	fmt.Println("linting Go code with golangci-lint...")
+	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
 	err := sh.RunV("golangci-lint", "run")
 	if err != nil {
 		return err
