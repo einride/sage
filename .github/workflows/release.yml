@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -27,4 +27,6 @@ jobs:
       run: git config --global url."https://einride-bot:${TOKEN}@github.com/einride/".insteadOf "https://github.com/einride/"
 
     - name: Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
       run: make semantic-release-run branch=main ci=true
