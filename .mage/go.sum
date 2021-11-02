@@ -5,6 +5,8 @@ github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26 h1:AMxQt5dwRB5Z
 github.com/einride/mage-tools v0.0.0-20211102121516-ffa4aa219a26/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
 github.com/einride/mage-tools v0.0.0-20211102135353-7e5a522bba75 h1:WXyzB2NOH5uI7OXVjxmmL0Z3cT/mkwXnRSDkfXcuLXw=
 github.com/einride/mage-tools v0.0.0-20211102135353-7e5a522bba75/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
+github.com/einride/mage-tools v1.0.0 h1:gRhlVJRzrjyalX5T/pGW3mb7o5nHjvWvFd/+RHTq1ew=
+github.com/einride/mage-tools v1.0.0/go.mod h1:9gaP7fwUxQ7/Ac3OqDX3L10RPHH8GXlYqad0mplm5H4=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
 github.com/go-playground/locales v0.14.0/go.mod h1:sawfccIbzZTqEDETgFXqTho0QybSa7l++s0DH+LDiLs=
 github.com/go-playground/universal-translator v0.18.0/go.mod h1:UvRDBj+xPUEGrFYl+lu/H90nyDXpg0fqeB/AQUGNTVA=
