@@ -404,6 +404,30 @@ func SemanticRelease(branch string) error {
 	return nil
 }
 
+func Ko() error {
+	hostOS := runtime.GOOS
+
+	version := "0.9.3"
+
+	binDir := filepath.Join(path(), "ko", version, "bin")
+	binary := filepath.Join(binDir, "ko")
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+
+	binURL := fmt.Sprintf("https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz", version, version, hostOS)
+
+	if err := file.FromRemote(
+		binURL,
+		file.WithDestinationDir(binDir),
+		file.WithUntarGz(),
+		file.WithSkipIfFileExists(binary),
+	); err != nil {
+		return fmt.Errorf("unable to download ko: %v", err)
+	}
+
+	return nil
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
