@@ -7,6 +7,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"io"
 	"io/fs"
@@ -28,33 +29,34 @@ const (
 type opt func(f *FileState)
 
 type FileState struct {
-	name         string
-	archiveType  archiveType
-	dstPath      string
-	archiveFiles map[string]string
-	skipFile     string
+	Name         string `validate:"required"`
+	ArchiveType  archiveType
+	DstPath      string
+	ArchiveFiles map[string]string
+	SkipFile     string
 }
 
 func FromRemote(addr string, opts ...opt) error {
 	s := &FileState{
-		archiveFiles: make(map[string]string),
+		ArchiveFiles: make(map[string]string),
 	}
 
 	for _, o := range opts {
 		o(s)
 	}
 
-	if s.skipFile != "" {
+	if s.SkipFile != "" {
 		// Check if binary already exist
-		if _, err := os.Stat(s.skipFile); err == nil {
+		if _, err := os.Stat(s.SkipFile); err == nil {
 			return nil
 		}
 	}
 
-	if s.name == "" {
-		return fmt.Errorf("fileState.name is empty")
+	if err := validator.New().Struct(s); err != nil {
+		return err
 	}
-	fmt.Printf("[%s] Fetching %s\n", s.name, addr)
+
+	fmt.Printf("[%s] Fetching %s\n", s.Name, addr)
 
 	rStream, cleanup, err := downloadBinary(addr)
 	if err != nil {
@@ -67,18 +69,24 @@ func FromRemote(addr string, opts ...opt) error {
 
 func FromLocal(filepath string, opts ...opt) error {
 	s := &FileState{
-		archiveFiles: make(map[string]string),
+		ArchiveFiles: make(map[string]string),
 	}
 	for _, o := range opts {
 		o(s)
 	}
 
-	if s.skipFile != "" {
+	if s.SkipFile != "" {
 		// Check if binary already exist
-		if _, err := os.Stat(s.skipFile); err == nil {
+		if _, err := os.Stat(s.SkipFile); err == nil {
 			return nil
 		}
 	}
+
+	if err := validator.New().Struct(s); err != nil {
+		return err
+	}
+
+	fmt.Printf("[%s] Fetching\n", s.Name)
 
 	f, err := os.Open(filepath)
 	if err != nil {
@@ -91,38 +99,38 @@ func FromLocal(filepath string, opts ...opt) error {
 
 func (s *FileState) handleFileStream(inFile io.Reader, filename string) error {
 	// If no destination path is set we create one with a random uuid
-	if s.dstPath == "" {
+	if s.DstPath == "" {
 		// Set a default destination on a temporary path and output filename has
 		path, err := os.MkdirTemp("", uuid.NewString())
 		if err != nil {
 			return fmt.Errorf("unable to creatre temporary directory: %w", err)
 		}
 		defer os.RemoveAll(path)
-		s.dstPath = path
+		s.DstPath = path
 	}
 
-	f, err := os.Open(s.dstPath)
+	f, err := os.Open(s.DstPath)
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("unable to read destination path")
 		}
-		if err := os.MkdirAll(s.dstPath, 0o755); err != nil {
+		if err := os.MkdirAll(s.DstPath, 0o755); err != nil {
 			return fmt.Errorf("unable to create destination path")
 		}
 	}
 	f.Close()
 
-	switch s.archiveType {
+	switch s.ArchiveType {
 	case None:
 		// There should be only 1 entry in the map
-		if len(s.archiveFiles) > 1 {
+		if len(s.ArchiveFiles) > 1 {
 			return fmt.Errorf("only 1 destination file should be specified on direct downloads")
 		}
-		for _, v := range s.archiveFiles {
+		for _, v := range s.ArchiveFiles {
 			filename = v
 			break
 		}
-		out, err := os.OpenFile(filepath.Join(s.dstPath, filename), os.O_RDWR|os.O_CREATE, 0755)
+		out, err := os.OpenFile(filepath.Join(s.DstPath, filename), os.O_RDWR|os.O_CREATE, 0755)
 		if err != nil {
 			return fmt.Errorf("unable to open %s: %w", filename, err)
 		}
@@ -165,25 +173,25 @@ func (s *FileState) handleFileStream(inFile io.Reader, filename string) error {
 
 func WithUnzip() opt {
 	return func(f *FileState) {
-		f.archiveType = Zip
+		f.ArchiveType = Zip
 	}
 }
 
 func WithUntarGz() opt {
 	return func(f *FileState) {
-		f.archiveType = TarGz
+		f.ArchiveType = TarGz
 	}
 }
 
 func WithName(name string) opt {
 	return func(f *FileState) {
-		f.name = name
+		f.Name = name
 	}
 }
 
 func WithDestinationDir(path string) opt {
 	return func(f *FileState) {
-		f.dstPath = path
+		f.DstPath = path
 	}
 }
 
@@ -198,13 +206,13 @@ func WithDestinationDir(path string) opt {
 // WithDestinationDir.
 func WithRenameFile(src string, dst string) opt {
 	return func(f *FileState) {
-		f.archiveFiles[src] = dst
+		f.ArchiveFiles[src] = dst
 	}
 }
 
 func WithSkipIfFileExists(filepath string) opt {
 	return func(f *FileState) {
-		f.skipFile = filepath
+		f.SkipFile = filepath
 	}
 }
 
@@ -229,15 +237,15 @@ func (s *FileState) extractZip(reader *zip.Reader) ([]string, error) {
 	var filenames []string
 	for _, f := range reader.File {
 		dstName := f.Name
-		if name, ok := s.archiveFiles[f.Name]; ok {
+		if name, ok := s.ArchiveFiles[f.Name]; ok {
 			dstName = name
 		}
 
 		// Store filename/path for returning and using later on
-		fpath := filepath.Join(s.dstPath, dstName)
+		fpath := filepath.Join(s.DstPath, dstName)
 
 		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
-		if !strings.HasPrefix(fpath, filepath.Clean(s.dstPath)+string(os.PathSeparator)) {
+		if !strings.HasPrefix(fpath, filepath.Clean(s.DstPath)+string(os.PathSeparator)) {
 			return filenames, fmt.Errorf("%s: illegal file path", fpath)
 		}
 
@@ -291,11 +299,11 @@ func (s *FileState) extractTar(reader io.Reader) error {
 		}
 
 		dstName := header.Name
-		if name, ok := s.archiveFiles[dstName]; ok {
+		if name, ok := s.ArchiveFiles[dstName]; ok {
 			dstName = name
 		}
 
-		path := filepath.Join(s.dstPath, dstName)
+		path := filepath.Join(s.DstPath, dstName)
 
 		switch header.Typeflag {
 		case tar.TypeDir:

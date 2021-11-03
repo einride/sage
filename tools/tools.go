@@ -211,7 +211,7 @@ func GH() error {
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 
-	version := "1.4.0"
+	version := "2.2.0"
 
 	dir := filepath.Join(path(), "gh")
 	binDir := filepath.Join(dir, version, "bin")
@@ -255,13 +255,13 @@ func GHComment() error {
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
-	fmt.Printf("[ghcomment] Fetching GHComment %s\n", version)
 	if err := sh.Run("gh", "release", "download", "--repo", "einride/ghcomment", ghVersion, "--pattern", pattern, "--dir", binDir); err != nil {
 		return fmt.Errorf("unable to download ghcomment: %v", err)
 	}
 
 	if err := file.FromLocal(
 		archive,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
@@ -321,13 +321,13 @@ func Goreview() error {
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/goreview_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
-	fmt.Printf("[goreview] Fetching Goreview %s\n", version)
 	if err := sh.Run("gh", "release", "download", "--repo", "einride/goreview", goreviewVersion, "--pattern", pattern, "--dir", binDir); err != nil {
 		return fmt.Errorf("unable to download goreview: %v", err)
 	}
 
 	if err := file.FromLocal(
 		archive,
+		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {

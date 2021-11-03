@@ -10,7 +10,7 @@ import (
 func Goreview() error {
 	mg.Deps(tools.Goreview)
 	// TODO: the args should probably not be hardocded
-	fmt.Println("[Go-review] reviewing Go code for Einride-specific conventions...")
+	fmt.Println("[goreview] reviewing Go code for Einride-specific conventions...")
 	err := sh.RunV("goreview", "-c", "1", "./...")
 	if err != nil {
 		return err
