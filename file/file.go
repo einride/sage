@@ -26,9 +26,9 @@ const (
 	TarGz
 )
 
-type opt func(f *FileState)
+type opt func(f *fileState)
 
-type FileState struct {
+type fileState struct {
 	Name         string `validate:"required"`
 	ArchiveType  archiveType
 	DstPath      string
@@ -37,7 +37,7 @@ type FileState struct {
 }
 
 func FromRemote(addr string, opts ...opt) error {
-	s := &FileState{
+	s := &fileState{
 		ArchiveFiles: make(map[string]string),
 	}
 
@@ -68,7 +68,7 @@ func FromRemote(addr string, opts ...opt) error {
 }
 
 func FromLocal(filepath string, opts ...opt) error {
-	s := &FileState{
+	s := &fileState{
 		ArchiveFiles: make(map[string]string),
 	}
 	for _, o := range opts {
@@ -97,7 +97,7 @@ func FromLocal(filepath string, opts ...opt) error {
 	return s.handleFileStream(f, path.Base(f.Name()))
 }
 
-func (s *FileState) handleFileStream(inFile io.Reader, filename string) error {
+func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 	// If no destination path is set we create one with a random uuid
 	if s.DstPath == "" {
 		// Set a default destination on a temporary path and output filename has
@@ -172,25 +172,25 @@ func (s *FileState) handleFileStream(inFile io.Reader, filename string) error {
 }
 
 func WithUnzip() opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.ArchiveType = Zip
 	}
 }
 
 func WithUntarGz() opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.ArchiveType = TarGz
 	}
 }
 
 func WithName(name string) opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.Name = name
 	}
 }
 
 func WithDestinationDir(path string) opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.DstPath = path
 	}
 }
@@ -205,13 +205,13 @@ func WithDestinationDir(path string) opt {
 // The output file is stored relative to the destination dir given by
 // WithDestinationDir.
 func WithRenameFile(src string, dst string) opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.ArchiveFiles[src] = dst
 	}
 }
 
 func WithSkipIfFileExists(filepath string) opt {
-	return func(f *FileState) {
+	return func(f *fileState) {
 		f.SkipFile = filepath
 	}
 }
@@ -233,7 +233,7 @@ func downloadBinary(url string) (io.ReadCloser, func(), error) {
 // extractZip will decompress a zip archive from the given gzip.Reader into
 // the destination path.
 // The path must exist already.
-func (s *FileState) extractZip(reader *zip.Reader) ([]string, error) {
+func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 	var filenames []string
 	for _, f := range reader.File {
 		dstName := f.Name
@@ -282,7 +282,7 @@ func (s *FileState) extractZip(reader *zip.Reader) ([]string, error) {
 	return filenames, nil
 }
 
-func (s *FileState) extractTar(reader io.Reader) error {
+func (s *fileState) extractTar(reader io.Reader) error {
 	if reader == nil {
 		return errors.New("unable to untar nil file")
 	}
