@@ -499,6 +499,55 @@ func SemanticRelease(branch string) error {
 	return nil
 }
 
+func Commitlint() error {
+	// Check if npm is installed
+	if err := sh.Run("npm", "version"); err != nil {
+		return err
+	}
+
+	toolDir := filepath.Join(path(), "commitlint")
+	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
+	packageJSON := filepath.Join(toolDir, "package.json")
+
+	if err := os.MkdirAll(toolDir, 0o755); err != nil {
+		return err
+	}
+
+	packageFileContent := `{
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0"
+  }
+}`
+
+	fp, err := os.Create(packageJSON)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	if _, err = fp.WriteString(packageFileContent); err != nil {
+		return err
+	}
+
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	fmt.Println("[commitlint] installing packages...")
+	err = sh.Run(
+		"npm",
+		"--silent",
+		"install",
+		"--prefix",
+		toolDir,
+		"--no-save",
+		"--no-audit",
+		"--ignore-script",
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func Ko() error {
 	hostOS := runtime.GOOS
 
