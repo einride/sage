@@ -13,6 +13,11 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+const (
+	amd64  = "amd64"
+	x86_64 = "x86_64"
+)
+
 func GrpcJava() error {
 	binDir := filepath.Join(path(), "grpc-java", "1.33.0", "bin")
 	binary := filepath.Join(binDir, "protoc-gen-grpc-java")
@@ -34,11 +39,15 @@ func GrpcJava() error {
 		hostOS = "osx"
 	}
 	hostArch := runtime.GOARCH
-	if hostArch == "amd64" {
-		hostArch = "x86_64"
+	if hostArch == amd64 {
+		hostArch = x86_64
 	}
 
-	binURL := fmt.Sprintf("https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.33.0/protoc-gen-grpc-java-1.33.0-%s-%s.exe", hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.33.0/protoc-gen-grpc-java-1.33.0-%s-%s.exe",
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -47,7 +56,7 @@ func GrpcJava() error {
 		file.WithRenameFile("", "protoc-gen-grpc-java"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download grpc-java: %v", err)
+		return fmt.Errorf("unable to download grpc-java: %w", err)
 	}
 
 	return nil
@@ -62,11 +71,17 @@ func Protoc() error {
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == "amd64" {
-		hostArch = "x86_64"
+	if hostArch == amd64 {
+		hostArch = x86_64
 	}
 
-	binURL := fmt.Sprintf("https://github.com/protocolbuffers/protobuf/releases/download/v%s/protoc-%s-%s-%s.zip", version, version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://github.com/protocolbuffers/protobuf/releases/download/v%s/protoc-%s-%s-%s.zip",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -75,7 +90,7 @@ func Protoc() error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download protoc: %v", err)
+		return fmt.Errorf("unable to download protoc: %w", err)
 	}
 
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
@@ -97,7 +112,10 @@ func Terraform(version string) error {
 		"1.0.5",
 	}
 	if !contains(supportedVersions, version) {
-		return fmt.Errorf("the following Terraform versions are supported: %s", strings.Join(supportedVersions, ", "))
+		return fmt.Errorf(
+			"the following Terraform versions are supported: %s",
+			strings.Join(supportedVersions, ", "),
+		)
 	}
 
 	binDir := filepath.Join(path(), "terraform", version)
@@ -109,7 +127,13 @@ func Terraform(version string) error {
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 
-	binURL := fmt.Sprintf("https://releases.hashicorp.com/terraform/%s/terraform_%s_%s_%s.zip", version, version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://releases.hashicorp.com/terraform/%s/terraform_%s_%s_%s.zip",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -118,7 +142,7 @@ func Terraform(version string) error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download terraform: %v", err)
+		return fmt.Errorf("unable to download terraform: %w", err)
 	}
 	return nil
 }
@@ -133,7 +157,12 @@ func Sops() error {
 
 	hostOS := runtime.GOOS
 
-	binURL := fmt.Sprintf("https://github.com/mozilla/sops/releases/download/v%s/sops-v%s.%s", version, version, hostOS)
+	binURL := fmt.Sprintf(
+		"https://github.com/mozilla/sops/releases/download/v%s/sops-v%s.%s",
+		version,
+		version,
+		hostOS,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -142,7 +171,7 @@ func Sops() error {
 		file.WithRenameFile("", "sops"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download sops: %v", err)
+		return fmt.Errorf("unable to download sops: %w", err)
 	}
 	return nil
 }
@@ -156,11 +185,16 @@ func Buf() error {
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == "amd64" {
-		hostArch = "x86_64"
+	if hostArch == amd64 {
+		hostArch = x86_64
 	}
 
-	binURL := fmt.Sprintf("https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-%s", version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-%s",
+		version,
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -169,7 +203,7 @@ func Buf() error {
 		file.WithRenameFile("", "buf"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download buf: %v", err)
+		return fmt.Errorf("unable to download buf: %w", err)
 	}
 
 	return nil
@@ -184,11 +218,18 @@ func GoogleProtoScrubber() error {
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == "amd64" {
-		hostArch = "x86_64"
+	if hostArch == amd64 {
+		hostArch = x86_64
 	}
 
-	binURL := fmt.Sprintf("https://github.com/einride/google-cloud-proto-scrubber/releases/download/v%s/google-cloud-proto-scrubber_%s_%s_%s.tar.gz", version, version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://github.com/einride/google-cloud-proto-scrubber"+
+			"/releases/download/v%s/google-cloud-proto-scrubber_%s_%s_%s.tar.gz",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -197,11 +238,11 @@ func GoogleProtoScrubber() error {
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download google-cloud-proto-scrubber: %v", err)
+		return fmt.Errorf("unable to download google-cloud-proto-scrubber: %w", err)
 	}
 
 	if err := os.Chmod(binary, 0o755); err != nil {
-		return fmt.Errorf("unable to make google-cloud-proto-scrubber executable: %v", err)
+		return fmt.Errorf("unable to make google-cloud-proto-scrubber executable: %w", err)
 	}
 
 	return nil
@@ -219,7 +260,13 @@ func GH() error {
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
-	binURL := fmt.Sprintf("https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz", version, version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -229,7 +276,7 @@ func GH() error {
 		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), "gh"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download gh: %v", err)
+		return fmt.Errorf("unable to download gh: %w", err)
 	}
 
 	return nil
@@ -255,8 +302,19 @@ func GHComment() error {
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
-	if err := sh.Run("gh", "release", "download", "--repo", "einride/ghcomment", ghVersion, "--pattern", pattern, "--dir", binDir); err != nil {
-		return fmt.Errorf("unable to download ghcomment: %v", err)
+	if err := sh.Run(
+		"gh",
+		"release",
+		"download",
+		"--repo",
+		"einride/ghcomment",
+		ghVersion,
+		"--pattern",
+		pattern,
+		"--dir",
+		binDir,
+	); err != nil {
+		return fmt.Errorf("unable to download ghcomment: %w", err)
 	}
 
 	if err := file.FromLocal(
@@ -265,7 +323,7 @@ func GHComment() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return fmt.Errorf("unable to download ghcomment: %v", err)
+		return fmt.Errorf("unable to download ghcomment: %w", err)
 	}
 
 	return nil
@@ -282,7 +340,11 @@ func GolangciLint() error {
 	hostArch := runtime.GOARCH
 	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", version, hostOS, hostArch)
 
-	binURL := fmt.Sprintf("https://github.com/golangci/golangci-lint/releases/download/v%s/%s.tar.gz", version, golangciLint)
+	binURL := fmt.Sprintf(
+		"https://github.com/golangci/golangci-lint/releases/download/v%s/%s.tar.gz",
+		version,
+		golangciLint,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -314,15 +376,26 @@ func Goreview() error {
 
 	hostOS := strings.Title(runtime.GOOS)
 	hostArch := runtime.GOARCH
-	if hostArch == "amd64" {
-		hostArch = "x86_64"
+	if hostArch == amd64 {
+		hostArch = x86_64
 	}
 	goreviewVersion := "v" + version
 	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
 	archive := fmt.Sprintf("%s/goreview_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
-	if err := sh.Run("gh", "release", "download", "--repo", "einride/goreview", goreviewVersion, "--pattern", pattern, "--dir", binDir); err != nil {
-		return fmt.Errorf("unable to download goreview: %v", err)
+	if err := sh.Run(
+		"gh",
+		"release",
+		"download",
+		"--repo",
+		"einride/goreview",
+		goreviewVersion,
+		"--pattern",
+		pattern,
+		"--dir",
+		binDir,
+	); err != nil {
+		return fmt.Errorf("unable to download goreview: %w", err)
 	}
 
 	if err := file.FromLocal(
@@ -331,7 +404,7 @@ func Goreview() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return fmt.Errorf("unable to download goreview: %v", err)
+		return fmt.Errorf("unable to download goreview: %w", err)
 	}
 
 	return nil
@@ -345,8 +418,8 @@ func SemanticRelease(branch string) error {
 
 	toolDir := filepath.Join(path(), "semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
-	releasercJson := filepath.Join(toolDir, ".releaserc.json")
-	packageJson := filepath.Join(toolDir, "package.json")
+	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
+	packageJSON := filepath.Join(toolDir, "package.json")
 
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
@@ -388,7 +461,7 @@ func SemanticRelease(branch string) error {
   "fail": false
 }`, branch)
 
-	fp, err := os.Create(packageJson)
+	fp, err := os.Create(packageJSON)
 	if err != nil {
 		return err
 	}
@@ -398,7 +471,7 @@ func SemanticRelease(branch string) error {
 		return err
 	}
 
-	fr, err := os.Create(releasercJson)
+	fr, err := os.Create(releasercJSON)
 	if err != nil {
 		return err
 	}
@@ -410,7 +483,16 @@ func SemanticRelease(branch string) error {
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 	fmt.Println("[semantic-release] installing packages...")
-	err = sh.Run("npm", "--silent", "install", "--prefix", toolDir, "--no-save", "--no-audit", "--ignore-script")
+	err = sh.Run(
+		"npm",
+		"--silent",
+		"install",
+		"--prefix",
+		toolDir,
+		"--no-save",
+		"--no-audit",
+		"--ignore-script",
+	)
 	if err != nil {
 		return err
 	}
@@ -427,7 +509,12 @@ func Ko() error {
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
-	binURL := fmt.Sprintf("https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz", version, version, hostOS)
+	binURL := fmt.Sprintf(
+		"https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz",
+		version,
+		version,
+		hostOS,
+	)
 
 	if err := file.FromRemote(
 		binURL,
@@ -436,7 +523,7 @@ func Ko() error {
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download ko: %v", err)
+		return fmt.Errorf("unable to download ko: %w", err)
 	}
 
 	return nil

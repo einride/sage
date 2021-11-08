@@ -2,10 +2,11 @@ package semanticrelease
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/einride/mage-tools/tools"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"path/filepath"
 )
 
 func Run(branch string, ci bool) error {

@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+
 	"github.com/einride/mage-tools/file"
 	"github.com/einride/mage-tools/tools"
 	"github.com/magefile/mage/mg"

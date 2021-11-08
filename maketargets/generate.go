@@ -1,4 +1,4 @@
-package make
+package maketargets
 
 import (
 	"bytes"
@@ -54,9 +54,9 @@ endif{{end}}
 	return nil
 }
 
-// toMakeVars converts input to make vars
+// toMakeVars converts input to make vars.
 func toMakeVars(args []string) []string {
-	var list []string
+	list := make([]string, 0)
 	for _, arg := range args {
 		arg = strcase.ToSnakeWithIgnore(arg, " ")
 		arg = strings.ReplaceAll(arg, "$(", "")
@@ -66,7 +66,7 @@ func toMakeVars(args []string) []string {
 	return list
 }
 
-// toMakeTarget converts input to make target format
+// toMakeTarget converts input to make target format.
 func toMakeTarget(str string) string {
 	output := strcase.ToKebab(str)
 	output = strings.ReplaceAll(output, ":", "-")
@@ -157,8 +157,7 @@ func getTargetArguments(name string) (string, error) {
 }
 
 func invokeMage(args mage.Invocation) error {
-	out := mage.Invoke(args)
-	if out != 0 {
+	if out := mage.Invoke(args); out != 0 {
 		return fmt.Errorf("mage exited with status code %d", out)
 	}
 	return nil

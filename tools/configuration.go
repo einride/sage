@@ -7,7 +7,7 @@ import (
 
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
-// validation on whether a path is set
+// validation on whether a path is set.
 var Path = cwdPath("tools")
 
 func cwdPath(path string) string {

@@ -7,8 +7,6 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"io"
 	"io/fs"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type archiveType int
@@ -26,7 +27,7 @@ const (
 	TarGz
 )
 
-type opt func(f *fileState)
+type Opt func(f *fileState)
 
 type fileState struct {
 	Name         string `validate:"required"`
@@ -36,7 +37,7 @@ type fileState struct {
 	SkipFile     string
 }
 
-func FromRemote(addr string, opts ...opt) error {
+func FromRemote(addr string, opts ...Opt) error {
 	s := &fileState{
 		ArchiveFiles: make(map[string]string),
 	}
@@ -67,7 +68,7 @@ func FromRemote(addr string, opts ...opt) error {
 	return s.handleFileStream(rStream, path.Base(addr))
 }
 
-func FromLocal(filepath string, opts ...opt) error {
+func FromLocal(filepath string, opts ...Opt) error {
 	s := &fileState{
 		ArchiveFiles: make(map[string]string),
 	}
@@ -130,7 +131,7 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 			filename = v
 			break
 		}
-		out, err := os.OpenFile(filepath.Join(s.DstPath, filename), os.O_RDWR|os.O_CREATE, 0755)
+		out, err := os.OpenFile(filepath.Join(s.DstPath, filename), os.O_RDWR|os.O_CREATE, 0o755)
 		if err != nil {
 			return fmt.Errorf("unable to open %s: %w", filename, err)
 		}
@@ -171,25 +172,25 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 	return nil
 }
 
-func WithUnzip() opt {
+func WithUnzip() Opt {
 	return func(f *fileState) {
 		f.ArchiveType = Zip
 	}
 }
 
-func WithUntarGz() opt {
+func WithUntarGz() Opt {
 	return func(f *fileState) {
 		f.ArchiveType = TarGz
 	}
 }
 
-func WithName(name string) opt {
+func WithName(name string) Opt {
 	return func(f *fileState) {
 		f.Name = name
 	}
 }
 
-func WithDestinationDir(path string) opt {
+func WithDestinationDir(path string) Opt {
 	return func(f *fileState) {
 		f.DstPath = path
 	}
@@ -204,13 +205,13 @@ func WithDestinationDir(path string) opt {
 // output file is stored as per dst.
 // The output file is stored relative to the destination dir given by
 // WithDestinationDir.
-func WithRenameFile(src string, dst string) opt {
+func WithRenameFile(src string, dst string) Opt {
 	return func(f *fileState) {
 		f.ArchiveFiles[src] = dst
 	}
 }
 
-func WithSkipIfFileExists(filepath string) opt {
+func WithSkipIfFileExists(filepath string) Opt {
 	return func(f *fileState) {
 		f.SkipFile = filepath
 	}
@@ -234,7 +235,7 @@ func downloadBinary(url string) (io.ReadCloser, func(), error) {
 // the destination path.
 // The path must exist already.
 func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
-	var filenames []string
+	filenames := make([]string, 0)
 	for _, f := range reader.File {
 		dstName := f.Name
 		if name, ok := s.ArchiveFiles[f.Name]; ok {
@@ -289,8 +290,7 @@ func (s *fileState) extractTar(reader io.Reader) error {
 	tarReader := tar.NewReader(reader)
 	for {
 		header, err := tarReader.Next()
-
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
@@ -320,11 +320,11 @@ func (s *fileState) extractTar(reader io.Reader) error {
 			if err != nil {
 				return fmt.Errorf("extractTar: Create() failed: %w", err)
 			}
-			if err := os.Chmod(path, 0775); err != nil {
-				return fmt.Errorf("extractTar: Chmod() failed: %s", err)
+			if err := os.Chmod(path, 0o775); err != nil {
+				return fmt.Errorf("extractTar: Chmod() failed: %w", err)
 			}
 			if _, err := io.Copy(outFile, tarReader); err != nil {
-				return fmt.Errorf("extractTar: Copy() failed: %s", err)
+				return fmt.Errorf("extractTar: Copy() failed: %w", err)
 			}
 			outFile.Close()
 
