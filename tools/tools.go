@@ -331,7 +331,8 @@ func GHComment() error {
 
 func GolangciLint() error {
 	version := "1.42.1"
-	binDir := filepath.Join(path(), "golangci-lint", version, "bin")
+	toolDir := filepath.Join(path(), "golangci-lint")
+	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, "golangci-lint")
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
@@ -354,9 +355,8 @@ func GolangciLint() error {
 		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), "golangci-lint"),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download golangci-lint: %v", err)
+		return fmt.Errorf("unable to download golangci-lint: %w", err)
 	}
-
 	return nil
 }
 

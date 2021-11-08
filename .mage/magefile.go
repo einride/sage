@@ -5,7 +5,7 @@ package main
 import (
 	"github.com/einride/mage-tools/tools"
 	// mage:import
-	_ "github.com/einride/mage-tools/make"
+	_ "github.com/einride/mage-tools/maketargets"
 	// mage:import
 	_ "github.com/einride/mage-tools/tools/golangcilint"
 	// mage:import semantic-release
