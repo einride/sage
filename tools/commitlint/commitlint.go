@@ -46,6 +46,10 @@ func Commitlint(branch string) error {
 		"HEAD",
 	}
 	fmt.Println("[commitlint] linting commit messages...")
+	err = sh.Run("git", "fetch", "--tags")
+	if err != nil {
+		return err
+	}
 	err = sh.RunV("commitlint", args...)
 	if err != nil {
 		return err
