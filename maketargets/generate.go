@@ -1,8 +1,8 @@
 package maketargets
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/magefile/mage/sh"
 	"os"
 	"strings"
 	"text/template"
@@ -19,7 +19,11 @@ type templateTargets struct {
 
 func GenerateMakefile(makefile string) error {
 	fmt.Println("[generate-makefile] generating makefile...")
-	targets, err := listTargets()
+	binary, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	targets, err := listTargets(binary)
 	if err != nil {
 		return err
 	}
@@ -73,18 +77,13 @@ func toMakeTarget(str string) string {
 	return strings.ToLower(output)
 }
 
-func listTargets() ([]string, error) {
-	var b bytes.Buffer
-	err := invokeMage(mage.Invocation{
-		Stdout: &b,
-		List:   true,
-		Stderr: os.Stderr,
-	})
+func listTargets(binary string) ([]string, error) {
+	out, err := sh.Output(binary, "-l")
 	if err != nil {
 		return nil, err
 	}
 
-	lines := strings.Split(strings.TrimSpace(b.String()), "\n")
+	lines := strings.Split(strings.TrimSpace(out), "\n")
 	if len(lines) > 0 {
 		// Remove "Targets: " lines
 		if strings.HasPrefix(lines[0], "Targets:") {
@@ -109,7 +108,7 @@ func listTargets() ([]string, error) {
 				continue
 			}
 			// Get input arguments for mage target
-			args, err := getTargetArguments(parts[0])
+			args, err := getTargetArguments(parts[0], binary)
 			if err != nil {
 				return nil, err
 			} else if args != "" {
@@ -123,19 +122,13 @@ func listTargets() ([]string, error) {
 	return targets, nil
 }
 
-func getTargetArguments(name string) (string, error) {
-	var b bytes.Buffer
-	err := invokeMage(mage.Invocation{
-		Stdout: &b,
-		Stderr: os.Stderr,
-		Help:   true,
-		Args:   []string{name},
-	})
+func getTargetArguments(name string, binary string) (string, error) {
+	out, err := sh.Output(binary, "-h", name)
 	if err != nil {
 		return "", err
 	}
 
-	lines := strings.Split(strings.TrimSpace(b.String()), "\n\n")
+	lines := strings.Split(strings.TrimSpace(out), "\n\n")
 	if strings.HasPrefix(lines[0], "Usage:") {
 		lines = lines[1:]
 	}

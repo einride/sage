@@ -2,7 +2,7 @@ module github.com/einride/mage-tools/.mage
 
 go 1.17
 
-require github.com/einride/mage-tools v1.2.1-0.20211108122926-ee5dd938a46d
+require github.com/einride/mage-tools v1.6.1
 
 require (
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -12,9 +12,7 @@ require (
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magefile/mage v1.11.1-0.20210928193738-dd944245e253 // indirect
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
+	golang.org/x/sys v0.0.0-20211109184856-51b60fd695b3 // indirect
+	golang.org/x/text v0.3.7 // indirect
 )
-
-replace github.com/einride/mage-tools => ../
