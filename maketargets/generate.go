@@ -2,13 +2,12 @@ package maketargets
 
 import (
 	"fmt"
-	"github.com/magefile/mage/sh"
 	"os"
 	"strings"
 	"text/template"
 
 	"github.com/iancoleman/strcase"
-	"github.com/magefile/mage/mage"
+	"github.com/magefile/mage/sh"
 )
 
 type templateTargets struct {
@@ -19,11 +18,7 @@ type templateTargets struct {
 
 func GenerateMakefile(makefile string) error {
 	fmt.Println("[generate-makefile] generating makefile...")
-	binary, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	targets, err := listTargets(binary)
+	targets, err := listTargets()
 	if err != nil {
 		return err
 	}
@@ -36,11 +31,11 @@ func GenerateMakefile(makefile string) error {
 	defer f.Close()
 
 	for _, target := range targets {
-		parts := strings.Fields(target)
+		args, _ := getTargetArguments(target)
 		target := templateTargets{
-			MakeTarget: toMakeTarget(parts[0]),
-			MageTarget: target,
-			Args:       toMakeVars(parts[1:]),
+			MakeTarget: toMakeTarget(target),
+			MageTarget: toMageTarget(target, args),
+			Args:       toMakeVars(args),
 		}
 		t, _ := template.New("dynamic").Parse(`
 .PHONY: {{.MakeTarget}}
@@ -60,14 +55,14 @@ endif{{end}}
 
 // toMakeVars converts input to make vars.
 func toMakeVars(args []string) []string {
-	list := make([]string, 0)
+	makeVars := make([]string, 0)
 	for _, arg := range args {
-		arg = strcase.ToSnakeWithIgnore(arg, " ")
-		arg = strings.ReplaceAll(arg, "$(", "")
-		arg = strings.ReplaceAll(arg, ")", "")
-		list = append(list, arg)
+		arg = strcase.ToSnake(arg)
+		arg = strings.ReplaceAll(arg, "<", "")
+		arg = strings.ReplaceAll(arg, ">", "")
+		makeVars = append(makeVars, arg)
 	}
-	return list
+	return makeVars
 }
 
 // toMakeTarget converts input to make target format.
@@ -77,8 +72,18 @@ func toMakeTarget(str string) string {
 	return strings.ToLower(output)
 }
 
-func listTargets(binary string) ([]string, error) {
-	out, err := sh.Output(binary, "-l")
+// toMageTarget converts input to mageTarget with arguments.
+func toMageTarget(target string, args []string) string {
+	for _, arg := range args {
+		arg = strings.ReplaceAll(arg, "<", "$(")
+		arg = strings.ReplaceAll(arg, ">", ")")
+		target += fmt.Sprintf(" %s", arg)
+	}
+	return target
+}
+
+func listTargets() ([]string, error) {
+	out, err := invokeMage([]string{"-l"})
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +112,6 @@ func listTargets(binary string) ([]string, error) {
 			if strings.Contains(parts[0], "generateMakefile") {
 				continue
 			}
-			// Get input arguments for mage target
-			args, err := getTargetArguments(parts[0], binary)
-			if err != nil {
-				return nil, err
-			} else if args != "" {
-				parts[0] = parts[0] + " " + args
-			}
 
 			targets = append(targets, parts[0])
 		}
@@ -122,36 +120,29 @@ func listTargets(binary string) ([]string, error) {
 	return targets, nil
 }
 
-func getTargetArguments(name string, binary string) (string, error) {
-	out, err := sh.Output(binary, "-h", name)
+func getTargetArguments(name string) ([]string, error) {
+	out, err := invokeMage([]string{"-h", name})
+	if err != nil {
+		return nil, err
+	}
+
+	// Removes Usage: mage COMMAND and adds remaining arguments to a list.
+	args := strings.Fields(strings.ReplaceAll(out, "\n", ""))[3:]
+	if len(args) == 0 {
+		return nil, nil
+	}
+
+	return args, nil
+}
+
+func invokeMage(args []string) (string, error) {
+	binary, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-
-	lines := strings.Split(strings.TrimSpace(out), "\n\n")
-	if strings.HasPrefix(lines[0], "Usage:") {
-		lines = lines[1:]
+	out, err := sh.Output(binary, args...)
+	if err != nil {
+		return "", err
 	}
-
-	var arguments string
-	for _, arg := range lines {
-		parts := strings.Fields(arg)[2:]
-		if len(parts) == 0 {
-			continue
-		}
-		arg = strings.Join(parts, " ")
-		arg = strcase.ToSnakeWithIgnore(arg, " ")
-		arg = strings.ReplaceAll(arg, "<", "$(")
-		arg = strings.ReplaceAll(arg, ">", ")")
-		arguments = arg
-	}
-
-	return arguments, nil
-}
-
-func invokeMage(args mage.Invocation) error {
-	if out := mage.Invoke(args); out != 0 {
-		return fmt.Errorf("mage exited with status code %d", out)
-	}
-	return nil
+	return out, nil
 }
