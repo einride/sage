@@ -34,7 +34,7 @@ func GenerateMakefile(makefile string) error {
 		args, _ := getTargetArguments(target)
 		target := templateTargets{
 			MakeTarget: toMakeTarget(target),
-			MageTarget: toMageTarget(target, args),
+			MageTarget: toMageTarget(target, toMakeVars(args)),
 			Args:       toMakeVars(args),
 		}
 		t, _ := template.New("dynamic").Parse(`
@@ -72,11 +72,10 @@ func toMakeTarget(str string) string {
 	return strings.ToLower(output)
 }
 
-// toMageTarget converts input to mageTarget with arguments.
+// toMageTarget converts input to mageTarget with makeVars as arguments.
 func toMageTarget(target string, args []string) string {
 	for _, arg := range args {
-		arg = strings.ReplaceAll(arg, "<", "$(")
-		arg = strings.ReplaceAll(arg, ">", ")")
+		arg = fmt.Sprintf("$(%s)", arg)
 		target += fmt.Sprintf(" %s", arg)
 	}
 	return target
