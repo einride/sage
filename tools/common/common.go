@@ -23,7 +23,7 @@ func GoTest() error {
 	return nil
 }
 
-func GomModTidy() error {
+func GoModTidy() error {
 	err := sh.RunV("go", "mod", "tidy", "-v")
 	if err != nil {
 		return err
