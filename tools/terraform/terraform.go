@@ -10,16 +10,13 @@ import (
 )
 
 var (
-	devConfig  TfConfig
-	prodConfig TfConfig
-	tfVersion  string
+	tfConfig  TfConfig
+	tfVersion string
 )
 
 type TfConfig struct {
 	ServiceAccount string `validate:"required,email"`
 	StateBucket    string `validate:"required"`
-	Upgrade        bool
-	Refresh        bool
 	VarFile        string `validate:"required"`
 }
 
@@ -28,14 +25,9 @@ func SetVersion(v string) (string, error) {
 	return tfVersion, nil
 }
 
-func SetupDev(config TfConfig) {
+func Setup(config TfConfig) {
 	validate(config)
-	devConfig = config
-}
-
-func SetupProd(config TfConfig) {
-	validate(config)
-	prodConfig = config
+	tfConfig = config
 }
 
 func validate(config TfConfig) {
@@ -45,110 +37,39 @@ func validate(config TfConfig) {
 	}
 }
 
-func Init(config TfConfig) {
+func Init() {
 	args := []string{
 		"init",
 		"-input=false",
 		"-reconfigure",
-		"-backend-config=bucket=" + config.StateBucket,
-		"-backend-config=impersonate_service_account=" + config.ServiceAccount,
-	}
-	if config.Upgrade {
-		args = append(args, "-upgrade=true")
+		"-backend-config=bucket=" + tfConfig.StateBucket,
+		"-backend-config=impersonate_service_account=" + tfConfig.ServiceAccount,
 	}
 	runTf(args)
 }
 
-func Plan(config TfConfig) {
+func Plan() {
 	args := []string{
 		"plan",
 		"-input=false",
 		"-no-color",
 		"-lock-timeout=120s",
 		"-out=terraform.plan",
-		"-var-file=" + config.VarFile,
-	}
-	if config.Refresh {
-		args = append(args, "-refresh-only=true")
+		"-var-file=" + tfConfig.VarFile,
 	}
 	runTf(args)
 }
 
-func Apply(config TfConfig) {
+func Apply() {
 	args := []string{
 		"apply",
 		"-input=false",
 		"-no-color",
 		"-lock-timeout=120s",
 		"-auto-approve=true",
-		"-var-file=" + config.VarFile,
-	}
-	if config.Refresh {
-		args = append(args, "-refresh-only=true")
+		"-var-file=" + tfConfig.VarFile,
 	}
 	runTf(args)
-}
-
-func InitDev() {
-	Init(devConfig)
-}
-
-func InitDevUpgrade() {
-	devConfig.Upgrade = true
-	mg.Deps(InitDev)
-}
-
-func InitProd() {
-	Init(prodConfig)
-}
-
-func InitProdUpgrade() {
-	devConfig.Upgrade = true
-	mg.Deps(InitProd)
-}
-
-func PlanDev() {
-	Plan(devConfig)
-}
-
-func PlanRefreshDev() {
-	devConfig.Refresh = true
-	mg.Deps(PlanDev)
-}
-
-func PlanProd() {
-	Plan(prodConfig)
-}
-
-func PlanRefreshProd() {
-	devConfig.Refresh = true
-	mg.Deps(PlanProd)
-}
-
-func ApplyDev() {
-	Apply(devConfig)
-}
-
-func ApplyRefreshDev() {
-	devConfig.Refresh = true
-	mg.Deps(ApplyDev)
-}
-
-func ApplyProd() {
-	Apply(prodConfig)
-}
-
-func ApplyRefreshProd() {
-	devConfig.Refresh = true
-	mg.Deps(ApplyProd)
-}
-
-func Sops(file string) error {
-	mg.Deps(tools.Sops)
-	if err := sh.RunV("sops", file); err != nil {
-		return err
-	}
-	return nil
 }
 
 func runTf(args []string) {
