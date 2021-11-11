@@ -72,6 +72,28 @@ func Apply() {
 	runTf(args)
 }
 
+func Fmt() {
+	args := []string{
+		"fmt",
+		"--recursive",
+	}
+	runTf(args)
+}
+
+func FmtCheck() {
+	args := []string{
+		"fmt",
+		"--recursive",
+		"--check",
+	}
+	runTf(args)
+}
+
+func Validate() {
+	args := []string{"validate"}
+	runTf(args)
+}
+
 func runTf(args []string) {
 	mg.Deps(mg.F(tools.Terraform, tfVersion))
 	fmt.Println("[terraform] running terraform...")
