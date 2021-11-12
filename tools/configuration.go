@@ -1,8 +1,10 @@
 package tools
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Path This should only be used to set a custom value.
@@ -23,4 +25,17 @@ func path() string {
 		panic("No tools path set")
 	}
 	return Path
+}
+
+func IsSupportedVersion(versions []string, version string, name string) error {
+	for _, a := range versions {
+		if a == version {
+			return nil
+		}
+	}
+	return fmt.Errorf(
+		"the following %s versions are supported: %s",
+		name,
+		strings.Join(versions, ", "),
+	)
 }

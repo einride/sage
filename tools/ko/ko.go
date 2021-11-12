@@ -9,6 +9,13 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+var version string
+
+func SetKoVersion(v string) (string, error) {
+	version = v
+	return version, nil
+}
+
 func PublishLocal() error {
 	dockerTag, err := tag()
 	if err != nil {
@@ -68,7 +75,7 @@ func tag() (string, error) {
 }
 
 func publish(args []string) error {
-	mg.Deps(tools.Ko)
+	mg.Deps(mg.F(tools.Ko, version))
 	fmt.Println("[ko] info building ko...")
 	if err := sh.RunV("ko", args...); err != nil {
 		return err

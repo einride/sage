@@ -40,6 +40,17 @@ func validate(config GatewayConfig) {
 	}
 }
 
+var dependencyVersions DependencyVersions
+
+type DependencyVersions struct {
+	BufVersion                 string
+	GoogleProtoScrubberVersion string
+}
+
+func SetDependencyVersions(d DependencyVersions) {
+	dependencyVersions = d
+}
+
 func protoTagFile() error {
 	fmt.Println("[proto-tag-file] touching tag file for einride/proto...")
 	protoFile := filepath.Join(gatewayConfig.GenPath, "proto_tag."+gatewayConfig.ProtoTag)
@@ -58,7 +69,10 @@ func protoTagFile() error {
 }
 
 func genAPI() error {
-	mg.SerialDeps(tools.Buf, protoTagFile)
+	mg.SerialDeps(
+		mg.F(tools.Buf, dependencyVersions.BufVersion),
+		protoTagFile,
+	)
 	fmt.Println(fmt.Sprintf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo))
 	err := sh.RunV("buf", "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
 		"--as-file-descriptor-set",
@@ -70,7 +84,10 @@ func genAPI() error {
 }
 
 func genAPIScrubbed() error {
-	mg.SerialDeps(tools.GoogleProtoScrubber, genAPI)
+	mg.SerialDeps(
+		mg.F(tools.GoogleProtoScrubber, dependencyVersions.GoogleProtoScrubberVersion),
+		genAPI,
+	)
 	fmt.Println("[gen-api-scrubbed] scrubbing API descriptor...")
 
 	input, err := ioutil.ReadFile(gatewayConfig.APIPb)
@@ -156,8 +173,13 @@ func endpointsConfigID() (string, error) {
 
 func BuildImage() error {
 	configID, err := endpointsConfigID()
-	fmt.Println(fmt.Sprintf("[build-image] building image for %s in %s [%s] with config %s...",
-		gatewayConfig.ServiceName, gatewayConfig.GcpProject, gatewayConfig.Region, configID))
+	fmt.Printf(
+		"[build-image] building image for %s in %s [%s] with config %s...\n",
+		gatewayConfig.ServiceName,
+		gatewayConfig.GcpProject,
+		gatewayConfig.Region,
+		configID,
+	)
 	if err != nil {
 		return err
 	}
@@ -190,8 +212,13 @@ func DeployCloudRun() error {
 		"deploy",
 		"api-gateway",
 		"--image",
-		fmt.Sprintf("%s-docker.pkg.dev/%s/docker/endpoints-runtime-serverless:%s-%s",
-			gatewayConfig.Region, gatewayConfig.GcpProject, gatewayConfig.ServiceName, configID),
+		fmt.Sprintf(
+			"%s-docker.pkg.dev/%s/docker/endpoints-runtime-serverless:%s-%s",
+			gatewayConfig.Region,
+			gatewayConfig.GcpProject,
+			gatewayConfig.ServiceName,
+			configID,
+		),
 		"--project",
 		gatewayConfig.GcpProject,
 		"--region",

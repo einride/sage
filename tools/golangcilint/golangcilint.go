@@ -35,8 +35,15 @@ linters:
     - wrapcheck # don't require wrapping everywhere
 `
 
+var version string
+
+func SetGolangciLintVersion(v string) (string, error) {
+	version = v
+	return version, nil
+}
+
 func GolangciLint() error {
-	mg.Deps(tools.GolangciLint)
+	mg.Deps(mg.F(tools.GolangciLint, version))
 	configPath := filepath.Join(tools.Path, "golangci-lint", ".golangci.yml")
 
 	fp, err := os.Create(configPath)

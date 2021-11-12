@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,9 +17,28 @@ const (
 	x86_64 = "x86_64"
 )
 
-func GrpcJava() error {
-	binDir := filepath.Join(path(), "grpc-java", "1.33.0", "bin")
-	binary := filepath.Join(binDir, "protoc-gen-grpc-java")
+var ghVersion string
+
+func SetGhVersion(v string) (string, error) {
+	ghVersion = v
+	return ghVersion, nil
+}
+
+func GrpcJava(version string) error {
+	const binaryName = "protoc-gen-grpc-java"
+	const defaultVersion = "1.33.0"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"1.33.0"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), "grpc-java", version, "bin")
+	binary := filepath.Join(binDir, binaryName)
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
 	// read the whole file at once
@@ -30,8 +48,8 @@ func GrpcJava() error {
 	}
 	s := string(b)
 
-	if !strings.Contains(s, "<grpc.version>1.33.0") {
-		return errors.New("pom.xml is out of sync with gRPC Java version - expecting 1.33.0")
+	if !strings.Contains(s, fmt.Sprintf("<grpc.version>%s", version)) {
+		return fmt.Errorf("pom.xml is out of sync with gRPC Java version - expecting %s", version)
 	}
 
 	hostOS := runtime.GOOS
@@ -44,7 +62,11 @@ func GrpcJava() error {
 	}
 
 	binURL := fmt.Sprintf(
-		"https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.33.0/protoc-gen-grpc-java-1.33.0-%s-%s.exe",
+		"https://repo1.maven.org/maven2/io/grpc/%s/%s/%s-%s-%s-%s.exe",
+		binaryName,
+		version,
+		binaryName,
+		version,
 		hostOS,
 		hostArch,
 	)
@@ -53,7 +75,7 @@ func GrpcJava() error {
 		binURL,
 		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
-		file.WithRenameFile("", "protoc-gen-grpc-java"),
+		file.WithRenameFile("", binaryName),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download grpc-java: %w", err)
@@ -62,10 +84,21 @@ func GrpcJava() error {
 	return nil
 }
 
-func Protoc() error {
-	version := "3.15.7"
-	binDir := filepath.Join(path(), "protoc", version)
-	binary := filepath.Join(binDir, "bin", "protoc")
+func Protoc(version string) error {
+	const binaryName = "protoc"
+	const defaultVersion = "3.15.7"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"3.15.7"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), binaryName, version)
+	binary := filepath.Join(binDir, "bin", binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -90,7 +123,7 @@ func Protoc() error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download protoc: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
@@ -101,28 +134,24 @@ func Protoc() error {
 }
 
 func Terraform(version string) error {
+	const binaryName = "terraform"
 	const defaultVersion = "1.0.0"
 
 	if version == "" {
 		version = defaultVersion
+	} else {
+		supportedVersions := []string{
+			"1.0.0",
+			"1.0.5",
+		}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
 	}
 
-	supportedVersions := []string{
-		"1.0.0",
-		"1.0.5",
-	}
-	if !contains(supportedVersions, version) {
-		return fmt.Errorf(
-			"the following Terraform versions are supported: %s",
-			strings.Join(supportedVersions, ", "),
-		)
-	}
-
-	binDir := filepath.Join(path(), "terraform", version)
-	binary := filepath.Join(binDir, "terraform")
-	path := fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH"))
-
-	os.Setenv("PATH", path)
+	binDir := filepath.Join(path(), binaryName, version)
+	binary := filepath.Join(binDir, binaryName)
+	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -142,16 +171,26 @@ func Terraform(version string) error {
 		file.WithUnzip(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download terraform: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 	return nil
 }
 
-func Sops() error {
-	version := "3.7.1"
+func Sops(version string) error {
+	const binaryName = "sops"
+	const defaultVersion = "3.7.1"
 
-	binDir := filepath.Join(path(), "sops", version)
-	binary := filepath.Join(binDir, "sops")
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"3.7.1"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), binaryName, version)
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -168,18 +207,29 @@ func Sops() error {
 		binURL,
 		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
-		file.WithRenameFile("", "sops"),
+		file.WithRenameFile("", binaryName),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download sops: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 	return nil
 }
 
-func Buf() error {
-	version := "0.55.0"
-	binDir := filepath.Join(path(), "buf", version, "bin")
-	binary := filepath.Join(binDir, "buf")
+func Buf(version string) error {
+	const binaryName = "buf"
+	const defaultVersion = "0.55.0"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"0.55.0"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), binaryName, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -200,19 +250,29 @@ func Buf() error {
 		binURL,
 		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
-		file.WithRenameFile("", "buf"),
+		file.WithRenameFile("", binaryName),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download buf: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	return nil
 }
 
-func GoogleProtoScrubber() error {
-	version := "1.1.0"
-	binDir := filepath.Join(path(), "google-cloud-proto-scrubber", version)
-	binary := filepath.Join(binDir, "google-cloud-proto-scrubber")
+func GoogleProtoScrubber(version string) error {
+	const binaryName = "google-cloud-proto-scrubber"
+	const defaultVersion = "1.1.0"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"1.1.0"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+	binDir := filepath.Join(path(), binaryName, version)
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -238,25 +298,35 @@ func GoogleProtoScrubber() error {
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download google-cloud-proto-scrubber: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	if err := os.Chmod(binary, 0o755); err != nil {
-		return fmt.Errorf("unable to make google-cloud-proto-scrubber executable: %w", err)
+		return fmt.Errorf("unable to make %s executable: %w", binaryName, err)
 	}
 
 	return nil
 }
 
-func GH() error {
+func GH(version string) error {
+	const binaryName = "gh"
+	const defaultVersion = "2.2.0"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"2.2.0"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 
-	version := "2.2.0"
-
-	dir := filepath.Join(path(), "gh")
+	dir := filepath.Join(path(), binaryName)
 	binDir := filepath.Join(dir, version, "bin")
-	binary := filepath.Join(binDir, "gh")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -273,21 +343,31 @@ func GH() error {
 		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
-		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), "gh"),
+		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), binaryName),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download gh: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	return nil
 }
 
-func GHComment() error {
-	mg.Deps(GH)
+func GHComment(version string) error {
+	mg.Deps(mg.F(GH, version))
+	const binaryName = "ghcomment"
+	const defaultVersion = "0.2.1"
 
-	version := "0.2.1"
-	binDir := filepath.Join(path(), "ghcomment", version, "bin")
-	binary := filepath.Join(binDir, "ghcomment")
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"0.2.1"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), binaryName, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -314,7 +394,7 @@ func GHComment() error {
 		"--dir",
 		binDir,
 	); err != nil {
-		return fmt.Errorf("unable to download ghcomment: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	if err := file.FromLocal(
@@ -323,17 +403,27 @@ func GHComment() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return fmt.Errorf("unable to download ghcomment: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	return nil
 }
 
-func GolangciLint() error {
-	version := "1.42.1"
-	toolDir := filepath.Join(path(), "golangci-lint")
+func GolangciLint(version string) error {
+	const binaryName = "golangci-lint"
+	const defaultVersion = "1.42.1"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"1.42.1"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+	toolDir := filepath.Join(path(), binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
-	binary := filepath.Join(binDir, "golangci-lint")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -352,20 +442,30 @@ func GolangciLint() error {
 		file.WithName(filepath.Base(binary)),
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
-		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), "golangci-lint"),
+		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), binaryName),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download golangci-lint: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 	return nil
 }
 
-func Goreview() error {
-	mg.Deps(GH)
+func Goreview(version string) error {
+	mg.Deps(mg.F(GH, version))
+	const binaryName = "goreview"
+	const defaultVersion = "0.18.0"
 
-	version := "0.18.0"
-	binDir := filepath.Join(path(), "goreview", version, "bin")
-	binary := filepath.Join(binDir, "goreview")
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"0.18.0"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(path(), binaryName, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -395,7 +495,7 @@ func Goreview() error {
 		"--dir",
 		binDir,
 	); err != nil {
-		return fmt.Errorf("unable to download goreview: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	if err := file.FromLocal(
@@ -404,7 +504,7 @@ func Goreview() error {
 		file.WithDestinationDir(binDir),
 		file.WithUntarGz(),
 	); err != nil {
-		return fmt.Errorf("unable to download goreview: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	return nil
@@ -548,13 +648,23 @@ func Commitlint() error {
 	return nil
 }
 
-func Ko() error {
+func Ko(version string) error {
+	const binaryName = "ko"
+	const defaultVersion = "0.9.3"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"0.9.3"}
+		if err := IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
 	hostOS := runtime.GOOS
 
-	version := "0.9.3"
-
-	binDir := filepath.Join(path(), "ko", version, "bin")
-	binary := filepath.Join(binDir, "ko")
+	binDir := filepath.Join(path(), binaryName, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
 
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
@@ -572,17 +682,8 @@ func Ko() error {
 		file.WithUntarGz(),
 		file.WithSkipIfFileExists(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download ko: %w", err)
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
 	return nil
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }

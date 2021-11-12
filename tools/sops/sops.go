@@ -6,8 +6,15 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+var version string
+
+func SetSopsVersion(v string) (string, error) {
+	version = v
+	return version, nil
+}
+
 func Sops(file string) error {
-	mg.Deps(tools.Sops)
+	mg.Deps(mg.F(tools.Sops, version))
 	if err := sh.RunV("sops", file); err != nil {
 		return err
 	}

@@ -9,11 +9,18 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+var ghCommentVersion string
+
+func SetGhCommentVersion(v string) (string, error) {
+	ghCommentVersion = v
+	return ghCommentVersion, nil
+}
+
 func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
 		mg.F(tools.Terraform, tfVersion),
-		tools.GHComment,
+		mg.F(tools.GHComment, ghCommentVersion),
 		mg.F(file.Exists, terraformPlanFile),
 	)
 

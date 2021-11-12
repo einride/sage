@@ -8,8 +8,15 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+var version string
+
+func SetGoReviewVersion(v string) (string, error) {
+	version = v
+	return version, nil
+}
+
 func Goreview() error {
-	mg.Deps(tools.Goreview)
+	mg.Deps(mg.F(tools.Goreview, version))
 	// TODO: the args should probably not be hardocded
 	fmt.Println("[goreview] reviewing Go code for Einride-specific conventions...")
 	err := sh.RunV("goreview", "-c", "1", "./...")

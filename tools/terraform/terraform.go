@@ -20,7 +20,7 @@ type TfConfig struct {
 	VarFile        string `validate:"required"`
 }
 
-func SetVersion(v string) (string, error) {
+func SetTerraformVersion(v string) (string, error) {
 	tfVersion = v
 	return tfVersion, nil
 }
