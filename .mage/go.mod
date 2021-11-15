@@ -2,7 +2,7 @@ module github.com/einride/mage-tools/.mage
 
 go 1.17
 
-require github.com/einride/mage-tools v1.6.2
+require github.com/einride/mage-tools v1.7.4
 
 require (
 	github.com/go-playground/locales v0.14.0 // indirect
