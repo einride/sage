@@ -16,7 +16,7 @@ func SetGhCommentVersion(v string) (string, error) {
 	return ghCommentVersion, nil
 }
 
-func GhReviewTerraformPlan(prNumber string, gcpProject string) {
+func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
 		mg.F(tools.Terraform, tfVersion),
@@ -24,12 +24,15 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 		mg.F(file.Exists, terraformPlanFile),
 	)
 
-	comment, _ := sh.Output(
-		"terraform",
+	comment, err := sh.Output(
+		tools.TerraformPath,
 		"show",
 		"-no-color",
 		terraformPlanFile,
 	)
+	if err != nil {
+		return err
+	}
 	comment = fmt.Sprintf("```"+"hcl\n%s\n"+"```", comment)
 	ghComment := fmt.Sprintf(`
 <div>
@@ -41,7 +44,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 `, gcpProject, comment)
 
 	fmt.Println("[ghcomment] commenting terraform plan on pr...")
-	err := sh.RunV(
+	err = sh.RunV(
 		tools.GHCommentPath,
 		"--pr",
 		prNumber,
@@ -51,6 +54,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 		ghComment,
 	)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }

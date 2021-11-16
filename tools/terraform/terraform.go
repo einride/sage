@@ -25,19 +25,23 @@ func SetTerraformVersion(v string) (string, error) {
 	return tfVersion, nil
 }
 
-func Setup(config TfConfig) {
-	validate(config)
+func Setup(config TfConfig) error {
+	if err := validate(config); err != nil {
+		return err
+	}
 	tfConfig = config
+	return nil
 }
 
-func validate(config TfConfig) {
+func validate(config TfConfig) error {
 	validate := validator.New()
 	if err := validate.Struct(config); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
-func Init() {
+func Init() error {
 	args := []string{
 		"init",
 		"-input=false",
@@ -45,10 +49,13 @@ func Init() {
 		"-backend-config=bucket=" + tfConfig.StateBucket,
 		"-backend-config=impersonate_service_account=" + tfConfig.ServiceAccount,
 	}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func Plan() {
+func Plan() error {
 	args := []string{
 		"plan",
 		"-input=false",
@@ -57,10 +64,13 @@ func Plan() {
 		"-out=terraform.plan",
 		"-var-file=" + tfConfig.VarFile,
 	}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func Apply() {
+func Apply() error {
 	args := []string{
 		"apply",
 		"-input=false",
@@ -69,36 +79,49 @@ func Apply() {
 		"-auto-approve=true",
 		"-var-file=" + tfConfig.VarFile,
 	}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func Fmt() {
+func Fmt() error {
 	args := []string{
 		"fmt",
 		"--recursive",
 	}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func FmtCheck() {
+func FmtCheck() error {
 	args := []string{
 		"fmt",
 		"--recursive",
 		"--check",
 	}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func Validate() {
+func Validate() error {
 	args := []string{"validate"}
-	runTf(args)
+	if err := runTf(args); err != nil {
+		return err
+	}
+	return nil
 }
 
-func runTf(args []string) {
+func runTf(args []string) error {
 	mg.Deps(mg.F(tools.Terraform, tfVersion))
 	fmt.Println("[terraform] running terraform...")
 	err := sh.RunV(tools.TerraformPath, args...)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
