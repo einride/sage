@@ -74,7 +74,7 @@ func genAPI() error {
 		protoTagFile,
 	)
 	fmt.Println(fmt.Sprintf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo))
-	err := sh.RunV("buf", "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
+	err := sh.RunV(tools.BufPath, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
 		"--as-file-descriptor-set",
 		"-o", gatewayConfig.APIPb)
 	if err != nil {
@@ -98,7 +98,7 @@ func genAPIScrubbed() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV("google-cloud-proto-scrubber", "-f", gatewayConfig.APIScrubbedPb)
+	err = sh.RunV(tools.GoogleProtoScrubberPath, "-f", gatewayConfig.APIScrubbedPb)
 	if err != nil {
 		return err
 	}

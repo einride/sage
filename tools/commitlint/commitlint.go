@@ -50,7 +50,7 @@ func Commitlint(branch string) error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV("commitlint", args...)
+	err = sh.RunV(tools.CommitlintPath, args...)
 	if err != nil {
 		return err
 	}

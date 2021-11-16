@@ -17,7 +17,22 @@ const (
 	x86_64 = "x86_64"
 )
 
-var ghVersion string
+var (
+	ghVersion               string
+	GrpcJavaPath            string
+	ProtocPath              string
+	TerraformPath           string
+	SopsPath                string
+	BufPath                 string
+	GoogleProtoScrubberPath string
+	GHPath                  string
+	GHCommentPath           string
+	GolangciLintPath        string
+	GoReviewPath            string
+	SemanticReleasePath     string
+	CommitlintPath          string
+	KoPath                  string
+)
 
 func SetGhVersion(v string) (string, error) {
 	ghVersion = v
@@ -39,7 +54,7 @@ func GrpcJava(version string) error {
 
 	binDir := filepath.Join(path(), "grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GrpcJavaPath = binary
 
 	// read the whole file at once
 	b, err := os.ReadFile("pom.xml")
@@ -99,8 +114,7 @@ func Protoc(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	ProtocPath = binary
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -151,7 +165,7 @@ func Terraform(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	TerraformPath = binary
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -191,8 +205,7 @@ func Sops(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	SopsPath = binary
 
 	hostOS := runtime.GOOS
 
@@ -230,8 +243,7 @@ func Buf(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	BufPath = binary
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -273,8 +285,7 @@ func GoogleProtoScrubber(version string) error {
 	}
 	binDir := filepath.Join(path(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GoogleProtoScrubberPath = binary
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -327,8 +338,7 @@ func GH(version string) error {
 	dir := filepath.Join(path(), binaryName)
 	binDir := filepath.Join(dir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GHPath = binary
 
 	binURL := fmt.Sprintf(
 		"https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz",
@@ -368,8 +378,7 @@ func GHComment(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GHCommentPath = binary
 
 	// Check if binary already exist
 	if file.Exists(binary) == nil {
@@ -383,7 +392,7 @@ func GHComment(version string) error {
 	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
 	if err := sh.Run(
-		"gh",
+		GHPath,
 		"release",
 		"download",
 		"--repo",
@@ -424,8 +433,7 @@ func GolangciLint(version string) error {
 	toolDir := filepath.Join(path(), binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GolangciLintPath = binary
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
@@ -466,8 +474,7 @@ func Goreview(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	GoReviewPath = binary
 
 	// Check if binary already exist
 	if file.Exists(binary) == nil {
@@ -484,7 +491,7 @@ func Goreview(version string) error {
 	archive := fmt.Sprintf("%s/goreview_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
 
 	if err := sh.Run(
-		"gh",
+		GHPath,
 		"release",
 		"download",
 		"--repo",
@@ -581,7 +588,8 @@ func SemanticRelease(branch string) error {
 		return err
 	}
 
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	SemanticReleasePath = binary
+
 	fmt.Println("[semantic-release] installing packages...")
 	err = sh.Run(
 		"npm",
@@ -630,7 +638,8 @@ func Commitlint() error {
 		return err
 	}
 
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	CommitlintPath = binary
+
 	fmt.Println("[commitlint] installing packages...")
 	err = sh.Run(
 		"npm",
@@ -665,8 +674,7 @@ func Ko(version string) error {
 
 	binDir := filepath.Join(path(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
+	KoPath = binary
 
 	binURL := fmt.Sprintf(
 		"https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz",

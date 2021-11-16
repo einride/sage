@@ -64,7 +64,7 @@ func GolangciLint() error {
 
 func Run(configPath string) (string, error) {
 	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
-	if err := sh.RunV("golangci-lint", "run", "-c", configPath); err != nil {
+	if err := sh.RunV(tools.GolangciLintPath, "run", "-c", configPath); err != nil {
 		return "", err
 	}
 	return "", nil

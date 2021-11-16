@@ -77,7 +77,7 @@ func tag() (string, error) {
 func publish(args []string) error {
 	mg.Deps(mg.F(tools.Ko, version))
 	fmt.Println("[ko] info building ko...")
-	if err := sh.RunV("ko", args...); err != nil {
+	if err := sh.RunV(tools.KoPath, args...); err != nil {
 		return err
 	}
 	return nil

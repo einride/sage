@@ -24,7 +24,7 @@ func Run(branch string, ci bool) error {
 		args = append(args, "--ci")
 	}
 	fmt.Println("[semantic-release] creating release...")
-	err = sh.RunV("semantic-release", args...)
+	err = sh.RunV(tools.SemanticReleasePath, args...)
 	if err != nil {
 		return err
 	}

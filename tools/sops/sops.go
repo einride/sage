@@ -15,7 +15,7 @@ func SetSopsVersion(v string) (string, error) {
 
 func Sops(file string) error {
 	mg.Deps(mg.F(tools.Sops, version))
-	if err := sh.RunV("sops", file); err != nil {
+	if err := sh.RunV(tools.SopsPath, file); err != nil {
 		return err
 	}
 	return nil

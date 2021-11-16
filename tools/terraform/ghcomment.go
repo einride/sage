@@ -42,7 +42,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) {
 
 	fmt.Println("[ghcomment] commenting terraform plan on pr...")
 	err := sh.RunV(
-		"ghcomment",
+		tools.GHCommentPath,
 		"--pr",
 		prNumber,
 		"--signkey",

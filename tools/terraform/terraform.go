@@ -97,7 +97,7 @@ func Validate() {
 func runTf(args []string) {
 	mg.Deps(mg.F(tools.Terraform, tfVersion))
 	fmt.Println("[terraform] running terraform...")
-	err := sh.RunV("terraform", args...)
+	err := sh.RunV(tools.TerraformPath, args...)
 	if err != nil {
 		panic(err)
 	}
