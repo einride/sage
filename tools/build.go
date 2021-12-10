@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/einride/mage-tools/file"
 	"github.com/magefile/mage/sh"
 )
 
@@ -20,7 +19,7 @@ func GoTool(name string, goPkg string) error {
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
 
 	// Check if binary already exist
-	if file.Exists(binary) == nil {
+	if _, err := os.Stat(binary); err == nil {
 		return nil
 	}
 

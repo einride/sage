@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/einride/mage-tools/file"
-	"github.com/einride/mage-tools/tools"
+	"github.com/einride/mage-tools/tools/buf"
+	"github.com/einride/mage-tools/tools/googleprotoscrubber"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -28,16 +28,13 @@ type GatewayConfig struct {
 	GcpProject     string `validate:"required"`
 }
 
-func Setup(config GatewayConfig) {
-	validate(config)
-	gatewayConfig = config
-}
-
-func validate(config GatewayConfig) {
+func Setup(config GatewayConfig) error {
 	validate := validator.New()
 	if err := validate.Struct(config); err != nil {
-		panic(err)
+		return err
 	}
+	gatewayConfig = config
+	return nil
 }
 
 var dependencyVersions DependencyVersions
@@ -54,7 +51,7 @@ func SetDependencyVersions(d DependencyVersions) {
 func protoTagFile() error {
 	fmt.Println("[proto-tag-file] touching tag file for einride/proto...")
 	protoFile := filepath.Join(gatewayConfig.GenPath, "proto_tag."+gatewayConfig.ProtoTag)
-	if ok := file.Exists(protoFile); ok == nil {
+	if _, err := os.Stat(protoFile); err == nil {
 		return nil
 	}
 	err := os.MkdirAll(filepath.Dir(protoFile), 0o755)
@@ -70,11 +67,11 @@ func protoTagFile() error {
 
 func genAPI() error {
 	mg.SerialDeps(
-		mg.F(tools.Buf, dependencyVersions.BufVersion),
+		mg.F(buf.Buf, dependencyVersions.BufVersion),
 		protoTagFile,
 	)
 	fmt.Printf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo)
-	err := sh.RunV(tools.BufPath, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
+	err := sh.RunV(buf.Binary, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
 		"--as-file-descriptor-set",
 		"-o", gatewayConfig.APIPb)
 	if err != nil {
@@ -85,7 +82,7 @@ func genAPI() error {
 
 func genAPIScrubbed() error {
 	mg.SerialDeps(
-		mg.F(tools.GoogleProtoScrubber, dependencyVersions.GoogleProtoScrubberVersion),
+		mg.F(googleprotoscrubber.GoogleProtoScrubber, dependencyVersions.GoogleProtoScrubberVersion),
 		genAPI,
 	)
 	fmt.Println("[gen-api-scrubbed] scrubbing API descriptor...")
@@ -98,7 +95,7 @@ func genAPIScrubbed() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV(tools.GoogleProtoScrubberPath, "-f", gatewayConfig.APIScrubbedPb)
+	err = sh.RunV(googleprotoscrubber.Binary, "-f", gatewayConfig.APIScrubbedPb)
 	if err != nil {
 		return err
 	}

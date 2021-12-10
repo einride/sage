@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
+	"github.com/einride/mage-tools/file"
 	"github.com/einride/mage-tools/tools"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -36,7 +38,10 @@ linters:
     - wrapcheck # don't require wrapping everywhere
 `
 
-var version string
+var (
+	version string
+	Binary  string
+)
 
 func SetGolangciLintVersion(v string) (string, error) {
 	version = v
@@ -44,7 +49,7 @@ func SetGolangciLintVersion(v string) (string, error) {
 }
 
 func GolangciLint() error {
-	mg.Deps(mg.F(tools.GolangciLint, version))
+	mg.Deps(mg.F(golangciLint, version))
 	configPath := ".golangci.yml"
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
 		configPath := filepath.Join(tools.Path, "golangci-lint", ".golangci.yml")
@@ -53,8 +58,48 @@ func GolangciLint() error {
 		}
 	}
 	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
-	if err := sh.RunV(tools.GolangciLintPath, "run", "-c", configPath); err != nil {
+	if err := sh.RunV(Binary, "run", "-c", configPath); err != nil {
 		return err
+	}
+	return nil
+}
+
+func golangciLint(version string) error {
+	const binaryName = "golangci-lint"
+	const defaultVersion = "1.42.1"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"1.42.1"}
+		if err := tools.IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+	toolDir := filepath.Join(tools.Path, binaryName)
+	binDir := filepath.Join(toolDir, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
+	Binary = binary
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", version, hostOS, hostArch)
+
+	binURL := fmt.Sprintf(
+		"https://github.com/golangci/golangci-lint/releases/download/v%s/%s.tar.gz",
+		version,
+		golangciLint,
+	)
+
+	if err := file.FromRemote(
+		binURL,
+		file.WithName(filepath.Base(binary)),
+		file.WithDestinationDir(binDir),
+		file.WithUntarGz(),
+		file.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), binaryName),
+		file.WithSkipIfFileExists(binary),
+	); err != nil {
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 	return nil
 }
