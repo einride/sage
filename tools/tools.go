@@ -31,6 +31,7 @@ var (
 	GoReviewPath            string
 	SemanticReleasePath     string
 	CommitlintPath          string
+	PrettierPath            string
 	KoPath                  string
 )
 
@@ -641,6 +642,56 @@ func Commitlint() error {
 	CommitlintPath = binary
 
 	fmt.Println("[commitlint] installing packages...")
+	err = sh.Run(
+		"npm",
+		"--silent",
+		"install",
+		"--prefix",
+		toolDir,
+		"--no-save",
+		"--no-audit",
+		"--ignore-script",
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Prettier() error {
+	// Check if npm is installed
+	if err := sh.Run("npm", "version"); err != nil {
+		return err
+	}
+
+	toolDir := filepath.Join(path(), "prettier")
+	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
+	packageJSON := filepath.Join(toolDir, "package.json")
+
+	if err := os.MkdirAll(toolDir, 0o755); err != nil {
+		return err
+	}
+
+	const packageFileContent = `{
+  "devDependencies": {
+    "prettier": "^2.4.1",
+    "@einride/prettier-config": "^1.2.0"
+  }
+}`
+
+	fp, err := os.Create(packageJSON)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	if _, err = fp.WriteString(packageFileContent); err != nil {
+		return err
+	}
+
+	PrettierPath = binary
+
+	fmt.Println("[prettier] installing packages...")
 	err = sh.Run(
 		"npm",
 		"--silent",
