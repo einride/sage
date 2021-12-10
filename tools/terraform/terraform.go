@@ -2,7 +2,10 @@ package terraform
 
 import (
 	"fmt"
+	"path/filepath"
+	"runtime"
 
+	"github.com/einride/mage-tools/file"
 	"github.com/einride/mage-tools/tools"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
@@ -12,6 +15,7 @@ import (
 var (
 	tfConfig  TfConfig
 	tfVersion string
+	Binary    string
 )
 
 type TfConfig struct {
@@ -26,18 +30,11 @@ func SetTerraformVersion(v string) (string, error) {
 }
 
 func Setup(config TfConfig) error {
-	if err := validate(config); err != nil {
-		return err
-	}
-	tfConfig = config
-	return nil
-}
-
-func validate(config TfConfig) error {
 	validate := validator.New()
 	if err := validate.Struct(config); err != nil {
 		return err
 	}
+	tfConfig = config
 	return nil
 }
 
@@ -117,11 +114,50 @@ func Validate() error {
 }
 
 func runTf(args []string) error {
-	mg.Deps(mg.F(tools.Terraform, tfVersion))
+	mg.Deps(mg.F(terraform, tfVersion))
 	fmt.Println("[terraform] running terraform...")
-	err := sh.RunV(tools.TerraformPath, args...)
-	if err != nil {
-		return err
+	return sh.RunV(Binary, args...)
+}
+
+func terraform(version string) error {
+	const binaryName = "terraform"
+	const defaultVersion = "1.0.0"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{
+			"1.0.0",
+			"1.0.5",
+		}
+		if err := tools.IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(tools.Path, binaryName, version)
+	binary := filepath.Join(binDir, binaryName)
+	Binary = binary
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+
+	binURL := fmt.Sprintf(
+		"https://releases.hashicorp.com/terraform/%s/terraform_%s_%s_%s.zip",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
+
+	if err := file.FromRemote(
+		binURL,
+		file.WithName(filepath.Base(binary)),
+		file.WithDestinationDir(binDir),
+		file.WithUnzip(),
+		file.WithSkipIfFileExists(binary),
+	); err != nil {
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 	return nil
 }

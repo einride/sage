@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+const (
+	AMD64 = "amd64"
+	X8664 = "x86_64"
+)
+
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
@@ -18,13 +23,6 @@ func cwdPath(path string) string {
 		panic(err)
 	}
 	return filepath.Join(cwd, path)
-}
-
-func path() string {
-	if Path == "" {
-		panic("No tools path set")
-	}
-	return Path
 }
 
 func IsSupportedVersion(versions []string, version string, name string) error {

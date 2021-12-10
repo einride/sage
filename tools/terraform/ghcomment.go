@@ -2,14 +2,21 @@ package terraform
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/einride/mage-tools/file"
 	"github.com/einride/mage-tools/tools"
+	"github.com/einride/mage-tools/tools/gh"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
-var ghCommentVersion string
+var (
+	ghCommentVersion string
+	CommentBinary    string
+)
 
 func SetGhCommentVersion(v string) (string, error) {
 	ghCommentVersion = v
@@ -19,13 +26,13 @@ func SetGhCommentVersion(v string) (string, error) {
 func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	terraformPlanFile := "terraform.plan"
 	mg.Deps(
-		mg.F(tools.Terraform, tfVersion),
-		mg.F(tools.GHComment, ghCommentVersion),
-		mg.F(file.Exists, terraformPlanFile),
+		mg.F(terraform, tfVersion),
+		mg.F(comment, ghCommentVersion),
+		mg.F(os.Stat, terraformPlanFile),
 	)
 
 	comment, err := sh.Output(
-		tools.TerraformPath,
+		Binary,
 		"show",
 		"-no-color",
 		terraformPlanFile,
@@ -45,7 +52,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 
 	fmt.Println("[ghcomment] commenting terraform plan on pr...")
 	err = sh.RunV(
-		tools.GHCommentPath,
+		CommentBinary,
 		"--pr",
 		prNumber,
 		"--signkey",
@@ -56,5 +63,61 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func comment(version string) error {
+	mg.Deps(mg.F(gh.GH, version))
+	const binaryName = "ghcomment"
+	const defaultVersion = "0.2.1"
+
+	if version == "" {
+		version = defaultVersion
+	} else {
+		supportedVersions := []string{"0.2.1"}
+		if err := tools.IsSupportedVersion(supportedVersions, version, binaryName); err != nil {
+			return err
+		}
+	}
+
+	binDir := filepath.Join(tools.Path, binaryName, version, "bin")
+	binary := filepath.Join(binDir, binaryName)
+	CommentBinary = binary
+
+	// Check if binary already exist
+	if file.Exists(binary) == nil {
+		return nil
+	}
+
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+	ghVersion := "v" + version
+	pattern := fmt.Sprintf("*%s_%s.tar.gz", hostOS, hostArch)
+	archive := fmt.Sprintf("%s/ghcomment_%s_%s_%s.tar.gz", binDir, version, hostOS, hostArch)
+
+	if err := sh.Run(
+		gh.Binary,
+		"release",
+		"download",
+		"--repo",
+		"einride/ghcomment",
+		ghVersion,
+		"--pattern",
+		pattern,
+		"--dir",
+		binDir,
+	); err != nil {
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+	}
+
+	if err := file.FromLocal(
+		archive,
+		file.WithName(filepath.Base(binary)),
+		file.WithDestinationDir(binDir),
+		file.WithUntarGz(),
+	); err != nil {
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+	}
+
 	return nil
 }
