@@ -14,7 +14,7 @@ $(mage_target): $(mage_folder)/go.mod $(mage_folder)/magefile.go
 	@mkdir -p $(mage_gen)
 	@cd $(mage_folder) && \
 		go mod tidy && \
-		go run mage.go -compile $(mage) && \
+		go run main.go -compile $(mage) && \
 		$(mage) generateMakefile $(@)
 
 clean:

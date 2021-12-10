@@ -21,8 +21,10 @@ jobs:
 
     - name: Configure git for private modules
       env:
-        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
       run: git config --global url."https://git:${TOKEN}@github.com/einride/".insteadOf "https://github.com/einride/"
 
-    - name: Lint
-      run: make golangci-lint
+    - name: Make
+      env:
+        GITHUB_TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
+      run: make
