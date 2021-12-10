@@ -73,7 +73,7 @@ func genAPI() error {
 		mg.F(tools.Buf, dependencyVersions.BufVersion),
 		protoTagFile,
 	)
-	fmt.Println(fmt.Sprintf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo))
+	fmt.Printf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo)
 	err := sh.RunV(tools.BufPath, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
 		"--as-file-descriptor-set",
 		"-o", gatewayConfig.APIPb)
@@ -111,7 +111,7 @@ func Generate() {
 
 func ValidateEndpoints() error {
 	mg.Deps(Generate)
-	fmt.Println(fmt.Sprintf("[validate-endpoints] validating endpoints config in %s...", gatewayConfig.GcpProject))
+	fmt.Printf("[validate-endpoints] validating endpoints config in %s...", gatewayConfig.GcpProject)
 	err := sh.RunV(
 		"gcloud",
 		"endpoints",
@@ -133,7 +133,7 @@ func ValidateEndpoints() error {
 
 func DeployEndpoint() error {
 	mg.Deps(Generate)
-	fmt.Println(fmt.Sprintf("[deploy-endpoints] deploying endpoints config to %s...", gatewayConfig.GcpProject))
+	fmt.Printf("[deploy-endpoints] deploying endpoints config to %s...", gatewayConfig.GcpProject)
 	err := sh.RunV(
 		"gcloud",
 		"endpoints",
