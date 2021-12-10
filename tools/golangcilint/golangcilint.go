@@ -1,6 +1,7 @@
 package golangcilint
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -44,28 +45,16 @@ func SetGolangciLintVersion(v string) (string, error) {
 
 func GolangciLint() error {
 	mg.Deps(mg.F(tools.GolangciLint, version))
-	configPath := filepath.Join(tools.Path, "golangci-lint", ".golangci.yml")
-
-	fp, err := os.Create(configPath)
-	if err != nil {
-		return err
+	configPath := ".golangci.yml"
+	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+		configPath := filepath.Join(tools.Path, "golangci-lint", ".golangci.yml")
+		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
+			return err
+		}
 	}
-	defer fp.Close()
-
-	if _, err = fp.WriteString(defaultConfig); err != nil {
-		return err
-	}
-
-	if _, err = Run(configPath); err != nil {
+	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
+	if err := sh.RunV(tools.GolangciLintPath, "run", "-c", configPath); err != nil {
 		return err
 	}
 	return nil
-}
-
-func Run(configPath string) (string, error) {
-	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
-	if err := sh.RunV(tools.GolangciLintPath, "run", "-c", configPath); err != nil {
-		return "", err
-	}
-	return "", nil
 }
