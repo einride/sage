@@ -219,15 +219,14 @@ func WithSkipIfFileExists(filepath string) Opt {
 
 func downloadBinary(url string) (io.ReadCloser, func(), error) {
 	// Get the data
+	// nolint: bodyclose // false positive
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, func() {}, fmt.Errorf("unable to get url: %w", err)
 	}
-
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, func() {}, fmt.Errorf("unable to download %s - %d", url, resp.StatusCode)
 	}
-
 	return resp.Body, func() { resp.Body.Close() }, nil
 }
 

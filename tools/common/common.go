@@ -13,7 +13,18 @@ func WireGenerate(path string) error {
 
 func MockgenGenerate(packageName, destination, moduleName, mocks string) error {
 	fmt.Printf("[mockgen] generating %s...", packageName)
-	return sh.RunV("go", "run", "-mod=mod", "github.com/golang/mock/mockgen", "-package", packageName, "-destination", destination, moduleName, mocks)
+	return sh.RunV(
+		"go",
+		"run",
+		"-mod=mod",
+		"github.com/golang/mock/mockgen",
+		"-package",
+		packageName,
+		"-destination",
+		destination,
+		moduleName,
+		mocks,
+	)
 }
 
 func GoTest() error {
