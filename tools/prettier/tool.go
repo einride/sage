@@ -43,21 +43,14 @@ func prettier() error {
     "@einride/prettier-config": "^1.2.0"
   }
 }`
-
-	fp, err := os.Create(packageJSON)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-
-	if _, err = fp.WriteString(packageFileContent); err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageFileContent), 0o644); err != nil {
 		return err
 	}
 
 	Binary = binary
 
 	fmt.Println("[prettier] installing packages...")
-	err = sh.Run(
+	return sh.Run(
 		"npm",
 		"--silent",
 		"install",
@@ -67,8 +60,4 @@ func prettier() error {
 		"--no-audit",
 		"--ignore-script",
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }

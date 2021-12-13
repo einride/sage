@@ -25,10 +25,5 @@ func GoTool(name string, goPkg string) error {
 
 	os.Setenv("GOBIN", binDir)
 	fmt.Printf("Building %s...\n", goPkg)
-	if err := sh.Run("go", "install", goPkg); err != nil {
-		fmt.Println("Failed")
-		return err
-	}
-	fmt.Println("OK")
-	return nil
+	return sh.RunV("go", "install", goPkg)
 }

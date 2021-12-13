@@ -33,9 +33,5 @@ func GolangMigrate(source string, database string) error {
 		binaryName,
 		fmt.Sprintf("github.com/golang-migrate/migrate/v4/cmd/migrate@v%s", version),
 	))
-	err := sh.RunV("migrate", "-source", source, "-database", database, "up")
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV("migrate", "-source", source, "-database", database, "up")
 }
