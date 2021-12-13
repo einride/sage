@@ -1,4 +1,4 @@
-package googleprotoscrubber
+package googlecloudprotoscrubber
 
 import (
 	"fmt"
