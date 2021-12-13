@@ -48,10 +48,7 @@ func Init() error {
 	if tfConfig.ServiceAccount != "" {
 		args = append(args, "-backend-config=impersonate_service_account="+tfConfig.ServiceAccount)
 	}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func Plan() error {
@@ -63,10 +60,7 @@ func Plan() error {
 		"-out=terraform.plan",
 		"-var-file=" + tfConfig.VarFile,
 	}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func Apply() error {
@@ -78,10 +72,7 @@ func Apply() error {
 		"-auto-approve=true",
 		"-var-file=" + tfConfig.VarFile,
 	}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func Fmt() error {
@@ -89,10 +80,7 @@ func Fmt() error {
 		"fmt",
 		"--recursive",
 	}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func FmtCheck() error {
@@ -101,18 +89,12 @@ func FmtCheck() error {
 		"--recursive",
 		"--check",
 	}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func Validate() error {
 	args := []string{"validate"}
-	if err := runTf(args); err != nil {
-		return err
-	}
-	return nil
+	return runTf(args)
 }
 
 func runTf(args []string) error {
