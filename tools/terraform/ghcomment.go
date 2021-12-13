@@ -2,7 +2,6 @@ package terraform
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -28,7 +27,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	mg.Deps(
 		mg.F(terraform, tfVersion),
 		mg.F(comment, ghCommentVersion),
-		mg.F(os.Stat, terraformPlanFile),
+		mg.F(file.Exists, terraformPlanFile),
 	)
 
 	comment, err := sh.Output(
