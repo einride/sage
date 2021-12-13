@@ -19,7 +19,7 @@ var (
 )
 
 type TfConfig struct {
-	ServiceAccount string `validate:"email"`
+	ServiceAccount string `validate:"omitempty,email"`
 	StateBucket    string `validate:"required"`
 	VarFile        string `validate:"required"`
 }
