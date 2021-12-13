@@ -104,7 +104,7 @@ func ko(version string) error {
 
 	hostOS := runtime.GOOS
 
-	binDir := filepath.Join(tools.Path, binaryName, version, "bin")
+	binDir := filepath.Join(tools.GetPath(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	Binary = binary
 

@@ -25,7 +25,7 @@ func Protoc(version string) error {
 		}
 	}
 
-	binDir := filepath.Join(tools.Path, binaryName, version)
+	binDir := filepath.Join(tools.GetPath(), binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
 	Binary = binary
 

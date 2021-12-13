@@ -35,7 +35,7 @@ func GH(version string) error {
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 
-	dir := filepath.Join(tools.Path, binaryName)
+	dir := filepath.Join(tools.GetPath(), binaryName)
 	binDir := filepath.Join(dir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	Binary = binary

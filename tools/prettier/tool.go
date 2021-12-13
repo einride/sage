@@ -29,7 +29,7 @@ func prettier() error {
 		return err
 	}
 
-	toolDir := filepath.Join(tools.Path, "prettier")
+	toolDir := filepath.Join(tools.GetPath(), "prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

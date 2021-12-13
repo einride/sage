@@ -14,7 +14,7 @@ var Binary string
 
 func Run(branch string, ci bool) error {
 	mg.Deps(mg.F(semanticRelease, branch))
-	releaserc := filepath.Join(tools.Path, "semantic-release", ".releaserc.json")
+	releaserc := filepath.Join(tools.GetPath(), "semantic-release", ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -32,7 +32,7 @@ func semanticRelease(branch string) error {
 		return err
 	}
 
-	toolDir := filepath.Join(tools.Path, "semantic-release")
+	toolDir := filepath.Join(tools.GetPath(), "semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")

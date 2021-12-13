@@ -52,7 +52,7 @@ func GolangciLint() error {
 	mg.Deps(mg.F(golangciLint, version))
 	configPath := ".golangci.yml"
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath := filepath.Join(tools.Path, "golangci-lint", ".golangci.yml")
+		configPath := filepath.Join(tools.GetPath(), "golangci-lint", ".golangci.yml")
 		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func golangciLint(version string) error {
 			return err
 		}
 	}
-	toolDir := filepath.Join(tools.Path, binaryName)
+	toolDir := filepath.Join(tools.GetPath(), binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	Binary = binary
