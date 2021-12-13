@@ -19,7 +19,7 @@ var (
 )
 
 type TfConfig struct {
-	ServiceAccount string `validate:"required,email"`
+	ServiceAccount string `validate:"email"`
 	StateBucket    string `validate:"required"`
 	VarFile        string `validate:"required"`
 }
@@ -44,7 +44,9 @@ func Init() error {
 		"-input=false",
 		"-reconfigure",
 		"-backend-config=bucket=" + tfConfig.StateBucket,
-		"-backend-config=impersonate_service_account=" + tfConfig.ServiceAccount,
+	}
+	if tfConfig.ServiceAccount != "" {
+		args = append(args, "-backend-config=impersonate_service_account="+tfConfig.ServiceAccount)
 	}
 	if err := runTf(args); err != nil {
 		return err
