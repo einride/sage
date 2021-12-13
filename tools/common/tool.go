@@ -28,17 +28,9 @@ func MockgenGenerate(packageName, destination, moduleName, mocks string) error {
 }
 
 func GoTest() error {
-	err := sh.RunV("go", "test", "-race", "-cover", "./...")
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV("go", "test", "-race", "-cover", "./...")
 }
 
 func GoModTidy() error {
-	err := sh.RunV("go", "mod", "tidy", "-v")
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV("go", "mod", "tidy", "-v")
 }

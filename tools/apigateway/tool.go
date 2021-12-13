@@ -58,11 +58,7 @@ func protoTagFile() error {
 	if err != nil {
 		return err
 	}
-	_, err = os.Create(protoFile)
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.WriteFile(protoFile, []byte{}, 0o644)
 }
 
 func genAPI() error {
@@ -71,13 +67,9 @@ func genAPI() error {
 		protoTagFile,
 	)
 	fmt.Printf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo)
-	err := sh.RunV(buf.Binary, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
+	return sh.RunV(buf.Binary, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
 		"--as-file-descriptor-set",
 		"-o", gatewayConfig.APIPb)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func genAPIScrubbed() error {
@@ -95,11 +87,7 @@ func genAPIScrubbed() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV(googlecloudprotoscrubber.Binary, "-f", gatewayConfig.APIScrubbedPb)
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV(googlecloudprotoscrubber.Binary, "-f", gatewayConfig.APIScrubbedPb)
 }
 
 func Generate() {
@@ -109,7 +97,7 @@ func Generate() {
 func ValidateEndpoints() error {
 	mg.Deps(Generate)
 	fmt.Printf("[validate-endpoints] validating endpoints config in %s...", gatewayConfig.GcpProject)
-	err := sh.RunV(
+	return sh.RunV(
 		"gcloud",
 		"endpoints",
 		"services",
@@ -122,16 +110,12 @@ func ValidateEndpoints() error {
 		gatewayConfig.APIConfigPath,
 		gatewayConfig.APIScrubbedPb,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func DeployEndpoint() error {
 	mg.Deps(Generate)
 	fmt.Printf("[deploy-endpoints] deploying endpoints config to %s...", gatewayConfig.GcpProject)
-	err := sh.RunV(
+	return sh.RunV(
 		"gcloud",
 		"endpoints",
 		"services",
@@ -141,10 +125,6 @@ func DeployEndpoint() error {
 		gatewayConfig.APIConfigPath,
 		gatewayConfig.APIScrubbedPb,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func endpointsConfigID() (string, error) {
@@ -180,7 +160,7 @@ func BuildImage() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV(
+	return sh.RunV(
 		"scripts/gcloud-build-image.bash",
 		"-s",
 		gatewayConfig.ServiceName,
@@ -191,10 +171,6 @@ func BuildImage() error {
 		"-r",
 		gatewayConfig.Region,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func DeployCloudRun() error {
@@ -203,7 +179,7 @@ func DeployCloudRun() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV(
+	return sh.RunV(
 		"gcloud",
 		"run",
 		"deploy",
@@ -224,8 +200,4 @@ func DeployCloudRun() error {
 		"managed",
 		"--allow-unauthenticated",
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }

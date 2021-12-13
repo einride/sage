@@ -77,30 +77,17 @@ func semanticRelease(branch string) error {
   "fail": false
 }`, branch)
 
-	fp, err := os.Create(packageJSON)
-	if err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageFileContent), 0o644); err != nil {
 		return err
 	}
-	defer fp.Close()
-
-	if _, err = fp.WriteString(packageFileContent); err != nil {
-		return err
-	}
-
-	fr, err := os.Create(releasercJSON)
-	if err != nil {
-		return err
-	}
-	defer fr.Close()
-
-	if _, err = fr.WriteString(releasercFileContent); err != nil {
+	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o644); err != nil {
 		return err
 	}
 
 	Binary = binary
 
 	fmt.Println("[semantic-release] installing packages...")
-	err = sh.Run(
+	return sh.Run(
 		"npm",
 		"--silent",
 		"install",
@@ -110,8 +97,4 @@ func semanticRelease(branch string) error {
 		"--no-audit",
 		"--ignore-script",
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }

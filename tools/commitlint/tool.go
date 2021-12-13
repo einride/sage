@@ -25,13 +25,7 @@ func Commitlint(branch string) error {
     "body-max-line-length": [1, "always", 100],
   }
 };`
-	fr, err := os.Create(commitlintrc)
-	if err != nil {
-		return err
-	}
-	defer fr.Close()
-
-	if _, err = fr.WriteString(commitlintFileContent); err != nil {
+	if err := os.WriteFile(commitlintrc, []byte(commitlintFileContent), 0o644); err != nil {
 		return err
 	}
 
@@ -44,15 +38,10 @@ func Commitlint(branch string) error {
 		"HEAD",
 	}
 	fmt.Println("[commitlint] linting commit messages...")
-	err = sh.Run("git", "fetch", "--tags")
-	if err != nil {
+	if err := sh.Run("git", "fetch", "--tags"); err != nil {
 		return err
 	}
-	err = sh.RunV(Binary, args...)
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV(Binary, args...)
 }
 
 func commitlint() error {
@@ -76,20 +65,14 @@ func commitlint() error {
   }
 }`
 
-	fp, err := os.Create(packageJSON)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-
-	if _, err = fp.WriteString(packageFileContent); err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageFileContent), 0o644); err != nil {
 		return err
 	}
 
 	Binary = binary
 
 	fmt.Println("[commitlint] installing packages...")
-	err = sh.Run(
+	return sh.Run(
 		"npm",
 		"--silent",
 		"install",
@@ -99,8 +82,4 @@ func commitlint() error {
 		"--no-audit",
 		"--ignore-script",
 	)
-	if err != nil {
-		return err
-	}
-	return nil
 }

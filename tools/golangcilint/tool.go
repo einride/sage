@@ -58,10 +58,7 @@ func GolangciLint() error {
 		}
 	}
 	fmt.Println("[golangci-lint] linting Go code with golangci-lint...")
-	if err := sh.RunV(Binary, "run", "-c", configPath); err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV(Binary, "run", "-c", configPath)
 }
 
 func golangciLint(version string) error {

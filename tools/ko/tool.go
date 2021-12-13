@@ -83,10 +83,7 @@ func tag() (string, error) {
 func publish(args []string) error {
 	mg.Deps(mg.F(ko, version))
 	fmt.Println("[ko] info building ko...")
-	if err := sh.RunV(Binary, args...); err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV(Binary, args...)
 }
 
 func ko(version string) error {

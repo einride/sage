@@ -27,11 +27,7 @@ func Goreview() error {
 	mg.Deps(mg.F(goreview, version))
 	// TODO: the args should probably not be hardocded
 	fmt.Println("[goreview] reviewing Go code for Einride-specific conventions...")
-	err := sh.RunV(Binary, "-c", "1", "./...")
-	if err != nil {
-		return err
-	}
-	return nil
+	return sh.RunV(Binary, "-c", "1", "./...")
 }
 
 func goreview(version string) error {
