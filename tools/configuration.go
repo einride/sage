@@ -15,7 +15,7 @@ const (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
-var Path = cwdPath(".tools")
+var path = cwdPath(".tools")
 
 func cwdPath(path string) string {
 	cwd, err := os.Getwd()
@@ -23,6 +23,17 @@ func cwdPath(path string) string {
 		panic(err)
 	}
 	return filepath.Join(cwd, path)
+}
+
+func GetPath() string {
+	if path == "" {
+		panic("No tools path set")
+	}
+	return path
+}
+
+func SetPath(p string) {
+	path = p
 }
 
 func IsSupportedVersion(versions []string, version string, name string) error {

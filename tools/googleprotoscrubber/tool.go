@@ -24,7 +24,7 @@ func GoogleProtoScrubber(version string) error {
 			return err
 		}
 	}
-	binDir := filepath.Join(tools.Path, binaryName, version)
+	binDir := filepath.Join(tools.GetPath(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	Binary = binary
 

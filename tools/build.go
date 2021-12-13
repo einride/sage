@@ -9,7 +9,7 @@ import (
 )
 
 func GoTool(name string, goPkg string) error {
-	toolDir, err := filepath.Abs(Path)
+	toolDir, err := filepath.Abs(GetPath())
 	if err != nil {
 		return err
 	}

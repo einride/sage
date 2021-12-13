@@ -15,7 +15,7 @@ var Binary string
 func Commitlint(branch string) error {
 	mg.Deps(commitlint)
 
-	commitlintrc := filepath.Join(tools.Path, "commitlint", ".commitlintrc.js")
+	commitlintrc := filepath.Join(tools.GetPath(), "commitlint", ".commitlintrc.js")
 
 	commitlintFileContent := `module.exports = {
   extends: ['@commitlint/config-conventional'],
@@ -61,7 +61,7 @@ func commitlint() error {
 		return err
 	}
 
-	toolDir := filepath.Join(tools.Path, "commitlint")
+	toolDir := filepath.Join(tools.GetPath(), "commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

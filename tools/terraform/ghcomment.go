@@ -80,7 +80,7 @@ func comment(version string) error {
 		}
 	}
 
-	binDir := filepath.Join(tools.Path, binaryName, version, "bin")
+	binDir := filepath.Join(tools.GetPath(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	CommentBinary = binary
 

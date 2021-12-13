@@ -26,7 +26,7 @@ func GrpcJava(version string) error {
 		}
 	}
 
-	binDir := filepath.Join(tools.Path, "grpc-java", version, "bin")
+	binDir := filepath.Join(tools.GetPath(), "grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	Binary = binary
 
