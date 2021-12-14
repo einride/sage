@@ -1,15 +1,16 @@
 package terraform
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
 
-	"github.com/einride/mage-tools/file"
-	"github.com/einride/mage-tools/tools"
-	"github.com/einride/mage-tools/tools/gh"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/tools"
+	"go.einride.tech/mage-tools/tools/gh"
 )
 
 var (
@@ -27,7 +28,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	mg.Deps(
 		mg.F(terraform, tfVersion),
 		mg.F(comment, ghCommentVersion),
-		mg.F(file.Exists, terraformPlanFile),
+		mg.F(mgtool.Exists, terraformPlanFile),
 	)
 
 	comment, err := sh.Output(
@@ -65,7 +66,7 @@ func GhReviewTerraformPlan(prNumber string, gcpProject string) error {
 	return nil
 }
 
-func comment(version string) error {
+func comment(ctx context.Context, version string) error {
 	mg.Deps(mg.F(gh.GH, version))
 	const binaryName = "ghcomment"
 	const defaultVersion = "0.2.1"
@@ -84,7 +85,7 @@ func comment(version string) error {
 	CommentBinary = binary
 
 	// Check if binary already exist
-	if file.Exists(binary) == nil {
+	if mgtool.Exists(binary) == nil {
 		return nil
 	}
 
@@ -109,11 +110,11 @@ func comment(version string) error {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
 
-	if err := file.FromLocal(
+	if err := mgtool.FromLocal(
+		ctx,
 		archive,
-		file.WithName(filepath.Base(binary)),
-		file.WithDestinationDir(binDir),
-		file.WithUntarGz(),
+		mgtool.WithDestinationDir(binDir),
+		mgtool.WithUntarGz(),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}

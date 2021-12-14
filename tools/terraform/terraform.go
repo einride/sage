@@ -1,15 +1,16 @@
 package terraform
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
 
-	"github.com/einride/mage-tools/file"
-	"github.com/einride/mage-tools/tools"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/tools"
 )
 
 var (
@@ -103,7 +104,7 @@ func runTf(args []string) error {
 	return sh.RunV(Binary, args...)
 }
 
-func terraform(version string) error {
+func terraform(ctx context.Context, version string) error {
 	const binaryName = "terraform"
 	const defaultVersion = "1.0.0"
 
@@ -134,12 +135,12 @@ func terraform(version string) error {
 		hostArch,
 	)
 
-	if err := file.FromRemote(
+	if err := mgtool.FromRemote(
+		ctx,
 		binURL,
-		file.WithName(filepath.Base(binary)),
-		file.WithDestinationDir(binDir),
-		file.WithUnzip(),
-		file.WithSkipIfFileExists(binary),
+		mgtool.WithDestinationDir(binDir),
+		mgtool.WithUnzip(),
+		mgtool.WithSkipIfFileExists(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}

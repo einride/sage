@@ -1,34 +1,40 @@
+//go:build mage
 // +build mage
 
 package main
 
 import (
 	"github.com/magefile/mage/mg"
+	// mage:import
+	_ "go.einride.tech/mage-tools/mgmake"
 
 	// mage:import
-	_ "github.com/einride/mage-tools/maketargets"
+	"go.einride.tech/mage-tools/targets/mgcommitlint"
+
 	// mage:import
-	"github.com/einride/mage-tools/tools/goreview"
+	"go.einride.tech/mage-tools/targets/mggo"
+
 	// mage:import
-	"github.com/einride/mage-tools/tools/golangcilint"
+	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
+
 	// mage:import
-	"github.com/einride/mage-tools/tools/commitlint"
-	// mage:import semantic-release
-	_ "github.com/einride/mage-tools/tools/semanticrelease"
+	"go.einride.tech/mage-tools/targets/mggolangcilint"
+
 	// mage:import
-	"github.com/einride/mage-tools/tools/gitverifynodiff"
+	"go.einride.tech/mage-tools/targets/goreview"
+
 	// mage:import
-	"github.com/einride/mage-tools/tools/common"
+	_ "go.einride.tech/mage-tools/targets/mgsemanticrelease"
 )
 
 func All() {
 	mg.Deps(
-		mg.F(commitlint.Commitlint, "main"),
-		golangcilint.GolangciLint,
+		mg.F(mgcommitlint.Commitlint, "main"),
+		mggolangcilint.GolangciLint,
 		goreview.Goreview,
 	)
 	mg.SerialDeps(
-		common.GoModTidy,
-		gitverifynodiff.GitVerifyNoDiff,
+		mggo.GoModTidy,
+		mggitverifynodiff.GitVerifyNoDiff,
 	)
 }
