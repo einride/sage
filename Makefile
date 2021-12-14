@@ -8,8 +8,7 @@ mage := $(mage_gen)/local_mage
 
 include $(mage_target)
 
-$(mage_target): $(mage_folder)/go.mod $(mage_folder)/magefile.go
-	$(info [$@] generating targets...)
+$(mage_target): $(mage_folder)/go.mod $(shell find . -type f -name '*.go')
 	@git clean $(mage_gen)/ -fdx
 	@mkdir -p $(mage_gen)
 	@cd $(mage_folder) && \
@@ -18,4 +17,4 @@ $(mage_target): $(mage_folder)/go.mod $(mage_folder)/magefile.go
 		$(mage) generateMakefile $(@)
 
 clean:
-	@git clean $(mage_gen)/ -fdx
+	@git clean -fdx $(mage_gen) ./.tools

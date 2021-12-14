@@ -1,12 +1,13 @@
 package gh
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"runtime"
 
-	"github.com/einride/mage-tools/file"
-	"github.com/einride/mage-tools/tools"
+	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/tools"
 )
 
 var (
@@ -19,7 +20,7 @@ func SetGhVersion(v string) (string, error) {
 	return ghVersion, nil
 }
 
-func GH(version string) error {
+func GH(ctx context.Context, version string) error {
 	const binaryName = "gh"
 	const defaultVersion = "2.2.0"
 
@@ -48,13 +49,13 @@ func GH(version string) error {
 		hostArch,
 	)
 
-	if err := file.FromRemote(
+	if err := mgtool.FromRemote(
+		ctx,
 		binURL,
-		file.WithName(filepath.Base(binary)),
-		file.WithDestinationDir(binDir),
-		file.WithUntarGz(),
-		file.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), binaryName),
-		file.WithSkipIfFileExists(binary),
+		mgtool.WithDestinationDir(binDir),
+		mgtool.WithUntarGz(),
+		mgtool.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), binaryName),
+		mgtool.WithSkipIfFileExists(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}

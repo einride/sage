@@ -26,3 +26,7 @@ linters:
     - cyclop # don't enforce
     - forbidigo # don't enforce
     - noctx # TODO: migrate to context-based HTTP APIs
+    - scopelint # deprecated upstream, replaced by exportloopref
+    - golint # deprecated upstream, replaced by revive
+    - maligned # deprecated, replaced by govet
+    - revive # we are stuttering a lot

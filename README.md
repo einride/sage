@@ -1,2 +1,3 @@
 # mage-tools
-[![Release](https://github.com/einride/mage-tools/actions/workflows/release.yml/badge.svg)](https://github.com/einride/mage-tools/actions/workflows/release.yml)
+
+[![Release](https://go.einride.tech/mage-tools/actions/workflows/release.yml/badge.svg)](https://go.einride.tech/mage-tools/actions/workflows/release.yml)

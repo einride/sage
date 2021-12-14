@@ -1,29 +1,31 @@
 package tools
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
 	"github.com/magefile/mage/sh"
 )
 
-func GoTool(name string, goPkg string) error {
+func GoInstall(ctx context.Context, goPkg string, version string) (string, error) {
 	toolDir, err := filepath.Abs(GetPath())
 	if err != nil {
-		return err
+		return "", err
 	}
-	binDir := filepath.Join(toolDir, name, "bin")
-	binary := filepath.Join(binDir, name)
+	executable := filepath.Join(toolDir, goPkg, version, "bin", filepath.Base(goPkg))
 
-	os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(binary), os.Getenv("PATH")))
-
-	// Check if binary already exist
-	if _, err := os.Stat(binary); err == nil {
-		return nil
+	// Check if executable already exist
+	if _, err := os.Stat(executable); err == nil {
+		return executable, nil
 	}
-
-	os.Setenv("GOBIN", binDir)
-	fmt.Printf("Building %s...\n", goPkg)
-	return sh.RunV("go", "install", goPkg)
+	goPkgVer := fmt.Sprintf("%s@%s", goPkg, version)
+	os.Setenv("GOBIN", filepath.Dir(executable))
+	logr.FromContextOrDiscard(ctx).Info(fmt.Sprintf("Building %s...", goPkgVer))
+	if err := sh.RunV("go", "install", goPkgVer); err != nil {
+		return "", err
+	}
+	return executable, nil
 }

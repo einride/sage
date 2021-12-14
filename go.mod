@@ -1,8 +1,9 @@
-module github.com/einride/mage-tools
+module go.einride.tech/mage-tools
 
 go 1.17
 
 require (
+	github.com/go-logr/logr v1.2.2
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0

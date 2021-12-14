@@ -1,16 +1,17 @@
 package apigateway
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/einride/mage-tools/tools/buf"
-	"github.com/einride/mage-tools/tools/googlecloudprotoscrubber"
 	"github.com/go-playground/validator/v10"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"go.einride.tech/mage-tools/targets/googlecloudprotoscrubber"
+	"go.einride.tech/mage-tools/targets/mgbuf"
 )
 
 var gatewayConfig GatewayConfig
@@ -37,17 +38,6 @@ func Setup(config GatewayConfig) error {
 	return nil
 }
 
-var dependencyVersions DependencyVersions
-
-type DependencyVersions struct {
-	BufVersion                 string
-	GoogleProtoScrubberVersion string
-}
-
-func SetDependencyVersions(d DependencyVersions) {
-	dependencyVersions = d
-}
-
 func protoTagFile() error {
 	fmt.Println("[proto-tag-file] touching tag file for einride/proto...")
 	protoFile := filepath.Join(gatewayConfig.GenPath, "proto_tag."+gatewayConfig.ProtoTag)
@@ -61,24 +51,20 @@ func protoTagFile() error {
 	return os.WriteFile(protoFile, []byte{}, 0o644)
 }
 
-func genAPI() error {
-	mg.SerialDeps(
-		mg.F(buf.Buf, dependencyVersions.BufVersion),
-		protoTagFile,
-	)
+func genAPI(ctx context.Context) error {
+	mg.Deps(protoTagFile)
 	fmt.Printf("[gen-api] generating API descriptor from %s...", gatewayConfig.ProtoRepo)
-	return sh.RunV(buf.Binary, "build", fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
-		"--as-file-descriptor-set",
-		"-o", gatewayConfig.APIPb)
+	return mgbuf.Buf(
+		ctx,
+		"build",
+		fmt.Sprintf("%s#tag=%s", gatewayConfig.ProtoRepo, gatewayConfig.ProtoTag),
+		"--as-tool-descriptor-set",
+		"-o", gatewayConfig.APIPb,
+	)
 }
 
-func genAPIScrubbed() error {
-	mg.SerialDeps(
-		mg.F(googlecloudprotoscrubber.GoogleProtoScrubber, dependencyVersions.GoogleProtoScrubberVersion),
-		genAPI,
-	)
-	fmt.Println("[gen-api-scrubbed] scrubbing API descriptor...")
-
+func genAPIScrubbed(ctx context.Context) error {
+	mg.Deps(genAPI)
 	input, err := ioutil.ReadFile(gatewayConfig.APIPb)
 	if err != nil {
 		return err
@@ -87,7 +73,7 @@ func genAPIScrubbed() error {
 	if err != nil {
 		return err
 	}
-	return sh.RunV(googlecloudprotoscrubber.Binary, "-f", gatewayConfig.APIScrubbedPb)
+	return googlecloudprotoscrubber.GoogleCloudProtoScrubber(ctx, gatewayConfig.APIScrubbedPb)
 }
 
 func Generate() {
