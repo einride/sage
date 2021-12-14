@@ -50,9 +50,9 @@ func SetGolangciLintVersion(v string) (string, error) {
 
 func GolangciLint() error {
 	mg.Deps(mg.F(golangciLint, version))
-	configPath := ".golangci.yml"
+	configPath := filepath.Join(tools.GetCWDPath(".golangci.yml"))
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath := filepath.Join(tools.GetPath(), "golangci-lint", ".golangci.yml")
+		configPath = filepath.Join(tools.GetPath(), "golangci-lint", ".golangci.yml")
 		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
 			return err
 		}
