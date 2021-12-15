@@ -12,7 +12,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "3.15.7"
@@ -30,13 +29,13 @@ func Protoc(ctx context.Context, args ...string) error {
 func prepare(ctx context.Context) error {
 	const binaryName = "protoc"
 
-	binDir := filepath.Join(tools.GetPath(), binaryName, version)
+	binDir := filepath.Join(mgtool.GetPath(), binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
 
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == tools.AMD64 {
-		hostArch = tools.X8664
+	if hostArch == mgtool.AMD64 {
+		hostArch = mgtool.X8664
 	}
 
 	binURL := fmt.Sprintf(

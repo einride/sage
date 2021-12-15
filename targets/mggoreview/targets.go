@@ -1,4 +1,4 @@
-package goreview
+package mggoreview
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "0.18.0"
@@ -29,13 +28,13 @@ func Goreview(ctx context.Context) error {
 
 func prepare(ctx context.Context) error {
 	const toolName = "goreview"
-	toolDir := filepath.Join(tools.GetPath(), toolName)
+	toolDir := filepath.Join(mgtool.GetPath(), toolName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, toolName)
 	hostOS := strings.Title(runtime.GOOS)
 	hostArch := runtime.GOARCH
-	if hostArch == tools.AMD64 {
-		hostArch = tools.X8664
+	if hostArch == mgtool.AMD64 {
+		hostArch = mgtool.X8664
 	}
 	fileName := fmt.Sprintf("goreview_%s_%s_%s", version, hostOS, hostArch)
 	binURL := fmt.Sprintf(

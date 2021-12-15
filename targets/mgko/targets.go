@@ -12,7 +12,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "0.9.3"
@@ -84,7 +83,7 @@ func prepare(ctx context.Context) error {
 
 	hostOS := runtime.GOOS
 
-	binDir := filepath.Join(tools.GetPath(), binaryName, version, "bin")
+	binDir := filepath.Join(mgtool.GetPath(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 
 	binURL := fmt.Sprintf(

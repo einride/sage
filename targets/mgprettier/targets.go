@@ -9,7 +9,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/tools"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const packageJSONContent = `{
@@ -40,7 +40,7 @@ func prepare(ctx context.Context) error {
 		return err
 	}
 
-	toolDir := filepath.Join(tools.GetPath(), "prettier")
+	toolDir := filepath.Join(mgtool.GetPath(), "prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

@@ -1,4 +1,4 @@
-package grpcjava
+package mggrpcjava
 
 import (
 	"context"
@@ -13,7 +13,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "1.33.0"
@@ -30,7 +29,7 @@ func ProtocGenGrpcJava(ctx context.Context) error {
 func prepare(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
 
-	binDir := filepath.Join(tools.GetPath(), "grpc-java", version, "bin")
+	binDir := filepath.Join(mgtool.GetPath(), "grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 
 	// read the whole pom at once
@@ -49,8 +48,8 @@ func prepare(ctx context.Context) error {
 		hostOS = "osx"
 	}
 	hostArch := runtime.GOARCH
-	if hostArch == tools.AMD64 {
-		hostArch = tools.X8664
+	if hostArch == mgtool.AMD64 {
+		hostArch = mgtool.X8664
 	}
 
 	binURL := fmt.Sprintf(

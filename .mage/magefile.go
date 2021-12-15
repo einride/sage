@@ -21,7 +21,7 @@ import (
 	"go.einride.tech/mage-tools/targets/mggolangcilint"
 
 	// mage:import
-	"go.einride.tech/mage-tools/targets/goreview"
+	"go.einride.tech/mage-tools/targets/mggoreview"
 
 	// mage:import
 	_ "go.einride.tech/mage-tools/targets/mgsemanticrelease"
@@ -31,7 +31,7 @@ func All() {
 	mg.Deps(
 		mg.F(mgcommitlint.Commitlint, "main"),
 		mggolangcilint.GolangciLint,
-		goreview.Goreview,
+		mggoreview.Goreview,
 	)
 	mg.SerialDeps(
 		mggo.GoModTidy,
