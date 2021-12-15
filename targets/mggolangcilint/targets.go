@@ -13,7 +13,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "1.42.1"
@@ -49,9 +48,9 @@ func GolangciLint(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("golangci-lint"))
 	mg.CtxDeps(ctx, mg.F(prepare))
 	logr.FromContextOrDiscard(ctx).Info("running...")
-	configPath := filepath.Join(tools.GetCWDPath(".golangci.yml"))
+	configPath := filepath.Join(mgtool.GetCWDPath(".golangci.yml"))
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath = filepath.Join(tools.GetPath(), "golangci-lint", ".golangci.yml")
+		configPath = filepath.Join(mgtool.GetPath(), "golangci-lint", ".golangci.yml")
 		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
 			return err
 		}
@@ -61,7 +60,7 @@ func GolangciLint(ctx context.Context) error {
 
 func prepare(ctx context.Context) error {
 	const binaryName = "golangci-lint"
-	toolDir := filepath.Join(tools.GetPath(), binaryName)
+	toolDir := filepath.Join(mgtool.GetPath(), binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS

@@ -9,7 +9,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/tools"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const packageJSONContent = `{
@@ -33,7 +33,7 @@ var executable string
 func Commitlint(ctx context.Context, branch string) error {
 	logger := mglog.Logger("commitlint")
 	ctx = logr.NewContext(ctx, logger)
-	commitlintrc := filepath.Join(tools.GetPath(), "commitlint", ".commitlintrc.js")
+	commitlintrc := filepath.Join(mgtool.GetPath(), "commitlint", ".commitlintrc.js")
 	mg.CtxDeps(ctx, mg.F(prepare, commitlintrc))
 	args := []string{
 		"--config",
@@ -56,7 +56,7 @@ func prepare(ctx context.Context, commitlintrc string) error {
 		return err
 	}
 
-	toolDir := filepath.Join(tools.GetPath(), "commitlint")
+	toolDir := filepath.Join(mgtool.GetPath(), "commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

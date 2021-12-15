@@ -11,7 +11,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "3.7.1"
@@ -28,7 +27,7 @@ func Sops(ctx context.Context, file string) error {
 
 func sops(ctx context.Context) error {
 	const binaryName = "sops"
-	binDir := filepath.Join(tools.GetPath(), binaryName, version)
+	binDir := filepath.Join(mgtool.GetPath(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	executable = binary
 

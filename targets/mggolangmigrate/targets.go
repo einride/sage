@@ -7,7 +7,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/tools"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const version = "v4.15.1"
@@ -23,7 +23,7 @@ func GolangMigrate(ctx context.Context, source string, database string) error {
 }
 
 func prepare(ctx context.Context) error {
-	exec, err := tools.GoInstall(
+	exec, err := mgtool.GoInstall(
 		ctx,
 		"github.com/golang-migrate/migrate/v4/cmd/migrate",
 		version,

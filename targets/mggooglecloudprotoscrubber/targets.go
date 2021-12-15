@@ -1,4 +1,4 @@
-package googlecloudprotoscrubber
+package mggooglecloudprotoscrubber
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "1.1.0"
@@ -28,12 +27,12 @@ func GoogleCloudProtoScrubber(ctx context.Context, fileDescriptorPath string) er
 
 func prepare(ctx context.Context) error {
 	const binaryName = "google-cloud-proto-scrubber"
-	binDir := filepath.Join(tools.GetPath(), binaryName, version)
+	binDir := filepath.Join(mgtool.GetPath(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == tools.AMD64 {
-		hostArch = tools.X8664
+	if hostArch == mgtool.AMD64 {
+		hostArch = mgtool.X8664
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/einride/google-cloud-proto-scrubber"+

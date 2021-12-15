@@ -1,4 +1,4 @@
-package tools
+package mgtool
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ const (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
-var path = GetCWDPath(".tools")
+var mgToolPath = GetCWDPath(".tools")
 
 func GetCWDPath(path string) string {
 	cwd, err := os.Getwd()
@@ -26,14 +26,14 @@ func GetCWDPath(path string) string {
 }
 
 func GetPath() string {
-	if path == "" {
+	if mgToolPath == "" {
 		panic("No tools path set")
 	}
-	return path
+	return mgToolPath
 }
 
 func SetPath(p string) {
-	path = p
+	mgToolPath = p
 }
 
 func IsSupportedVersion(versions []string, version string, name string) error {

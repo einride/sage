@@ -10,7 +10,6 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools"
 )
 
 const version = "0.55.0"
@@ -40,12 +39,12 @@ func Buf(ctx context.Context, args ...string) error {
 
 func prepare(ctx context.Context) error {
 	const binaryName = "buf"
-	binDir := filepath.Join(tools.GetPath(), binaryName, version, "bin")
+	binDir := filepath.Join(mgtool.GetPath(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == tools.AMD64 {
-		hostArch = tools.X8664
+	if hostArch == mgtool.AMD64 {
+		hostArch = mgtool.X8664
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-%s",
