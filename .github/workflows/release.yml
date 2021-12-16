@@ -36,4 +36,4 @@ jobs:
     - name: Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: make semantic-release-run branch=main ci=true
+      run: make semantic-release branch=main ci=true
