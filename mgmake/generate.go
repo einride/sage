@@ -3,6 +3,7 @@ package mgmake
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -24,16 +25,24 @@ func GenerateMakefile(makefile string) error {
 	if err != nil {
 		return err
 	}
-	// Write makefile to disk
-	f, err := os.Create(makefile)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
 
 	for _, target := range targets {
+		var f *os.File
 		args, _ := getTargetArguments(target)
-		target := templateTargets{
+		if strings.Contains(target, ":") {
+			// Create unique makefile if target is namespaced
+			filename := fmt.Sprintf("%s.mk", filepath.Join(filepath.Dir(makefile), strings.Split(target, ":")[0]))
+			f, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			if err != nil {
+				return err
+			}
+		} else {
+			f, err = os.OpenFile(makefile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			if err != nil {
+				return err
+			}
+		}
+		templateTarget := templateTargets{
 			MakeTarget: toMakeTarget(target),
 			MageTarget: toMageTarget(target, toMakeVars(args)),
 			Args:       toMakeVars(args),
@@ -46,7 +55,7 @@ ifndef {{.}}
 endif{{end}}
 {{"\t"}}@$(mage) {{.MageTarget}}
 `)
-		err = t.Execute(f, target)
+		err = t.Execute(f, templateTarget)
 		if err != nil {
 			return err
 		}
@@ -68,8 +77,12 @@ func toMakeVars(args []string) []string {
 
 // toMakeTarget converts input to make target format.
 func toMakeTarget(str string) string {
+	const delimiter = ":"
 	output := strcase.ToKebab(str)
-	output = strings.ReplaceAll(output, ":", "-")
+	// Remove namespace if defined. We only use namespace for generating unique includes
+	if strings.Contains(output, delimiter) {
+		output = strings.Join(strings.Split(output, delimiter)[1:], delimiter)
+	}
 	return strings.ToLower(output)
 }
 
