@@ -3,7 +3,7 @@ module go.einride.tech/mage-tools/.mage
 go 1.17
 
 require (
-	github.com/magefile/mage v1.11.1-0.20210928193738-dd944245e253
+	github.com/magefile/mage v1.12.1
 	go.einride.tech/mage-tools v0.0.0-00010101000000-000000000000
 )
 

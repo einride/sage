@@ -23,14 +23,7 @@ jobs:
       with:
         node-version: ^14
 
-    - name: Configure git for private modules
-      env:
-        TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://git:${TOKEN}@github.com/einride/".insteadOf "https://github.com/einride/"
-
     - name: Make
-      env:
-        GITHUB_TOKEN: ${{ secrets.EINRIDEBOT_PERSONAL_ACCESS_TOKEN }}
       run: make
 
     - name: Release
