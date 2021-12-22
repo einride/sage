@@ -1,5 +1,5 @@
 .PHONY: all
-all: $(mage_target)
+all: $(mage_targets)
 
-include .mage/gen.mk
+include .mage/tools.mk
 include $(mage_targets)

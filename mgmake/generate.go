@@ -20,26 +20,42 @@ type templateTargets struct {
 
 // GenerateMakefile is a mage target that ...
 func GenerateMakefile(makefile string) error {
+	const defaultTargets = "mage_targets"
+	genDir := filepath.Dir(makefile)
+	mgDefaultTargets := fmt.Sprintf("%s.mk", filepath.Join(genDir, strcase.ToKebab(defaultTargets)))
+	if makefile == mgDefaultTargets {
+		return fmt.Errorf("%s has the same name as the default %s makefile", makefile, mgDefaultTargets)
+	}
 	mglog.Logger("generate-makefile").Info("generating Makefile...")
 	targets, err := listTargets()
 	if err != nil {
 		return err
 	}
 
+	// Create map which holds variables for each makefile being generated
+	mgMakefiles := make(map[string]string)
+
 	for _, target := range targets {
 		var f *os.File
 		args, _ := getTargetArguments(target)
 		if strings.Contains(target, ":") {
 			// Create unique makefile if target is namespaced
-			filename := fmt.Sprintf("%s.mk", filepath.Join(filepath.Dir(makefile), strings.Split(target, ":")[0]))
+			name := "mage_" + strcase.ToSnake(strings.Split(target, ":")[0])
+			filename := fmt.Sprintf("%s.mk", filepath.Join(genDir, strcase.ToKebab(name)))
 			f, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 			if err != nil {
 				return err
 			}
+			if _, ok := mgMakefiles[name]; !ok {
+				mgMakefiles[name] = filename
+			}
 		} else {
-			f, err = os.OpenFile(makefile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			f, err = os.OpenFile(mgDefaultTargets, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 			if err != nil {
 				return err
+			}
+			if _, ok := mgMakefiles[defaultTargets]; !ok {
+				mgMakefiles[defaultTargets] = mgDefaultTargets
 			}
 		}
 		templateTarget := templateTargets{
@@ -60,12 +76,24 @@ endif{{end}}
 			return err
 		}
 	}
+	err = os.WriteFile(makefile, createMakefileVariablesFromMap(mgMakefiles), 0o644)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func createMakefileVariablesFromMap(m map[string]string) []byte {
+	makefileVariables := make([]string, 0, len(m))
+	for key, value := range m {
+		makefileVariables = append(makefileVariables, fmt.Sprintf("%s := %s", key, value))
+	}
+	return []byte(strings.Join(makefileVariables, "\n"))
 }
 
 // toMakeVars converts input to make vars.
 func toMakeVars(args []string) []string {
-	makeVars := make([]string, 0)
+	makeVars := make([]string, 0, len(args))
 	for _, arg := range args {
 		arg = strcase.ToSnake(arg)
 		arg = strings.ReplaceAll(arg, "<", "")
