@@ -14,8 +14,8 @@ import (
 
 const packageJSONContent = `{
   "devDependencies": {
-    "@commitlint/cli": "^11.0.0",
-    "@commitlint/config-conventional": "^11.0.0"
+    "@commitlint/cli": "15.0.0",
+    "@commitlint/config-conventional": "15.0.0"
   }
 }`
 
