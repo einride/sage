@@ -1,12 +1,12 @@
 package mgtool
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/magefile/mage/sh"
 )
 
 const (
@@ -28,11 +28,19 @@ func GetCWDPath(path string) string {
 }
 
 func GetGitRootPath(path string) string {
-	root, err := sh.Output("git", "rev-parse", "--show-toplevel")
-	if err != nil {
+	// We use exec.command here because this command runs in a global,
+	// which is set up before mage has configured logging resulting in unwanted log prints
+	output := &bytes.Buffer{}
+	c := exec.Command("git", []string{"rev-parse", "--show-toplevel"}...)
+	c.Env = os.Environ()
+	c.Stderr = os.Stderr
+	c.Stdout = output
+	c.Stdin = os.Stdin
+
+	if err := c.Run(); err != nil {
 		panic(err)
 	}
-	return filepath.Join(root, path)
+	return filepath.Join(output.String(), path)
 }
 
 func GetPath() string {
