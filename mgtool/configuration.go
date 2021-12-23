@@ -40,7 +40,7 @@ func GetGitRootPath(path string) string {
 	if err := c.Run(); err != nil {
 		panic(err)
 	}
-	return filepath.Join(output.String(), path)
+	return filepath.Join(strings.TrimSpace(output.String()), path)
 }
 
 func GetPath() string {
