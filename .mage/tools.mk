@@ -1,7 +1,7 @@
 mage_folder := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 mage_generated_path := $(mage_folder)/gen
 mage_targets_file := $(mage_generated_path)/targets.mk
-mage := $(mage_generated_path)/local-mage
+mage := $(mage_generated_path)/local-mage 2> /dev/null
 
 include $(mage_targets_file)
 

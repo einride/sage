@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/magefile/mage/sh"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
-var mgToolPath = GetCWDPath(".tools")
+var mgToolPath = GetGitRootPath(".tools")
 
 func GetCWDPath(path string) string {
 	cwd, err := os.Getwd()
@@ -23,6 +25,14 @@ func GetCWDPath(path string) string {
 		panic(err)
 	}
 	return filepath.Join(cwd, path)
+}
+
+func GetGitRootPath(path string) string {
+	root, err := sh.Output("git", "rev-parse", "--show-toplevel")
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(root, path)
 }
 
 func GetPath() string {
