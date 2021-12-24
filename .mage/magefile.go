@@ -5,8 +5,6 @@ package main
 
 import (
 	"github.com/magefile/mage/mg"
-	// mage:import
-	_ "go.einride.tech/mage-tools/mgmake"
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mgcommitlint"
