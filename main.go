@@ -27,7 +27,7 @@ func main() {
 	usage := func() {
 		logger := mglog.Logger("main")
 		logger.Info(`Usage:
-	-init	to initialize mage-tools`)
+	init	to initialize mage-tools`)
 		os.Exit(0)
 	}
 	if len(os.Args) <= 1 {
@@ -35,7 +35,7 @@ func main() {
 	}
 
 	switch os.Args[1] {
-	case "-init":
+	case "init":
 		initMageTools()
 	default:
 		usage()
