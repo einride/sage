@@ -25,6 +25,9 @@ import (
 
 	// mage:import
 	_ "go.einride.tech/mage-tools/targets/mgsemanticrelease"
+
+	// mage:import
+	"go.einride.tech/mage-tools/targets/mgprettier"
 )
 
 func All() {
@@ -32,6 +35,7 @@ func All() {
 		mg.F(mgcommitlint.Commitlint, "main"),
 		mggolangcilint.GolangciLint,
 		mggoreview.Goreview,
+		mgprettier.FormatMarkdown,
 	)
 	mg.SerialDeps(
 		mggo.GoModTidy,
