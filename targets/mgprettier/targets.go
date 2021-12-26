@@ -14,9 +14,13 @@ import (
 
 const packageJSONContent = `{
   "devDependencies": {
-    "prettier": "^2.4.1",
-    "@einride/prettier-config": "^1.2.0"
+    "@einride/prettier-config": "1.2.0",
+    "prettier": "2.5.0"
   }
+}`
+
+const prettierConfigContent = `module.exports = {
+	...require("@einride/prettier-config"),
 }`
 
 var executable string
@@ -24,8 +28,11 @@ var executable string
 func FormatMarkdown(ctx context.Context) error {
 	logger := mglog.Logger("prettier")
 	ctx = logr.NewContext(ctx, logger)
-	mg.CtxDeps(ctx, prepare)
+	prettierrc := filepath.Join(mgtool.GetPath(), "prettier", ".prettierrc.js")
+	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
 	args := []string{
+		"--config",
+		"./.tools/prettier/.prettierrc.js",
 		"--write",
 		"**/*.md",
 		"!.tools",
@@ -34,7 +41,7 @@ func FormatMarkdown(ctx context.Context) error {
 	return sh.RunV(executable, args...)
 }
 
-func prepare(ctx context.Context) error {
+func prepare(ctx context.Context, prettierrc string) error {
 	// Check if npm is installed
 	if err := sh.Run("npm", "version"); err != nil {
 		return err
@@ -47,7 +54,9 @@ func prepare(ctx context.Context) error {
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
-
+	if err := os.WriteFile(prettierrc, []byte(prettierConfigContent), 0o644); err != nil {
+		return err
+	}
 	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o644); err != nil {
 		return err
 	}
