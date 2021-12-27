@@ -43,8 +43,8 @@ func main() {
 }
 
 func initMageTools() {
-	logger := mglog.Logger("initMageTools")
-	logger.Info("generating mage-tools...")
+	logger := mglog.Logger("init")
+	logger.Info("initializing mage-tools...")
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error(err.(error), err.(error).Error())
@@ -104,7 +104,8 @@ func initMageTools() {
 	if err := execCommandInDirectory(mageDir, "go", []string{"mod", "tidy"}...); err != nil {
 		panic(err)
 	}
-	logger.Info("Done...")
+	// TODO: Output some documentation, next steps after init, and useful links.
+	logger.Info("mage-tools initialized!")
 }
 
 func execCommandInDirectory(dir string, command string, args ...string) (err error) {
