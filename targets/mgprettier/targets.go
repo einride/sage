@@ -41,6 +41,22 @@ func FormatMarkdown(ctx context.Context) error {
 	return sh.RunV(executable, args...)
 }
 
+func FormatYAML(ctx context.Context) error {
+	logger := mglog.Logger("prettier")
+	ctx = logr.NewContext(ctx, logger)
+	prettierrc := filepath.Join(mgtool.GetPath(), "prettier", ".prettierrc.js")
+	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
+	args := []string{
+		"--config",
+		"./.tools/prettier/.prettierrc.js",
+		"--write",
+		"**/*.y*ml",
+		"!.tools",
+	}
+	logger.Info("formatting YAML files...")
+	return sh.RunV(executable, args...)
+}
+
 func prepare(ctx context.Context, prettierrc string) error {
 	// Check if npm is installed
 	if err := sh.Run("npm", "version"); err != nil {
