@@ -34,6 +34,7 @@ func All() {
 		mggolangcilint.GolangciLint,
 		mggoreview.Goreview,
 		mgprettier.FormatMarkdown,
+		mgprettier.FormatYAML,
 	)
 	mg.SerialDeps(
 		mggo.GoModTidy,
