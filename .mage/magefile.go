@@ -7,7 +7,7 @@ import (
 	"github.com/magefile/mage/mg"
 
 	// mage:import
-	"go.einride.tech/mage-tools/targets/mgconvco"
+	"go.einride.tech/mage-tools/targets/mgcocogitto"
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mggo"
@@ -30,7 +30,7 @@ import (
 
 func All() {
 	mg.Deps(
-		mg.F(mgconvco.ConvcoCheck, "main..HEAD"),
+		mgcocogitto.CogCheck,
 		mggolangcilint.GolangciLint,
 		mggoreview.Goreview,
 		mgprettier.FormatMarkdown,
