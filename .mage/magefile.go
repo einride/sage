@@ -22,9 +22,6 @@ import (
 	"go.einride.tech/mage-tools/targets/mggoreview"
 
 	// mage:import
-	_ "go.einride.tech/mage-tools/targets/mgsemanticrelease"
-
-	// mage:import
 	"go.einride.tech/mage-tools/targets/mgprettier"
 )
 
