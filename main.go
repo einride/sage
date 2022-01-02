@@ -104,6 +104,14 @@ func initMageTools() {
 	if err := execCommandInDirectory(mageDir, "go", []string{"mod", "tidy"}...); err != nil {
 		panic(err)
 	}
+	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		panic(err)
+	}
+	defer gitIgnore.Close()
+	if _, err := gitIgnore.WriteString(".mage/gen/\n.tools/"); err != nil {
+		panic(err)
+	}
 	// TODO: Output some documentation, next steps after init, and useful links.
 	logger.Info("mage-tools initialized!")
 }
