@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"go.einride.tech/mage-tools/mglog"
@@ -94,14 +92,13 @@ func initMageTools() {
 			panic(err)
 		}
 	}
-
-	if err := execCommandInDirectory(mageDir, "go", []string{"mod", "init", "mage-tools"}...); err != nil {
+	if err := mgtool.RunInDir("go", mageDir, []string{"mod", "init", "mage-tools"}...); err != nil {
 		panic(err)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if err := execCommandInDirectory(mageDir, "go", []string{"mod", "tidy"}...); err != nil {
+	if err := mgtool.RunInDir("go", mageDir, []string{"mod", "tidy"}...); err != nil {
 		panic(err)
 	}
 	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
@@ -114,15 +111,4 @@ func initMageTools() {
 	}
 	// TODO: Output some documentation, next steps after init, and useful links.
 	logger.Info("mage-tools initialized!")
-}
-
-func execCommandInDirectory(dir string, command string, args ...string) (err error) {
-	c := exec.Command(command, args...)
-	c.Env = os.Environ()
-	c.Stderr = &bytes.Buffer{}
-	c.Stdout = &bytes.Buffer{}
-	c.Stdin = os.Stdin
-	c.Dir = dir
-
-	return c.Run()
 }
