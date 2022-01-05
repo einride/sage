@@ -7,6 +7,9 @@ import (
 	"github.com/magefile/mage/mg"
 
 	// mage:import
+	"go.einride.tech/mage-tools/targets/mgmarkdownfmt"
+
+	// mage:import
 	"go.einride.tech/mage-tools/targets/mgcocogitto"
 
 	// mage:import
@@ -20,9 +23,6 @@ import (
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mggoreview"
-
-	// mage:import
-	"go.einride.tech/mage-tools/targets/mgprettier"
 )
 
 func All() {
@@ -30,8 +30,7 @@ func All() {
 		mgcocogitto.CogCheck,
 		mggolangcilint.GolangciLint,
 		mggoreview.Goreview,
-		mgprettier.FormatMarkdown,
-		mgprettier.FormatYAML,
+		mgmarkdownfmt.FormatMarkdown,
 	)
 	mg.SerialDeps(
 		mggo.GoModTidy,
