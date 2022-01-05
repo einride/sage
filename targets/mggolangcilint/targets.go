@@ -55,7 +55,7 @@ func GolangciLint(ctx context.Context) error {
 			return err
 		}
 	}
-	return sh.RunV(executable, "run", "-c", configPath)
+	return sh.RunV(executable, "run", "-c", configPath, "--fix")
 }
 
 func prepare(ctx context.Context) error {
