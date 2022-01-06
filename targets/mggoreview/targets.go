@@ -16,6 +16,7 @@ import (
 
 const version = "0.18.0"
 
+// nolint: gochecknoglobals
 var executable string
 
 func Goreview(ctx context.Context) error {

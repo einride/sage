@@ -17,6 +17,7 @@ import (
 
 const version = "1.33.0"
 
+// nolint: gochecknoglobals
 var executable string
 
 func ProtocGenGrpcJava(ctx context.Context) error {

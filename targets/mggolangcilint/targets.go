@@ -2,6 +2,7 @@ package mggolangcilint
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"os"
@@ -15,43 +16,22 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
-const version = "1.42.1"
+const version = "1.43.0"
 
+// nolint: gochecknoglobals
 var executable string
 
-const defaultConfig = `run:
-  timeout: 10m
-  skip-dirs:
-    - gen
-
-linters:
-  enable-all: true
-  disable:
-    - dupl # allow duplication
-    - funlen # allow long functions
-    - gomnd # allow some magic numbers
-    - wsl # unwanted amount of whitespace
-    - godox # allow TODOs
-    - interfacer # deprecated by the author for having too many false positives
-    - gocognit # allow higher cognitive complexity
-    - testpackage # unwanted convention
-    - nestif # allow deep nesting
-    - unparam # allow constant parameters
-    - goerr113 # allow "dynamic" errors
-    - nlreturn # don't enforce newline before return
-    - paralleltest # TODO: fix issues and enable
-    - exhaustivestruct # don't require exhaustive struct fields
-    - wrapcheck # don't require wrapping everywhere
-`
+//go:embed golangci.yml
+var defaultConfig string
 
 func GolangciLint(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("golangci-lint"))
 	mg.CtxDeps(ctx, mg.F(prepare))
 	logr.FromContextOrDiscard(ctx).Info("running...")
-	configPath := filepath.Join(mgtool.GetCWDPath(".golangci.yml"))
+	configPath := mgtool.GetCWDPath(".golangci.yml")
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
 		configPath = filepath.Join(mgtool.GetPath(), "golangci-lint", ".golangci.yml")
-		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
+		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o600); err != nil {
 			return err
 		}
 	}

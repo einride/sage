@@ -42,7 +42,7 @@ func GenerateMakefile(makefile string) error {
 			// Create unique makefile if target is namespaced
 			name := "mage_" + strcase.ToSnake(strings.Split(target, ":")[0])
 			filename := fmt.Sprintf("%s.mk", filepath.Join(genDir, strcase.ToKebab(name)))
-			f, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			f, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func GenerateMakefile(makefile string) error {
 				mgMakefiles[name] = filename
 			}
 		} else {
-			f, err = os.OpenFile(mgDefaultTargets, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+			f, err = os.OpenFile(mgDefaultTargets, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 			if err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ endif{{end}}
 			return err
 		}
 	}
-	err = os.WriteFile(makefile, createMakefileVariablesFromMap(mgMakefiles), 0o644)
+	err = os.WriteFile(makefile, createMakefileVariablesFromMap(mgMakefiles), 0o600)
 	if err != nil {
 		return err
 	}

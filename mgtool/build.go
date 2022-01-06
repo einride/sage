@@ -10,7 +10,7 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-func GoInstall(ctx context.Context, goPkg string, version string) (string, error) {
+func GoInstall(ctx context.Context, goPkg, version string) (string, error) {
 	toolDir, err := filepath.Abs(GetPath())
 	if err != nil {
 		return "", err

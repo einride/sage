@@ -16,6 +16,7 @@ import (
 
 const version = "3.15.7"
 
+// nolint: gochecknoglobals
 var executable string
 
 func Protoc(ctx context.Context, args ...string) error {

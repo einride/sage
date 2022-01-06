@@ -16,6 +16,7 @@ import (
 
 const version = "1.1.0"
 
+// nolint: gochecknoglobals
 var executable string
 
 func GoogleCloudProtoScrubber(ctx context.Context, fileDescriptorPath string) error {

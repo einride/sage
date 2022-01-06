@@ -23,6 +23,7 @@ const prettierConfigContent = `module.exports = {
 	...require("@einride/prettier-config"),
 }`
 
+// nolint: gochecknoglobals
 var executable string
 
 func FormatMarkdown(ctx context.Context) error {
@@ -70,10 +71,10 @@ func prepare(ctx context.Context, prettierrc string) error {
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(prettierrc, []byte(prettierConfigContent), 0o644); err != nil {
+	if err := os.WriteFile(prettierrc, []byte(prettierConfigContent), 0o600); err != nil {
 		return err
 	}
-	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o644); err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o600); err != nil {
 		return err
 	}
 

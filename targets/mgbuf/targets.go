@@ -14,6 +14,7 @@ import (
 
 const version = "0.55.0"
 
+// nolint: gochecknoglobals
 var executable string
 
 func BufLint(ctx context.Context) error {

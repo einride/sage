@@ -55,7 +55,7 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 		}
 	}
 	logr.FromContextOrDiscard(ctx).Info("fetching", "address", addr)
-	rStream, cleanup, err := downloadBinary(addr)
+	rStream, cleanup, err := downloadBinary(ctx, addr)
 	if err != nil {
 		return fmt.Errorf("unable to download file: %w", err)
 	}
@@ -121,8 +121,7 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 			return fmt.Errorf("unable to open %s: %w", filename, err)
 		}
 		defer out.Close()
-
-		// Write the body to file
+		// write the body to file
 		_, err = io.Copy(out, inFile)
 		if err != nil {
 			return fmt.Errorf("unable to download remote file: %w", err)
@@ -184,7 +183,7 @@ func WithDestinationDir(path string) Opt {
 // output file is stored as per dst.
 // The output file is stored relative to the destination dir given by
 // WithDestinationDir.
-func WithRenameFile(src string, dst string) Opt {
+func WithRenameFile(src, dst string) Opt {
 	return func(f *fileState) {
 		f.archiveFiles[src] = dst
 	}
@@ -196,15 +195,18 @@ func WithSkipIfFileExists(filepath string) Opt {
 	}
 }
 
-func downloadBinary(url string) (io.ReadCloser, func(), error) {
-	// Get the data
-	// nolint: bodyclose // false positive
-	resp, err := http.Get(url)
+func downloadBinary(ctx context.Context, url string) (io.ReadCloser, func(), error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return nil, func() {}, fmt.Errorf("unable to get url: %w", err)
+		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
+	}
+	// nolint: bodyclose // false positive due to cleanup function
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, func() {}, fmt.Errorf("unable to download %s - %d", url, resp.StatusCode)
+		return nil, func() {}, fmt.Errorf("download binary %s: status code %d", url, resp.StatusCode)
 	}
 	return resp.Body, func() { resp.Body.Close() }, nil
 }
@@ -221,6 +223,7 @@ func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 		}
 
 		// Store filename/path for returning and using later on
+		// nolint: gosec // allow file traversal when extracting archive
 		fpath := filepath.Join(s.dstPath, dstName)
 
 		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
@@ -248,6 +251,7 @@ func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 			return filenames, err
 		}
 
+		// nolint: gosec // allow potential decompression bomb
 		_, err = io.Copy(outFile, rc)
 
 		// Close the file without defer to close before next iteration of loop
@@ -281,6 +285,7 @@ func (s *fileState) extractTar(reader io.Reader) error {
 			dstName = name
 		}
 
+		// nolint: gosec // allow traversal into archive
 		path := filepath.Join(s.dstPath, dstName)
 
 		switch header.Typeflag {
@@ -301,6 +306,7 @@ func (s *fileState) extractTar(reader io.Reader) error {
 			if err := os.Chmod(path, 0o775); err != nil {
 				return fmt.Errorf("extractTar: Chmod() failed: %w", err)
 			}
+			// nolint: gosec // allow potential decompression bomb
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return fmt.Errorf("extractTar: Copy() failed: %w", err)
 			}

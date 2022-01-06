@@ -27,6 +27,7 @@ const commitlintFileContent = `module.exports = {
   ],
 };`
 
+// nolint: gochecknoglobals
 var executable string
 
 func Commitlint(ctx context.Context, branch string) error {
@@ -62,10 +63,10 @@ func prepare(ctx context.Context, commitlintrc string) error {
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(commitlintrc, []byte(commitlintFileContent), 0o644); err != nil {
+	if err := os.WriteFile(commitlintrc, []byte(commitlintFileContent), 0o600); err != nil {
 		return err
 	}
-	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o644); err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o600); err != nil {
 		return err
 	}
 
