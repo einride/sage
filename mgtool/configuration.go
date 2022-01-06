@@ -17,7 +17,7 @@ const (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
-var mgToolPath = GetGitRootPath(".tools")
+var mgToolPath = GetGitRootPath(".mage/tools")
 
 func GetCWDPath(path string) string {
 	cwd, err := os.Getwd()

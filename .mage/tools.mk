@@ -1,5 +1,6 @@
 mage_folder := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 mage_generated_path := $(mage_folder)/gen
+mage_tools_path := $(mage_folder)/tools
 mage_targets_file := $(mage_generated_path)/targets.mk
 mage := $(mage_generated_path)/local-mage
 mgmake := $(mage_folder)/mgmake_gen.go
@@ -28,4 +29,4 @@ $(mage_targets_file): $(mage_folder)/go.mod $(shell find $(mage_folder)/.. -type
 
 .PHONY: mage-clean
 mage-clean:
-	@git clean -fdx $(mage_generated_path) ./.tools
+	@git clean -fdx $(mage_generated_path) $(mage_tools_path)
