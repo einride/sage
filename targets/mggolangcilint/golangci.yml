@@ -198,10 +198,6 @@ linters:
     # [fast: false, auto-fix: false]
     - noctx
 
-    # Detect missing usage of t.Parallel() method in your Go test.
-    # [fast: true, auto-fix: false]
-    - paralleltest
-
     # Drop-in replacement of golint.
     # [fast: false, auto-fix: false]
     - revive
