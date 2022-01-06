@@ -15,5 +15,4 @@
 # vendor/
 
 .idea/
-.mage/gen/
 .mage/tools/

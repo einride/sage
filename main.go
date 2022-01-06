@@ -13,8 +13,6 @@ import (
 var (
 	//go:embed example/.mage/tools.mk
 	toolsMk string
-	//go:embed example/.mage/main.go
-	mageMain string
 	//go:embed example/.mage/magefile.go
 	magefile string
 	//go:embed example/Makefile
@@ -65,12 +63,6 @@ func initMageTools() {
 		panic(err)
 	}
 
-	// Write main.go
-	err = os.WriteFile(filepath.Join(mageDir, "main.go"), []byte(mageMain), 0o600)
-	if err != nil {
-		panic(err)
-	}
-
 	// Write magefile.go
 	err = os.WriteFile(filepath.Join(mageDir, "magefile.go"), []byte(magefile), 0o600)
 	if err != nil {
@@ -106,7 +98,7 @@ func initMageTools() {
 		panic(err)
 	}
 	defer gitIgnore.Close()
-	if _, err := gitIgnore.WriteString(".mage/gen/\n.mage/tools/"); err != nil {
+	if _, err := gitIgnore.WriteString(".mage/tools/"); err != nil {
 		panic(err)
 	}
 	// TODO: Output some documentation, next steps after init, and useful links.
