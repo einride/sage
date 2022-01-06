@@ -22,6 +22,7 @@ const packageJSONContent = `{
     }
 }`
 
+// nolint: gochecknoglobals
 var executable string
 
 func SemanticRelease(ctx context.Context, branch string, ci bool) error {
@@ -83,10 +84,10 @@ func prepare(ctx context.Context, branch string) error {
   "fail": false
 }`, branch)
 
-	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o644); err != nil {
+	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o600); err != nil {
 		return err
 	}
-	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o644); err != nil {
+	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o600); err != nil {
 		return err
 	}
 

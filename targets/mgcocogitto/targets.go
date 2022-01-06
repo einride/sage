@@ -17,6 +17,7 @@ import (
 
 const version = "4.0.1"
 
+// nolint: gochecknoglobals
 var executable string
 
 func CogCheck(ctx context.Context) error {

@@ -17,6 +17,7 @@ const (
 // Path This should only be used to set a custom value.
 // Targets should use path() instead which performs
 // validation on whether a path is set.
+// nolint: gochecknoglobals
 var mgToolPath = GetGitRootPath(".mage/tools")
 
 func GetCWDPath(path string) string {
@@ -54,7 +55,7 @@ func SetPath(p string) {
 	mgToolPath = p
 }
 
-func IsSupportedVersion(versions []string, version string, name string) error {
+func IsSupportedVersion(versions []string, version, name string) error {
 	for _, a := range versions {
 		if a == version {
 			return nil

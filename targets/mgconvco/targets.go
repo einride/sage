@@ -17,6 +17,7 @@ import (
 
 const version = "0.3.7"
 
+// nolint: gochecknoglobals
 var executable string
 
 func ConvcoCheck(ctx context.Context, rev string) error {

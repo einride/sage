@@ -60,19 +60,19 @@ func initMageTools() {
 	}
 
 	// Write tools.mk
-	err = os.WriteFile(filepath.Join(mageDir, "tools.mk"), []byte(toolsMk), 0o644)
+	err = os.WriteFile(filepath.Join(mageDir, "tools.mk"), []byte(toolsMk), 0o600)
 	if err != nil {
 		panic(err)
 	}
 
 	// Write main.go
-	err = os.WriteFile(filepath.Join(mageDir, "main.go"), []byte(mageMain), 0o644)
+	err = os.WriteFile(filepath.Join(mageDir, "main.go"), []byte(mageMain), 0o600)
 	if err != nil {
 		panic(err)
 	}
 
 	// Write magefile.go
-	err = os.WriteFile(filepath.Join(mageDir, "magefile.go"), []byte(magefile), 0o644)
+	err = os.WriteFile(filepath.Join(mageDir, "magefile.go"), []byte(magefile), 0o600)
 	if err != nil {
 		panic(err)
 	}
@@ -80,14 +80,14 @@ func initMageTools() {
 	_, err = os.Stat("Makefile")
 	if err != nil {
 		// Write Makefile
-		err = os.WriteFile("Makefile", []byte(makefile), 0o644)
+		err = os.WriteFile("Makefile", []byte(makefile), 0o600)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		const mm = "Makefile.MAGE"
 		logger.Info(fmt.Sprintf("Makefile already exist, writing to %s", mm))
-		err = os.WriteFile(mm, []byte(makefile), 0o644)
+		err = os.WriteFile(mm, []byte(makefile), 0o600)
 		if err != nil {
 			panic(err)
 		}
@@ -101,7 +101,7 @@ func initMageTools() {
 	if err := mgtool.RunInDir("go", mageDir, []string{"mod", "tidy"}...); err != nil {
 		panic(err)
 	}
-	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
 		panic(err)
 	}

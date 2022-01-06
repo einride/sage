@@ -16,6 +16,7 @@ import (
 
 const version = "0.9.3"
 
+// nolint: gochecknoglobals
 var executable string
 
 func PublishLocal(ctx context.Context) error {

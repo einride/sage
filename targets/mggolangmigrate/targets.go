@@ -12,9 +12,10 @@ import (
 
 const version = "v4.15.1"
 
+// nolint: gochecknoglobals
 var executable string
 
-func GolangMigrate(ctx context.Context, source string, database string) error {
+func GolangMigrate(ctx context.Context, source, database string) error {
 	logger := mglog.Logger("golang-migrate")
 	ctx = logr.NewContext(ctx, logger)
 	mg.CtxDeps(ctx, prepare)

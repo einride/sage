@@ -15,6 +15,7 @@ import (
 
 const version = "3.7.1"
 
+// nolint: gochecknoglobals
 var executable string
 
 func Sops(ctx context.Context, file string) error {
