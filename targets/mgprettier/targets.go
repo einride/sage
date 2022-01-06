@@ -32,10 +32,10 @@ func FormatMarkdown(ctx context.Context) error {
 	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
 	args := []string{
 		"--config",
-		"./.tools/prettier/.prettierrc.js",
+		prettierrc,
 		"--write",
 		"**/*.md",
-		"!.tools",
+		"!.mage",
 	}
 	logger.Info("formatting Markdown files...")
 	return sh.RunV(executable, args...)
@@ -48,10 +48,10 @@ func FormatYAML(ctx context.Context) error {
 	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
 	args := []string{
 		"--config",
-		"./.tools/prettier/.prettierrc.js",
+		prettierrc,
 		"--write",
 		"**/*.y*ml",
-		"!.tools",
+		"!.mage",
 	}
 	logger.Info("formatting YAML files...")
 	return sh.RunV(executable, args...)

@@ -106,7 +106,7 @@ func initMageTools() {
 		panic(err)
 	}
 	defer gitIgnore.Close()
-	if _, err := gitIgnore.WriteString(".mage/gen/\n.tools/"); err != nil {
+	if _, err := gitIgnore.WriteString(".mage/gen/\n.mage/tools/"); err != nil {
 		panic(err)
 	}
 	// TODO: Output some documentation, next steps after init, and useful links.
