@@ -12,7 +12,7 @@ import (
 func GoTest() error {
 	const toolName = "go"
 	mglog.Logger("go-test").Info("running Go unit tests..")
-	coverFile := filepath.Join(mgtool.GetPath(), toolName, "go-test.txt")
+	coverFile := filepath.Join(mgtool.GetPath(), toolName, "coverage", "go-test.txt")
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		return err
 	}
