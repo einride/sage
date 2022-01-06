@@ -24,7 +24,7 @@ func ConvcoCheck(ctx context.Context, rev string) error {
 	logger := mglog.Logger("convco-check")
 	ctx = logr.NewContext(ctx, logger)
 	mg.CtxDeps(ctx, prepare)
-	logger.Info("checking...", "rev", rev)
+	logger.Info("checking...")
 	return sh.RunV(executable, "check", rev)
 }
 
