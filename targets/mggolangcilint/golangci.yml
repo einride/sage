@@ -223,6 +223,11 @@ linters-settings:
               - errors
               - fmt
             reason: "Use the standard library error packages."
+        - golang.org/x/xerrors:
+            recommendations:
+              - errors
+              - fmt
+            reason: "Use the standard library error packages."
         - github.com/golang/protobuf:
             recommendations:
               - google.golang.org/protobuf
