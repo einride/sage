@@ -150,10 +150,6 @@ linters:
     # [fast: false, auto-fix: false]
     - stylecheck
 
-    # Check the struct tags.
-    # [fast: true, auto-fix: false]
-    - tagliatelle
-
     # Detect test helpers without t.Helper() call and checks the consistency of test helpers.
     # [fast: false, auto-fix: false]
     - thelper
