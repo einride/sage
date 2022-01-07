@@ -19,6 +19,10 @@ endif
 format-markdown: $(mage)
 	@$(mage) formatMarkdown
 
+.PHONY: format-yaml
+format-yaml: $(mage)
+	@$(mage) formatYaml
+
 .PHONY: git-verify-no-diff
 git-verify-no-diff: $(mage)
 	@$(mage) gitVerifyNoDiff
