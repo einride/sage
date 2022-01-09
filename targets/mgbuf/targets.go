@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
-const version = "0.55.0"
+const version = "1.0.0-rc10"
 
 // nolint: gochecknoglobals
 var executable string
