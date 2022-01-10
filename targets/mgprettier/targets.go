@@ -9,7 +9,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/mgpath"
 )
 
 const packageJSONContent = `{
@@ -29,14 +29,14 @@ var executable string
 func FormatMarkdown(ctx context.Context) error {
 	logger := mglog.Logger("prettier")
 	ctx = logr.NewContext(ctx, logger)
-	prettierrc := filepath.Join(mgtool.GetPath(), "prettier", ".prettierrc.js")
+	prettierrc := filepath.Join(mgpath.Tools(), "prettier", ".prettierrc.js")
 	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
 	args := []string{
 		"--config",
 		prettierrc,
 		"--write",
 		"**/*.md",
-		"!.mage",
+		"!" + mgpath.MageDir,
 	}
 	logger.Info("formatting Markdown files...")
 	return sh.RunV(executable, args...)
@@ -45,14 +45,14 @@ func FormatMarkdown(ctx context.Context) error {
 func FormatYAML(ctx context.Context) error {
 	logger := mglog.Logger("prettier")
 	ctx = logr.NewContext(ctx, logger)
-	prettierrc := filepath.Join(mgtool.GetPath(), "prettier", ".prettierrc.js")
+	prettierrc := filepath.Join(mgpath.Tools(), "prettier", ".prettierrc.js")
 	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
 	args := []string{
 		"--config",
 		prettierrc,
 		"--write",
 		"**/*.y*ml",
-		"!.mage",
+		"!" + mgpath.MageDir,
 	}
 	logger.Info("formatting YAML files...")
 	return sh.RunV(executable, args...)
@@ -64,7 +64,7 @@ func prepare(ctx context.Context, prettierrc string) error {
 		return err
 	}
 
-	toolDir := filepath.Join(mgtool.GetPath(), "prettier")
+	toolDir := filepath.Join(mgpath.Tools(), "prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

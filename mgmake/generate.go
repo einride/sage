@@ -1,94 +1,183 @@
 package mgmake
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
+	"sort"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/iancoleman/strcase"
-	"github.com/magefile/mage/sh"
-	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
-type templateTargets struct {
+const defaultNamespace = "default"
+
+// nolint: gochecknoglobals
+var (
+	executable string
+	makefiles  = make(map[string]makefile)
+)
+
+type Makefile struct {
+	Namespace     interface{}
+	Path          string
+	DefaultTarget interface{}
+}
+
+type makefile struct {
+	Path          string
+	DefaultTarget string
+}
+
+type templateTarget struct {
 	MakeTarget string
 	MageTarget string
 	Args       []string
 }
 
-// GenerateMakefile is a mage target that ...
-func GenerateMakefile(makefile string) error {
-	const defaultTargets = "mage_targets"
-	genDir := filepath.Dir(makefile)
-	mgDefaultTargets := fmt.Sprintf("%s.mk", filepath.Join(genDir, strcase.ToKebab(defaultTargets)))
-	if makefile == mgDefaultTargets {
-		return fmt.Errorf("%s has the same name as the default %s makefile", makefile, mgDefaultTargets)
+func GenerateMakefiles(mks ...Makefile) {
+	for _, i := range mks {
+		if i.Path == "" {
+			panic("Path needs to be defined")
+		}
+		namespace := defaultNamespace
+		if i.Namespace != nil {
+			namespace = reflect.TypeOf(i.Namespace).Name()
+		}
+		var defaultTarget string
+		if i.DefaultTarget != nil {
+			defaultTarget = runtime.FuncForPC(reflect.ValueOf(i.DefaultTarget).Pointer()).Name()
+			defaultTarget = strings.TrimPrefix(defaultTarget, "main.")
+			defaultTarget = strings.TrimPrefix(defaultTarget, namespace+".")
+			defaultTarget = strings.Split(defaultTarget, "-")[0]
+			for _, r := range defaultTarget {
+				if !unicode.IsLetter(r) {
+					panic(fmt.Sprintf("Invalid default target %s", defaultTarget))
+				}
+			}
+		}
+		makefiles[toMakeTarget(namespace)] = makefile{Path: i.Path, DefaultTarget: defaultTarget}
 	}
-	mglog.Logger("generate-makefile").Info("generating Makefile...")
+}
+
+func GenMakefiles(exec string) error {
+	if len(makefiles) == 0 {
+		return fmt.Errorf("no makefiles to generate, see https://github.com/einride/mage-tools#readme for more info")
+	}
+	executable = exec
 	targets, err := listTargets()
 	if err != nil {
 		return err
 	}
+	buffers, err := generateMakeTargets(targets)
+	if err != nil {
+		return err
+	}
 
-	// Create map which holds variables for each makefile being generated
-	mgMakefiles := make(map[string]string)
+	namespaces := make([]string, 0, len(makefiles))
+	for k := range makefiles {
+		namespaces = append(namespaces, k)
+	}
+	sort.Strings(namespaces)
 
-	for _, target := range targets {
-		var f *os.File
-		args, _ := getTargetArguments(target)
-		if strings.Contains(target, ":") {
-			// Create unique makefile if target is namespaced
-			name := "mage_" + strcase.ToSnake(strings.Split(target, ":")[0])
-			filename := fmt.Sprintf("%s.mk", filepath.Join(genDir, strcase.ToKebab(name)))
-			f, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
-			if err != nil {
-				return err
+	// Add target for non-root makefile to default makefile
+	for _, ns := range namespaces {
+		if ns != defaultNamespace {
+			mk := makefiles[ns]
+			if defaultBuf, ok := buffers[defaultNamespace]; ok {
+				if strings.Contains(defaultBuf.String(), fmt.Sprintf(".PHONY: %s", ns)) {
+					return fmt.Errorf("can't create target for makefile, %s already exist", ns)
+				}
+				mkPath, err := filepath.Rel(mgpath.FromGitRoot("."), filepath.Dir(mk.Path))
+				if err != nil {
+					return err
+				}
+				mkTarget := []byte(fmt.Sprintf(`.PHONY: %s
+%s:
+	make -C %s
+
+`, ns, ns, mkPath))
+				buffers[defaultNamespace] = bytes.NewBuffer(append(defaultBuf.Bytes(), mkTarget...))
 			}
-			if _, ok := mgMakefiles[name]; !ok {
-				mgMakefiles[name] = filename
-			}
-		} else {
-			f, err = os.OpenFile(mgDefaultTargets, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
-			if err != nil {
-				return err
-			}
-			if _, ok := mgMakefiles[defaultTargets]; !ok {
-				mgMakefiles[defaultTargets] = mgDefaultTargets
-			}
-		}
-		templateTarget := templateTargets{
-			MakeTarget: toMakeTarget(target),
-			MageTarget: toMageTarget(target, toMakeVars(args)),
-			Args:       toMakeVars(args),
-		}
-		t, _ := template.New("dynamic").Parse(`
-.PHONY: {{.MakeTarget}}
-{{.MakeTarget}}:{{range .Args}}
-ifndef {{.}}
-{{"\t"}}$(error missing argument {{.}}="...")
-endif{{end}}
-{{"\t"}}@$(mage) {{.MageTarget}}
-`)
-		err = t.Execute(f, templateTarget)
-		if err != nil {
-			return err
 		}
 	}
-	err = os.WriteFile(makefile, createMakefileVariablesFromMap(mgMakefiles), 0o600)
+	// Write non-root makefiles
+	for _, ns := range namespaces {
+		if buf, ok := buffers[ns]; ok {
+			mk := makefiles[ns]
+			if err := createMakefile(mk.Path, mk.DefaultTarget, buf.Bytes()); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func createMakefile(makefilePath, target string, data []byte) error {
+	includePath, err := filepath.Rel(filepath.Dir(makefilePath), mgpath.FromWorkDir("."))
+	if err != nil {
+		return err
+	}
+	if target != "" {
+		target = fmt.Sprintf("\n\n.DEFAULT_GOAL := %s", toMakeTarget(target))
+	}
+	codegen := []byte(fmt.Sprintf(`# Code generated by Mage-tools. DO NOT EDIT.%s
+
+include %s/%s
+
+`, target, includePath, mgpath.ToolsMk))
+	// Removes trailing empty line
+	data = data[:len(data)-1]
+	err = os.WriteFile(makefilePath, append(codegen, data...), 0o600)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func createMakefileVariablesFromMap(m map[string]string) []byte {
-	makefileVariables := make([]string, 0, len(m))
-	for key, value := range m {
-		makefileVariables = append(makefileVariables, fmt.Sprintf("%s := %s", key, value))
+func generateMakeTargets(targets []string) (map[string]*bytes.Buffer, error) {
+	buffers := make(map[string]*bytes.Buffer)
+	for _, target := range targets {
+		var b *bytes.Buffer
+		var ns string
+		if strings.Contains(target, ":") {
+			ns = toMakeTarget(strings.Split(target, ":")[0])
+		} else {
+			ns = defaultNamespace
+		}
+		if _, ok := buffers[ns]; ok {
+			b = buffers[ns]
+		} else {
+			b = bytes.NewBuffer(make([]byte, 0))
+		}
+		args, _ := getTargetArguments(target)
+		templateTarget := templateTarget{
+			MakeTarget: toMakeTarget(target),
+			MageTarget: toMageTarget(target, toMakeVars(args)),
+			Args:       toMakeVars(args),
+		}
+		t, _ := template.New("dynamic").Parse(`.PHONY: {{.MakeTarget}}
+{{.MakeTarget}}: $(mage){{range .Args}}
+ifndef {{.}}
+{{"\t"}}$(error missing argument {{.}}="...")
+endif{{end}}
+{{"\t"}}@$(mage) {{.MageTarget}}
+
+`)
+		err := t.Execute(b, templateTarget)
+		if err != nil {
+			return nil, err
+		}
+		buffers[ns] = b
 	}
-	return []byte(strings.Join(makefileVariables, "\n"))
+	return buffers, nil
 }
 
 // toMakeVars converts input to make vars.
@@ -150,10 +239,9 @@ func listTargets() ([]string, error) {
 			parts[0] = strings.TrimRight(strings.TrimSpace(parts[0]), "*")
 
 			// Remove this mage target from the output
-			if strings.Contains(parts[0], "generateMakefile") {
+			if strings.Contains(parts[0], mgpath.GenMakefilesTarget) {
 				continue
 			}
-
 			targets = append(targets, parts[0])
 		}
 	}
@@ -177,11 +265,7 @@ func getTargetArguments(name string) ([]string, error) {
 }
 
 func invokeMage(args []string) (string, error) {
-	binary, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-	out, err := sh.Output(binary, args...)
+	out, err := mgtool.OutputRunInDir(executable, ".", args...)
 	if err != nil {
 		return "", err
 	}

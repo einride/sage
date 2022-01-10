@@ -11,6 +11,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -29,7 +30,7 @@ func Goreview(ctx context.Context) error {
 
 func prepare(ctx context.Context) error {
 	const toolName = "goreview"
-	toolDir := filepath.Join(mgtool.GetPath(), toolName)
+	toolDir := filepath.Join(mgpath.Tools(), toolName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, toolName)
 	hostOS := strings.Title(runtime.GOOS)
