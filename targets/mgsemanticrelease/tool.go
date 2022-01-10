@@ -10,7 +10,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/mgpath"
 )
 
 const packageJSONContent = `{
@@ -29,7 +29,7 @@ func SemanticRelease(ctx context.Context, branch string, ci bool) error {
 	logger := mglog.Logger("semantic-release")
 	ctx = logr.NewContext(ctx, logger)
 	mg.CtxDeps(ctx, mg.F(prepare, branch))
-	releaserc := filepath.Join(mgtool.GetPath(), "semantic-release", ".releaserc.json")
+	releaserc := filepath.Join(mgpath.Tools(), "semantic-release", ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -47,7 +47,7 @@ func prepare(ctx context.Context, branch string) error {
 		return err
 	}
 
-	toolDir := filepath.Join(mgtool.GetPath(), "semantic-release")
+	toolDir := filepath.Join(mgpath.Tools(), "semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")

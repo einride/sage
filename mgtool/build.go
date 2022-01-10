@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/magefile/mage/sh"
+	"go.einride.tech/mage-tools/mgpath"
 )
 
 func GoInstall(ctx context.Context, goPkg, version string) (string, error) {
-	toolDir, err := filepath.Abs(GetPath())
+	toolDir, err := filepath.Abs(mgpath.Tools())
 	if err != nil {
 		return "", err
 	}

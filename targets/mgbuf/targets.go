@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -40,7 +41,7 @@ func Buf(ctx context.Context, args ...string) error {
 
 func prepare(ctx context.Context) error {
 	const binaryName = "buf"
-	binDir := filepath.Join(mgtool.GetPath(), binaryName, version, "bin")
+	binDir := filepath.Join(mgpath.Tools(), binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

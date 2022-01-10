@@ -12,6 +12,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -30,7 +31,7 @@ func ProtocGenGrpcJava(ctx context.Context) error {
 func prepare(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
 
-	binDir := filepath.Join(mgtool.GetPath(), "grpc-java", version, "bin")
+	binDir := filepath.Join(mgpath.Tools(), "grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 
 	// read the whole pom at once

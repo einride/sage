@@ -12,6 +12,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -30,7 +31,7 @@ func ConvcoCheck(ctx context.Context, rev string) error {
 
 func prepare(ctx context.Context) error {
 	const toolName = "convco"
-	binDir := filepath.Join(mgtool.GetPath(), toolName, version)
+	binDir := filepath.Join(mgpath.Tools(), toolName, version)
 	toolPath := filepath.Join(binDir, toolName)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {

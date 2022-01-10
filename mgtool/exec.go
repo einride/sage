@@ -30,8 +30,8 @@ func OutputRunInDir(cmd, dir string, args ...string) (string, error) {
 func run(cmd, dir string, stdout, stderr io.Writer, args ...string) error {
 	c := exec.Command(cmd, args...)
 	c.Env = os.Environ()
-	c.Stderr = stdout
-	c.Stdout = stderr
+	c.Stderr = stderr
+	c.Stdout = stdout
 	c.Stdin = os.Stdin
 	c.Dir = dir
 

@@ -10,6 +10,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -28,7 +29,7 @@ func Sops(ctx context.Context, file string) error {
 
 func sops(ctx context.Context) error {
 	const binaryName = "sops"
-	binDir := filepath.Join(mgtool.GetPath(), binaryName, version)
+	binDir := filepath.Join(mgpath.Tools(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	executable = binary
 

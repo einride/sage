@@ -6,13 +6,13 @@ import (
 
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
-	"go.einride.tech/mage-tools/mgtool"
+	"go.einride.tech/mage-tools/mgpath"
 )
 
 func GoTest() error {
 	const toolName = "go"
 	mglog.Logger("go-test").Info("running Go unit tests..")
-	coverFile := filepath.Join(mgtool.GetPath(), toolName, "coverage", "go-test.txt")
+	coverFile := filepath.Join(mgpath.Tools(), toolName, "coverage", "go-test.txt")
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		return err
 	}
