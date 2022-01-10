@@ -38,10 +38,6 @@ linters:
     # [fast: false, auto-fix: false]
     - exportloopref
 
-    # Find forced type assertions.
-    # [fast: true, auto-fix: false]
-    - forcetypeassert
-
     # Check package import order and make it always deterministic.
     # [fast: true, auto-fix: true]
     - gci
