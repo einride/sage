@@ -9,7 +9,7 @@ import (
 	"go.einride.tech/mage-tools/mgpath"
 
 	// mage:import
-	"go.einride.tech/mage-tools/targets/mgcocogitto"
+	"go.einride.tech/mage-tools/targets/mgconvco"
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
@@ -26,7 +26,7 @@ func init() {
 
 func All() {
 	mg.Deps(
-		mgcocogitto.CogCheck,
+		mg.F(mgconvco.ConvcoCheck, "origin/master..HEAD"),
 	)
 	mg.SerialDeps(
 		mggitverifynodiff.GitVerifyNoDiff,
