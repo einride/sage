@@ -18,14 +18,17 @@ const version = "1.6.0"
 // nolint: gochecknoglobals
 var executable string
 
-func ClangFormat(path string) error {
+func ClangFormatProto(path string) error {
 	logger := mglog.Logger("clang-format")
 	mg.Deps(prepare)
-	protoFiles, err := mgpath.FileExtensionsIn(".proto", path)
+	protoFiles, err := mgpath.FindFilesWithExtension(path, ".proto")
 	if err != nil {
 		return err
 	}
-	args := []string{"-i", "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}", "--verbose"}
+	if len(protoFiles) == 0 {
+		return fmt.Errorf("found no files to format")
+	}
+	args := []string{"-i", "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"}
 	args = append(args, protoFiles...)
 	logger.Info("formatting proto files...")
 	return sh.Run(executable, args...)

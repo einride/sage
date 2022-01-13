@@ -2,6 +2,7 @@ package mgpath
 
 import (
 	"bytes"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,4 +50,29 @@ func Tools() string {
 		panic("No tools path set")
 	}
 	return mgToolsPath
+}
+
+func ChangeWorkDir(path string) func() {
+	cwd := FromWorkDir(".")
+	if err := os.Chdir(path); err != nil {
+		panic(err)
+	}
+	return func() {
+		if err := os.Chdir(cwd); err != nil {
+			panic(err)
+		}
+	}
+}
+
+func FindFilesWithExtension(path, ext string) ([]string, error) {
+	var files []string
+	if err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if filepath.Ext(path) == ext {
+			files = append(files, path)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return files, nil
 }
