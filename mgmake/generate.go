@@ -92,7 +92,7 @@ func GenMakefiles(exec string) error {
 		if ns != defaultNamespace {
 			mk := makefiles[ns]
 			if defaultBuf, ok := buffers[defaultNamespace]; ok {
-				if strings.Contains(defaultBuf.String(), fmt.Sprintf(".PHONY: %s", ns)) {
+				if strings.Contains(defaultBuf.String(), fmt.Sprintf(".PHONY: %s\n", ns)) {
 					return fmt.Errorf("can't create target for makefile, %s already exist", ns)
 				}
 				mkPath, err := filepath.Rel(mgpath.FromGitRoot("."), filepath.Dir(mk.Path))
