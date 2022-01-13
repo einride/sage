@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
@@ -26,14 +25,29 @@ func FormatYaml() error {
 	})
 }
 
+// PreserveEmptyLines adds a temporary #comment on each empty line in the provided byte array.
+// Returns a function that cleans up the temporary comments.
+func PreserveEmptyLines(src []byte) ([]byte, func(in []byte) []byte) {
+	src = bytes.ReplaceAll(src, []byte("\n\n"), []byte("\n#preserveEmptyLine\n"))
+	return src, func(src []byte) []byte {
+		// Remove temporary comment.
+		indentPreserveComment := regexp.MustCompile("\n\\s+#preserveEmptyLine\n")
+		src = indentPreserveComment.ReplaceAll(src, []byte("\n\n"))
+		src = bytes.ReplaceAll(src, []byte("\n#preserveEmptyLine\n"), []byte("\n\n"))
+		// Remove trailing empty lines
+		src = bytes.TrimSpace(src)
+		src = append(src, []byte("\n")...)
+		return src
+	}
+}
+
 func formatFile(path string) error {
 	node := yaml.Node{}
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	// Insert temporary comment to preserve empty lines.
-	yamlFile = bytes.ReplaceAll(yamlFile, []byte("\n\n"), []byte("\n#preserveEmptyLine\n"))
+	yamlFile, cleanup := PreserveEmptyLines(yamlFile)
 	if err := yaml.Unmarshal(yamlFile, &node); err != nil {
 		return err
 	}
@@ -43,12 +57,5 @@ func formatFile(path string) error {
 	if err := encoder.Encode(&node); err != nil {
 		return err
 	}
-	// Remove temporary comment.
-	indentPreserveComment := regexp.MustCompile("\n\\s+#preserveEmptyLine\n")
-	out := b.String()
-	out = indentPreserveComment.ReplaceAllString(out, "\n\n")
-	out = strings.ReplaceAll(out, "\n#preserveEmptyLine\n", "\n\n")
-	// Remove trailing empty lines
-	out = strings.TrimSpace(out) + "\n"
-	return ioutil.WriteFile(path, []byte(out), 0o600)
+	return ioutil.WriteFile(path, cleanup(b.Bytes()), 0o600)
 }
