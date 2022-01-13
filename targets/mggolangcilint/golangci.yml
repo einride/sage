@@ -146,10 +146,6 @@ linters:
     # [fast: false, auto-fix: false]
     - stylecheck
 
-    # Detect test helpers without t.Helper() call and checks the consistency of test helpers.
-    # [fast: false, auto-fix: false]
-    - thelper
-
     # Detect inappropriate usage of t.Parallel() method in your Go test codes.
     # [fast: false, auto-fix: false]
     - tparallel
