@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/mage-tools/targets/mgmarkdownfmt"
 
 	// mage:import
-	"go.einride.tech/mage-tools/targets/mgcocogitto"
+	"go.einride.tech/mage-tools/targets/mgconvco"
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mggo"
@@ -38,7 +38,7 @@ func init() {
 
 func All() {
 	mg.Deps(
-		mgcocogitto.CogCheck,
+		mg.F(mgconvco.ConvcoCheck, "origin/main..HEAD"),
 		mggolangcilint.GolangciLint,
 		mggoreview.Goreview,
 		mgmarkdownfmt.FormatMarkdown,

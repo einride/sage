@@ -8,9 +8,12 @@ include .mage/tools.mk
 all: $(mage)
 	@$(mage) all
 
-.PHONY: cog-check
-cog-check: $(mage)
-	@$(mage) cogCheck
+.PHONY: convco-check
+convco-check: $(mage)
+ifndef rev
+	$(error missing argument rev="...")
+endif
+	@$(mage) convcoCheck $(rev)
 
 .PHONY: format-markdown
 format-markdown: $(mage)

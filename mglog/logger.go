@@ -4,15 +4,25 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/funcr"
 )
 
 // Logger returns a standard logger.
 func Logger(name string) logr.Logger {
-	return logr.New(&sink{}).WithName(name)
+	return logr.New(&sink{
+		name: name,
+		formatter: funcr.NewFormatter(funcr.Options{
+			RenderBuiltinsHook: func(kvList []interface{}) []interface{} {
+				// Don't render builtins.
+				return nil
+			},
+		}),
+	})
 }
 
 type sink struct {
-	name string
+	formatter funcr.Formatter
+	name      string
 }
 
 func (s *sink) Init(info logr.RuntimeInfo) {
@@ -23,19 +33,13 @@ func (s *sink) Enabled(level int) bool {
 }
 
 func (s *sink) Info(level int, msg string, keysAndValues ...interface{}) {
-	if len(keysAndValues) > 0 {
-		fmt.Printf("[%s] %s (%v)\n", s.name, msg, keysAndValues)
-	} else {
-		fmt.Printf("[%s] %s\n", s.name, msg)
-	}
+	_, args := s.formatter.FormatInfo(level, msg, keysAndValues)
+	fmt.Printf("[%s] %s%s\n", s.name, msg, args)
 }
 
 func (s *sink) Error(err error, msg string, keysAndValues ...interface{}) {
-	if len(keysAndValues) > 0 {
-		fmt.Printf("[%s - ERROR] %s (%v)\n", s.name, msg, keysAndValues)
-	} else {
-		fmt.Printf("[%s - ERROR] %s\n", s.name, msg)
-	}
+	_, args := s.formatter.FormatError(err, msg, keysAndValues)
+	fmt.Printf("[%s | ERROR] %s%s\n", s.name, msg, args)
 }
 
 func (s *sink) WithValues(keysAndValues ...interface{}) logr.LogSink {
