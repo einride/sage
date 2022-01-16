@@ -250,3 +250,8 @@ linters-settings:
 
   unused:
     go: 1.17
+
+  errorlint:
+    # Don't enforce %w to minimize implicit interface leakage.
+    # https://github.com/dwmkerr/hacker-laws#hyrums-law-the-law-of-implicit-interfaces
+    errorf: false
