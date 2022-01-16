@@ -72,6 +72,9 @@ func gen() error {
 	if exit := mage.ParseAndRun(os.Stdout, os.Stderr, os.Stdin, []string{"-compile", executable}); exit != 0 {
 		return fmt.Errorf("faild to compile magefile binary")
 	}
+	if err := os.Remove(mgpath.MakeGenGo); err != nil {
+		return err
+	}
 	return mgtool.RunInDir(executable, mageDir, mgpath.GenMakefilesTarget, executable)
 }
 
