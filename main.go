@@ -102,9 +102,12 @@ func initMageTools() error {
 			return err
 		}
 	} else {
-		const mm = "Makefile.MAGE"
-		logger.Info(fmt.Sprintf("Makefile already exist, writing to %s", mm))
-		if err := os.WriteFile(mm, makefile, 0o600); err != nil {
+		const mm = "Makefile.old"
+		logger.Info(fmt.Sprintf("Makefile already exist, renaming  Makefile to %s", mm))
+		if err := os.Rename("Makefile", mm); err != nil {
+			return err
+		}
+		if err := os.WriteFile("Makefile", makefile, 0o600); err != nil {
 			return err
 		}
 	}
@@ -119,14 +122,25 @@ func initMageTools() error {
 		return err
 	}
 	defer gitIgnore.Close()
-	if _, err := gitIgnore.WriteString(mgpath.Tools()); err != nil {
+	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.Tools())
+	if err != nil {
+		return err
+	}
+	if _, err := gitIgnore.WriteString(fmt.Sprintf("%s\n", relToolsPath)); err != nil {
 		return err
 	}
 	if err := addToDependabot(); err != nil {
 		return err
 	}
-	// TODO: Output some documentation, next steps after init, and useful links.
-	logger.Info("mage-tools initialized!")
+	// Generate make targets
+	if err := mgtool.RunInDir("make", "."); err != nil {
+		return err
+	}
+	// Prints out success info
+	logger.Info("Running make")
+	if err := mgtool.RunInDir("make", ".", "successful-init"); err != nil {
+		return err
+	}
 	return nil
 }
 

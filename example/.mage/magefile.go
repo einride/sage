@@ -24,6 +24,15 @@ func init() {
 	)
 }
 
+func SuccessfulInit() {
+	println(`
+Mage-tools has been successfully initialized!
+
+To get started, have a look at the magefile.go in the .mage directory,
+and look at https://github.com/einride/mage-tools#readme to learn more
+`)
+}
+
 func All() {
 	mg.Deps(
 		mg.F(mgconvco.ConvcoCheck, "origin/master..HEAD"),
