@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	ToolsMk            = "tools.mk"
 	MakeGenGo          = "mgmake_gen.go"
 	GenMakefilesTarget = "genMakefiles"
 	MageDir            = ".mage"
-	ToolsDir           = MageDir + "/tools"
+	ToolsDir           = "tools"
+	MagefileBinary     = "mgmake/magefile"
 )
 
 // nolint: gochecknoglobals
-var mgToolsPath = FromGitRoot(ToolsDir)
+var mgToolsPath = FromGitRoot(filepath.Join(MageDir, ToolsDir))
 
 func FromWorkDir(path string) string {
 	cwd, err := os.Getwd()

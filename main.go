@@ -19,8 +19,6 @@ import (
 )
 
 var (
-	//go:embed example/.mage/tools.mk
-	toolsMk []byte
 	//go:embed example/.mage/magefile.go
 	magefile []byte
 	//go:embed example/Makefile
@@ -59,7 +57,7 @@ func main() {
 
 func gen() error {
 	mglog.Logger("gen").Info("generating makefiles...")
-	executable := filepath.Join(mgpath.Tools(), "mgmake", "magefile")
+	executable := filepath.Join(mgpath.Tools(), mgpath.MagefileBinary)
 	if err := mgtool.RunInDir("git", mageDir, "clean", "-fdx", filepath.Dir(executable)); err != nil {
 		return err
 	}
@@ -87,10 +85,6 @@ func initMageTools() error {
 	}
 
 	if err := os.Mkdir(mageDir, 0o755); err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(filepath.Join(mageDir, mgpath.ToolsMk), toolsMk, 0o600); err != nil {
 		return err
 	}
 

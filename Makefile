@@ -2,43 +2,51 @@
 
 .DEFAULT_GOAL := all
 
-include .mage/tools.mk
+mage_dir := .mage
+magefile := $(mage_dir)/tools/mgmake/magefile
+
+$(magefile): $(mage_dir)/go.mod $(shell find $(mage_dir)/.. -type f -name '*.go')
+	@cd $(mage_dir) && go run ../main.go gen
+
+.PHONY: mage-clean
+mage-clean:
+	@git clean -fdx $(mage_dir)
 
 .PHONY: all
-all: $(mage)
-	@$(mage) all
+all: $(magefile)
+	@$(magefile) all
 
 .PHONY: convco-check
-convco-check: $(mage)
+convco-check: $(magefile)
 ifndef rev
 	$(error missing argument rev="...")
 endif
-	@$(mage) convcoCheck $(rev)
+	@$(magefile) convcoCheck $(rev)
 
 .PHONY: format-markdown
-format-markdown: $(mage)
-	@$(mage) formatMarkdown
+format-markdown: $(magefile)
+	@$(magefile) formatMarkdown
 
 .PHONY: format-yaml
-format-yaml: $(mage)
-	@$(mage) formatYaml
+format-yaml: $(magefile)
+	@$(magefile) formatYaml
 
 .PHONY: git-verify-no-diff
-git-verify-no-diff: $(mage)
-	@$(mage) gitVerifyNoDiff
+git-verify-no-diff: $(magefile)
+	@$(magefile) gitVerifyNoDiff
 
 .PHONY: go-mod-tidy
-go-mod-tidy: $(mage)
-	@$(mage) goModTidy
+go-mod-tidy: $(magefile)
+	@$(magefile) goModTidy
 
 .PHONY: go-test
-go-test: $(mage)
-	@$(mage) goTest
+go-test: $(magefile)
+	@$(magefile) goTest
 
 .PHONY: golangci-lint
-golangci-lint: $(mage)
-	@$(mage) golangciLint
+golangci-lint: $(magefile)
+	@$(magefile) golangciLint
 
 .PHONY: goreview
-goreview: $(mage)
-	@$(mage) goreview
+goreview: $(magefile)
+	@$(magefile) goreview
