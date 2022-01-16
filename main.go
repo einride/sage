@@ -106,7 +106,7 @@ func initMageTools() error {
 		}
 	} else {
 		const mm = "Makefile.old"
-		logger.Info(fmt.Sprintf("Makefile already exist, renaming  Makefile to %s", mm))
+		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
 		if err := os.Rename("Makefile", mm); err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func addToDependabot() error {
 		return err
 	}
 	mageNode := yaml.Node{}
-	currentConfig, cleanup := mgyamlfmt.PreserveEmptyLines(currentConfig)
+	currentConfig = mgyamlfmt.PreserveEmptyLines(currentConfig)
 	if err := yaml.Unmarshal(marshalDependabot, &mageNode); err != nil {
 		return err
 	}
@@ -207,5 +207,5 @@ func addToDependabot() error {
 	if err := encoder.Encode(&dependabotNode); err != nil {
 		return err
 	}
-	return os.WriteFile(dependabotYamlPath, cleanup(b.Bytes()), 0o600)
+	return os.WriteFile(dependabotYamlPath, mgyamlfmt.CleanupPreserveEmptyLines(b.Bytes()), 0o600)
 }
