@@ -13,9 +13,6 @@ import (
 
 	// mage:import
 	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
-
-	// mage:import
-	"go.einride.tech/mage-tools/targets/mgyamlfmt"
 )
 
 func init() {
@@ -39,7 +36,6 @@ and look at https://github.com/einride/mage-tools#readme to learn more
 func All() {
 	mg.Deps(
 		mg.F(mgconvco.ConvcoCheck, "origin/master..HEAD"),
-		mgyamlfmt.FormatYaml,
 	)
 	mg.SerialDeps(
 		mggitverifynodiff.GitVerifyNoDiff,

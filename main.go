@@ -73,6 +73,9 @@ func gen() error {
 	if err := os.Remove(mgpath.MakeGenGo); err != nil {
 		return err
 	}
+	if err := mgtool.RunInDir("go", mageDir, "mod", "tidy"); err != nil {
+		return err
+	}
 	return mgtool.RunInDir(executable, mageDir, mgpath.GenMakefilesTarget, executable)
 }
 

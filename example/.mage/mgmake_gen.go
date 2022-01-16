@@ -4,5 +4,9 @@
 
 package main
 
-// mage:import
-import _ "go.einride.tech/mage-tools/mgmake"
+import (
+	_ "gopkg.in/yaml.v3"
+
+	// mage:import
+	_ "go.einride.tech/mage-tools/mgmake"
+)
