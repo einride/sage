@@ -57,6 +57,7 @@ func prepare(ctx context.Context) error {
 		mgtool.WithUntarGz(),
 		mgtool.WithRenameFile(fmt.Sprintf("%s/goreview", fileName), toolName),
 		mgtool.WithSkipIfFileExists(binary),
+		mgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}

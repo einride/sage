@@ -79,7 +79,11 @@ func prepare(ctx context.Context) error {
 		return err
 	}
 
-	executable = binary
+	symlink, err := mgtool.CreateSymlink(binary)
+	if err != nil {
+		return err
+	}
+	executable = symlink
 
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
 	return sh.Run(

@@ -37,7 +37,6 @@ func prepare(ctx context.Context) error {
 	const binaryName = "sops"
 	binDir := filepath.Join(mgpath.Tools(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
-	executable = binary
 
 	hostOS := runtime.GOOS
 
@@ -54,8 +53,10 @@ func prepare(ctx context.Context) error {
 		mgtool.WithDestinationDir(binDir),
 		mgtool.WithRenameFile("", binaryName),
 		mgtool.WithSkipIfFileExists(binary),
+		mgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
+	executable = binary
 	return nil
 }

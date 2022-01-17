@@ -38,7 +38,7 @@ func ConvcoCheck(ctx context.Context, rev string) error {
 func prepare(ctx context.Context) error {
 	const toolName = "convco"
 	binDir := filepath.Join(mgpath.Tools(), toolName, version)
-	toolPath := filepath.Join(binDir, toolName)
+	binary := filepath.Join(binDir, toolName)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
@@ -58,10 +58,11 @@ func prepare(ctx context.Context) error {
 		binURL,
 		mgtool.WithDestinationDir(binDir),
 		mgtool.WithUnzip(),
-		mgtool.WithSkipIfFileExists(toolPath),
+		mgtool.WithSkipIfFileExists(binary),
+		mgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}
-	executable = toolPath
-	return os.Chmod(executable, 0o755)
+	executable = binary
+	return os.Chmod(binary, 0o755)
 }

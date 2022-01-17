@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
+	"go.einride.tech/mage-tools/mgpath"
 )
 
 type archiveType int
@@ -35,6 +36,7 @@ type fileState struct {
 	dstPath      string
 	archiveFiles map[string]string
 	skipFile     string
+	symlink      string
 }
 
 func newFileState() *fileState {
@@ -153,6 +155,12 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 			return fmt.Errorf("unable to extract zip file: %w", err)
 		}
 	}
+	if s.symlink != "" {
+		_, err := CreateSymlink(s.symlink)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -171,6 +179,12 @@ func WithUntarGz() Opt {
 func WithDestinationDir(path string) Opt {
 	return func(f *fileState) {
 		f.dstPath = path
+	}
+}
+
+func WithSymlink(path string) Opt {
+	return func(f *fileState) {
+		f.symlink = path
 	}
 }
 
@@ -328,4 +342,20 @@ func Exists(file string) error {
 		return err
 	}
 	return nil
+}
+
+func CreateSymlink(src string) (string, error) {
+	symlink := filepath.Join(mgpath.Bins(), filepath.Base(src))
+	if err := os.MkdirAll(mgpath.Bins(), 0o755); err != nil {
+		return "", err
+	}
+	if _, err := os.Stat(symlink); err == nil {
+		if err := os.Remove(symlink); err != nil {
+			return "", err
+		}
+	}
+	if err := os.Symlink(src, symlink); err != nil {
+		return "", err
+	}
+	return symlink, nil
 }
