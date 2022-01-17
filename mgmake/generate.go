@@ -17,7 +17,10 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
-const defaultNamespace = "default"
+const (
+	GenMakefilesTarget = "genMakefiles"
+	defaultNamespace   = "default"
+)
 
 // nolint: gochecknoglobals
 var (
@@ -260,7 +263,7 @@ func listTargets() ([]string, error) {
 			parts[0] = strings.TrimRight(strings.TrimSpace(parts[0]), "*")
 
 			// Remove this mage target from the output
-			if strings.Contains(parts[0], mgpath.GenMakefilesTarget) {
+			if strings.Contains(parts[0], GenMakefilesTarget) {
 				continue
 			}
 			targets = append(targets, parts[0])

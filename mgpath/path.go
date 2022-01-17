@@ -10,11 +10,9 @@ import (
 )
 
 const (
-	MakeGenGo          = "mgmake_gen.go"
-	GenMakefilesTarget = "genMakefiles"
-	MageDir            = ".mage"
-	ToolsDir           = "tools"
-	MagefileBinary     = "mgmake/magefile"
+	MageDir        = ".mage"
+	ToolsDir       = "tools"
+	MagefileBinary = "mgmake/magefile"
 )
 
 // nolint: gochecknoglobals
