@@ -25,8 +25,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Hadolint() {
-	mg.Deps(prepare)
+func (Prepare) Hadolint(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func Hadolint(ctx context.Context) error {

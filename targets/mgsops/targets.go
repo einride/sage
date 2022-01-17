@@ -21,8 +21,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Sops() {
-	mg.Deps(prepare)
+func (Prepare) Sops(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func Sops(ctx context.Context, file string) error {

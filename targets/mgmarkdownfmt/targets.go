@@ -17,8 +17,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) FormatMarkdown() {
-	mg.Deps(prepare)
+func (Prepare) FormatMarkdown(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func FormatMarkdown(ctx context.Context) error {

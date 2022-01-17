@@ -25,19 +25,21 @@ const prettierConfigContent = `module.exports = {
 }`
 
 // nolint: gochecknoglobals
-var executable string
+var (
+	executable string
+	prettierrc = filepath.Join(mgpath.Tools(), "prettier", ".prettierrc.js")
+)
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Prettier() {
-	mg.Deps(prepare)
+func (Prepare) Prettier(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func FormatMarkdown(ctx context.Context) error {
 	logger := mglog.Logger("prettier")
 	ctx = logr.NewContext(ctx, logger)
-	prettierrc := filepath.Join(mgpath.Tools(), "prettier", ".prettierrc.js")
-	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
+	mg.CtxDeps(ctx, prepare)
 	args := []string{
 		"--config",
 		prettierrc,
@@ -52,8 +54,7 @@ func FormatMarkdown(ctx context.Context) error {
 func FormatYAML(ctx context.Context) error {
 	logger := mglog.Logger("prettier")
 	ctx = logr.NewContext(ctx, logger)
-	prettierrc := filepath.Join(mgpath.Tools(), "prettier", ".prettierrc.js")
-	mg.CtxDeps(ctx, mg.F(prepare, prettierrc))
+	mg.CtxDeps(ctx, prepare)
 	args := []string{
 		"--config",
 		prettierrc,
@@ -65,7 +66,7 @@ func FormatYAML(ctx context.Context) error {
 	return sh.RunV(executable, args...)
 }
 
-func prepare(ctx context.Context, prettierrc string) error {
+func prepare(ctx context.Context) error {
 	// Check if npm is installed
 	if err := sh.Run("npm", "version"); err != nil {
 		return err

@@ -23,8 +23,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) ConvcoCheck() {
-	mg.Deps(prepare)
+func (Prepare) Convco(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func ConvcoCheck(ctx context.Context, rev string) error {

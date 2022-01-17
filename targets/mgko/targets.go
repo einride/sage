@@ -22,8 +22,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Ko() {
-	mg.Deps(prepare)
+func (Prepare) Ko(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func PublishLocal(ctx context.Context) error {

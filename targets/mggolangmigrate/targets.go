@@ -17,8 +17,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) GolangMigrate() {
-	mg.Deps(prepare)
+func (Prepare) GolangMigrate(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func GolangMigrate(ctx context.Context, source, database string) error {

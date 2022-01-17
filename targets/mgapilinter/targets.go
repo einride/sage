@@ -21,8 +21,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) APILinter() {
-	mg.Deps(prepare)
+func (Prepare) APILinter(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func APILinterLint(ctx context.Context, args ...string) error {

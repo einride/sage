@@ -22,8 +22,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) GoogleCloudProtoScrubber() {
-	mg.Deps(prepare)
+func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func GoogleCloudProtoScrubber(ctx context.Context, fileDescriptorPath string) error {
