@@ -19,6 +19,12 @@ const version = "1.29.3"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) APILinter() {
+	mg.Deps(prepare)
+}
+
 func APILinterLint(ctx context.Context, args ...string) error {
 	logger := mglog.Logger("api-linter-lint")
 	ctx = logr.NewContext(ctx, logger)

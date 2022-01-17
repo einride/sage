@@ -15,6 +15,12 @@ const version = "75134924a9fd3335f76a9709314c5f5cef4d6ddc"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) FormatMarkdown() {
+	mg.Deps(prepare)
+}
+
 func FormatMarkdown(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("format-markdown"))
 	logr.FromContextOrDiscard(ctx).Info("formatting...")

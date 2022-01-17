@@ -21,6 +21,12 @@ const version = "1.33.0"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) ProtocGenGrpcJava() {
+	mg.Deps(prepare)
+}
+
 func ProtocGenGrpcJava(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("protoc-gen-grpc-java"))
 	mg.CtxDeps(ctx, prepare)

@@ -10,6 +10,7 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const packageJSONContent = `{
@@ -25,6 +26,12 @@ const prettierConfigContent = `module.exports = {
 
 // nolint: gochecknoglobals
 var executable string
+
+type Prepare mgtool.Prepare
+
+func (Prepare) Prettier() {
+	mg.Deps(prepare)
+}
 
 func FormatMarkdown(ctx context.Context) error {
 	logger := mglog.Logger("prettier")

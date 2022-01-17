@@ -25,6 +25,12 @@ var executable string
 //go:embed golangci.yml
 var defaultConfig string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) GolangciLint() {
+	mg.Deps(prepare)
+}
+
 func GolangciLint(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("golangci-lint"))
 	mg.CtxDeps(ctx, mg.F(prepare))

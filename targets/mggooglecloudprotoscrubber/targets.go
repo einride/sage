@@ -20,6 +20,12 @@ const version = "1.1.0"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) GoogleCloudProtoScrubber() {
+	mg.Deps(prepare)
+}
+
 func GoogleCloudProtoScrubber(ctx context.Context, fileDescriptorPath string) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("google-cloud-proto-scrubber"))
 	mg.CtxDeps(ctx, mg.F(prepare))

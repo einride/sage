@@ -11,6 +11,7 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const packageJSONContent = `{
@@ -24,6 +25,12 @@ const packageJSONContent = `{
 
 // nolint: gochecknoglobals
 var executable string
+
+type Prepare mgtool.Prepare
+
+func (Prepare) SemanticRelease() {
+	mg.Deps(prepare)
+}
 
 func SemanticRelease(ctx context.Context, branch string, ci bool) error {
 	logger := mglog.Logger("semantic-release")
