@@ -95,11 +95,12 @@ func initMageTools() error {
 	if err := mgtool.RunInDir("go", mageDir, "run", "go.einride.tech/mage-tools/cmd/build"); err != nil {
 		return err
 	}
-	// Prints out success info
-	logger.Info("Running make")
-	if err := mgtool.RunInDir("make", ".", "successful-init"); err != nil {
-		return err
-	}
+	logger.Info(`
+Mage-tools has been successfully initialized!
+
+To get started, have a look at the magefile.go in the .mage directory,
+and look at https://github.com/einride/mage-tools#readme to learn more
+`)
 	return nil
 }
 

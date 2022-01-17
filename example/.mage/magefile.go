@@ -12,6 +12,18 @@ import (
 	"go.einride.tech/mage-tools/targets/mgconvco"
 
 	// mage:import
+	"go.einride.tech/mage-tools/targets/mggo"
+
+	// mage:import
+	"go.einride.tech/mage-tools/targets/mggoreview"
+
+	// mage:import
+	"go.einride.tech/mage-tools/targets/mggolangcilint"
+
+	// mage:import
+	"go.einride.tech/mage-tools/targets/mgmarkdownfmt"
+
+	// mage:import
 	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
 )
 
@@ -24,20 +36,16 @@ func init() {
 	)
 }
 
-func SuccessfulInit() {
-	println(`
-Mage-tools has been successfully initialized!
-
-To get started, have a look at the magefile.go in the .mage directory,
-and look at https://github.com/einride/mage-tools#readme to learn more
-`)
-}
-
 func All() {
 	mg.Deps(
 		mg.F(mgconvco.ConvcoCheck, "origin/master..HEAD"),
+		mggolangcilint.GolangciLint,
+		mggoreview.Goreview,
+		mggo.GoTest,
+		mgmarkdownfmt.FormatMarkdown,
 	)
 	mg.SerialDeps(
+		mggo.GoModTidy,
 		mggitverifynodiff.GitVerifyNoDiff,
 	)
 }
