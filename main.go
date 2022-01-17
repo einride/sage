@@ -20,8 +20,6 @@ import (
 var (
 	//go:embed example/.mage/magefile.go
 	magefile []byte
-	//go:embed example/Makefile
-	makefile []byte
 	//go:embed example/.github/dependabot.yml
 	dependabotYaml []byte
 	// nolint: gochecknoglobals
@@ -65,18 +63,10 @@ func initMageTools() error {
 	}
 
 	_, err := os.Stat("Makefile")
-	if err != nil {
-		// Write Makefile
-		if err := os.WriteFile("Makefile", makefile, 0o600); err != nil {
-			return err
-		}
-	} else {
+	if err == nil {
 		const mm = "Makefile.old"
 		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
 		if err := os.Rename("Makefile", mm); err != nil {
-			return err
-		}
-		if err := os.WriteFile("Makefile", makefile, 0o600); err != nil {
 			return err
 		}
 	}
@@ -102,7 +92,7 @@ func initMageTools() error {
 		return err
 	}
 	// Generate make targets
-	if err := mgtool.RunInDir("make", "."); err != nil {
+	if err := mgtool.RunInDir("go", mageDir, "run", "go.einride.tech/mage-tools/cmd/build"); err != nil {
 		return err
 	}
 	// Prints out success info
