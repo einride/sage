@@ -2,7 +2,7 @@
 
 .DEFAULT_GOAL := all
 
-magefile := .mage/tools/mgmake/magefile
+magefile := .mage/tools/bin/magefile
 
 $(magefile): .mage/go.mod $(shell find .mage/.. -type f -name '*.go')
 	@cd .mage && go run ../cmd/build

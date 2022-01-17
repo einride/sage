@@ -13,7 +13,7 @@ const (
 	MageDir        = ".mage"
 	ToolsDir       = "tools"
 	BinDir         = "bin"
-	MagefileBinary = "mgmake/magefile"
+	MagefileBinary = "bin/magefile"
 )
 
 // nolint: gochecknoglobals
