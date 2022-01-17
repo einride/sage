@@ -23,6 +23,12 @@ const version = "2.8.0"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Hadolint() {
+	mg.Deps(prepare)
+}
+
 func Hadolint(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglog.Logger("hadolint"))
 	mg.CtxDeps(ctx, mg.F(prepare))

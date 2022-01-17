@@ -15,6 +15,12 @@ const version = "v4.15.1"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) GolangMigrate() {
+	mg.Deps(prepare)
+}
+
 func GolangMigrate(ctx context.Context, source, database string) error {
 	logger := mglog.Logger("golang-migrate")
 	ctx = logr.NewContext(ctx, logger)

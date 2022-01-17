@@ -18,6 +18,12 @@ const version = "1.0.0-rc10"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Buf() {
+	mg.Deps(prepare)
+}
+
 func BufLint(ctx context.Context) error {
 	logger := logr.FromContextOrDiscard(ctx).WithName("buf-lint")
 	ctx = logr.NewContext(ctx, logger)

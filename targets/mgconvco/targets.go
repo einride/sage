@@ -21,6 +21,12 @@ const version = "0.3.7"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) ConvcoCheck() {
+	mg.Deps(prepare)
+}
+
 func ConvcoCheck(ctx context.Context, rev string) error {
 	logger := mglog.Logger("convco-check")
 	ctx = logr.NewContext(ctx, logger)

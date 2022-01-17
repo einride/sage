@@ -19,15 +19,21 @@ const version = "3.7.1"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Sops() {
+	mg.Deps(prepare)
+}
+
 func Sops(ctx context.Context, file string) error {
 	logger := mglog.Logger("sops")
 	ctx = logr.NewContext(ctx, logger)
-	mg.CtxDeps(ctx, sops)
+	mg.CtxDeps(ctx, prepare)
 	logger.Info("running...")
 	return sh.RunV(executable, file)
 }
 
-func sops(ctx context.Context) error {
+func prepare(ctx context.Context) error {
 	const binaryName = "sops"
 	binDir := filepath.Join(mgpath.Tools(), binaryName, version)
 	binary := filepath.Join(binDir, binaryName)

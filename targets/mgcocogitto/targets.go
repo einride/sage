@@ -21,6 +21,12 @@ const version = "4.0.1"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Cog() {
+	mg.Deps(prepare)
+}
+
 func CogCheck(ctx context.Context) error {
 	logger := mglog.Logger("cog-check")
 	ctx = logr.NewContext(ctx, logger)

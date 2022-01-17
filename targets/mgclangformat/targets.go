@@ -11,12 +11,19 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const version = "1.6.0"
 
 // nolint: gochecknoglobals
 var executable string
+
+type Prepare mgtool.Prepare
+
+func (Prepare) ClangFormat() {
+	mg.Deps(prepare)
+}
 
 func ClangFormatProto(path string) error {
 	logger := mglog.Logger("clang-format")

@@ -10,6 +10,7 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 )
 
 const packageJSONContent = `{
@@ -29,6 +30,12 @@ const commitlintFileContent = `module.exports = {
 
 // nolint: gochecknoglobals
 var executable string
+
+type Prepare mgtool.Prepare
+
+func (Prepare) Commitlint() {
+	mg.Deps(prepare)
+}
 
 func Commitlint(ctx context.Context, branch string) error {
 	logger := mglog.Logger("commitlint")

@@ -20,6 +20,12 @@ const version = "0.9.3"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Ko() {
+	mg.Deps(prepare)
+}
+
 func PublishLocal(ctx context.Context) error {
 	dockerTag, err := tag()
 	if err != nil {

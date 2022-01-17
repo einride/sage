@@ -20,6 +20,12 @@ const version = "0.18.0"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Goreview() {
+	mg.Deps(prepare)
+}
+
 func Goreview(ctx context.Context) error {
 	logger := mglog.Logger("goreview")
 	ctx = logr.NewContext(ctx, logger)

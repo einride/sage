@@ -20,6 +20,12 @@ const version = "3.15.7"
 // nolint: gochecknoglobals
 var executable string
 
+type Prepare mgtool.Prepare
+
+func (Prepare) Protoc() {
+	mg.Deps(prepare)
+}
+
 func Protoc(ctx context.Context, args ...string) error {
 	logger := mglog.Logger("protoc")
 	ctx = logr.NewContext(ctx, logger)
