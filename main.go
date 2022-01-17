@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/magefile/mage/mage"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
@@ -23,8 +22,6 @@ var (
 	magefile []byte
 	//go:embed example/Makefile
 	makefile []byte
-	//go:embed example/.mage/mgmake_gen.go
-	mgmake []byte
 	//go:embed example/.github/dependabot.yml
 	dependabotYaml []byte
 	// nolint: gochecknoglobals
@@ -46,37 +43,9 @@ func main() {
 		if err := initMageTools(); err != nil {
 			log.Fatalf(err.Error())
 		}
-	case "gen":
-		if err := gen(); err != nil {
-			log.Fatalf(err.Error())
-		}
 	default:
 		usage()
 	}
-}
-
-func gen() error {
-	mglog.Logger("gen").Info("generating makefiles...")
-	executable := filepath.Join(mgpath.Tools(), mgpath.MagefileBinary)
-	if err := mgtool.RunInDir("git", mageDir, "clean", "-fdx", filepath.Dir(executable)); err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(mageDir, mgpath.MakeGenGo), mgmake, 0o600); err != nil {
-		return err
-	}
-	if err := mgtool.RunInDir("go", mageDir, "mod", "tidy"); err != nil {
-		return err
-	}
-	if exit := mage.ParseAndRun(os.Stdout, os.Stderr, os.Stdin, []string{"-compile", executable}); exit != 0 {
-		return fmt.Errorf("faild to compile magefile binary")
-	}
-	if err := os.Remove(mgpath.MakeGenGo); err != nil {
-		return err
-	}
-	if err := mgtool.RunInDir("go", mageDir, "mod", "tidy"); err != nil {
-		return err
-	}
-	return mgtool.RunInDir(executable, mageDir, mgpath.GenMakefilesTarget, executable)
 }
 
 func initMageTools() error {
