@@ -23,8 +23,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) ProtocGenGrpcJava() {
-	mg.Deps(prepare)
+func (Prepare) ProtocGenGrpcJava(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func ProtocGenGrpcJava(ctx context.Context) error {

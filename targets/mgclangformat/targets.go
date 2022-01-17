@@ -21,8 +21,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) ClangFormat() {
-	mg.Deps(prepare)
+func (Prepare) ClangFormat() error {
+	return prepare()
 }
 
 func ClangFormatProto(path string) error {

@@ -22,8 +22,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Protoc() {
-	mg.Deps(prepare)
+func (Prepare) Protoc(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func Protoc(ctx context.Context, args ...string) error {

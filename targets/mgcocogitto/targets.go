@@ -23,8 +23,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Cog() {
-	mg.Deps(prepare)
+func (Prepare) Cog(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func CogCheck(ctx context.Context) error {

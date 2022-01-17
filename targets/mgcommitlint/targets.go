@@ -29,18 +29,20 @@ const commitlintFileContent = `module.exports = {
 };`
 
 // nolint: gochecknoglobals
-var executable string
+var (
+	executable   string
+	commitlintrc = filepath.Join(mgpath.Tools(), "commitlint", ".commitlintrc.js")
+)
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Commitlint() {
-	mg.Deps(prepare)
+func (Prepare) Commitlint(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func Commitlint(ctx context.Context, branch string) error {
 	logger := mglog.Logger("commitlint")
 	ctx = logr.NewContext(ctx, logger)
-	commitlintrc := filepath.Join(mgpath.Tools(), "commitlint", ".commitlintrc.js")
 	mg.CtxDeps(ctx, mg.F(prepare, commitlintrc))
 	args := []string{
 		"--config",
@@ -57,7 +59,7 @@ func Commitlint(ctx context.Context, branch string) error {
 	return sh.RunV(executable, args...)
 }
 
-func prepare(ctx context.Context, commitlintrc string) error {
+func prepare(ctx context.Context) error {
 	// Check if npm is installed
 	if err := sh.Run("npm", "version"); err != nil {
 		return err

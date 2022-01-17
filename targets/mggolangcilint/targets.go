@@ -27,8 +27,8 @@ var defaultConfig string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) GolangciLint() {
-	mg.Deps(prepare)
+func (Prepare) GolangciLint(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func GolangciLint(ctx context.Context) error {

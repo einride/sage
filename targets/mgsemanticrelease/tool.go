@@ -28,8 +28,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) SemanticRelease() {
-	mg.Deps(prepare)
+func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
+	return prepare(ctx, branch)
 }
 
 func SemanticRelease(ctx context.Context, branch string, ci bool) error {

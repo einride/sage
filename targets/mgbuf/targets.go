@@ -20,8 +20,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Buf() {
-	mg.Deps(prepare)
+func (Prepare) Buf(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func BufLint(ctx context.Context) error {

@@ -22,8 +22,8 @@ var executable string
 
 type Prepare mgtool.Prepare
 
-func (Prepare) Goreview() {
-	mg.Deps(prepare)
+func (Prepare) Goreview(ctx context.Context) error {
+	return prepare(ctx)
 }
 
 func Goreview(ctx context.Context) error {
