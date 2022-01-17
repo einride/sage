@@ -2,15 +2,14 @@
 
 .DEFAULT_GOAL := all
 
-mage_dir := .mage
-magefile := $(mage_dir)/tools/mgmake/magefile
+magefile := .mage/tools/mgmake/magefile
 
-$(magefile): $(mage_dir)/go.mod $(shell find $(mage_dir)/.. -type f -name '*.go')
-	@cd $(mage_dir) && go run ../main.go gen
+$(magefile): .mage/go.mod $(shell find .mage/.. -type f -name '*.go')
+	@cd .mage && go run ../cmd/build
 
-.PHONY: mage-clean
-mage-clean:
-	@git clean -fdx $(mage_dir)
+.PHONY: clean-mage-tools
+clean-mage-tools:
+	@git clean -fdx .mage/tools
 
 .PHONY: all
 all: $(magefile)
