@@ -13,11 +13,11 @@ import (
 
 func GoInstall(ctx context.Context, goPkg, version string) (string, error) {
 	executable := filepath.Join(mgpath.Tools(), "go", goPkg, version, "bin", filepath.Base(goPkg))
-	symlink := filepath.Join(mgpath.Tools(), mgpath.BinDir, filepath.Base(goPkg))
 
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
-		if err := createSymlink(executable, symlink); err != nil {
+		symlink, err := CreateSymlink(executable)
+		if err != nil {
 			return "", err
 		}
 		return symlink, nil
@@ -28,20 +28,9 @@ func GoInstall(ctx context.Context, goPkg, version string) (string, error) {
 	if err := sh.RunV("go", "install", goPkgVer); err != nil {
 		return "", err
 	}
-	if err := createSymlink(executable, symlink); err != nil {
+	symlink, err := CreateSymlink(executable)
+	if err != nil {
 		return "", err
 	}
 	return symlink, nil
-}
-
-func createSymlink(src, dst string) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-		return err
-	}
-	if _, err := os.Stat(dst); err == nil {
-		if err := os.Remove(dst); err != nil {
-			return err
-		}
-	}
-	return os.Symlink(src, dst)
 }

@@ -51,6 +51,13 @@ func Tools() string {
 	return mgToolsPath
 }
 
+func Bins() string {
+	if mgToolsPath == "" {
+		panic("No tools path set")
+	}
+	return filepath.Join(mgToolsPath, BinDir)
+}
+
 func ChangeWorkDir(path string) func() {
 	cwd := FromWorkDir(".")
 	if err := os.Chdir(path); err != nil {

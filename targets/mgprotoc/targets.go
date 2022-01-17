@@ -60,6 +60,7 @@ func prepare(ctx context.Context) error {
 		mgtool.WithDestinationDir(binDir),
 		mgtool.WithUnzip(),
 		mgtool.WithSkipIfFileExists(binary),
+		mgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}

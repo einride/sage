@@ -38,7 +38,7 @@ func CogCheck(ctx context.Context) error {
 func prepare(ctx context.Context) error {
 	const toolName = "cocogitto"
 	binDir := filepath.Join(mgpath.Tools(), toolName, version)
-	toolPath := filepath.Join(binDir, "cog")
+	binary := filepath.Join(binDir, "cog")
 	var archiveName string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
@@ -58,10 +58,11 @@ func prepare(ctx context.Context) error {
 		binURL,
 		mgtool.WithDestinationDir(binDir),
 		mgtool.WithUntarGz(),
-		mgtool.WithSkipIfFileExists(toolPath),
+		mgtool.WithSkipIfFileExists(binary),
+		mgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}
-	executable = toolPath
+	executable = binary
 	return os.Chmod(executable, 0o755)
 }

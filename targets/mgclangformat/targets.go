@@ -74,6 +74,10 @@ func prepare() error {
 	); err != nil {
 		return err
 	}
-	executable = binary
+	symlink, err := mgtool.CreateSymlink(binary)
+	if err != nil {
+		return err
+	}
+	executable = symlink
 	return nil
 }
