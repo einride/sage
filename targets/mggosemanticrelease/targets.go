@@ -32,6 +32,21 @@ func GoSemanticRelease(ctx context.Context, args ...string) error {
 	return sh.RunV(executable, args...)
 }
 
+func ReleaseFromCloudBuild(ctx context.Context, ci bool, repo string) error {
+	args := []string{
+		"--allow-initial-development-versions",
+		"--allow-no-changes",
+		"--ci-condition",
+		"default",
+		"--provider-opt",
+	}
+	args = append(args, "slug="+repo)
+	if !ci {
+		args = append(args, "--dry")
+	}
+	return GoSemanticRelease(ctx, args...)
+}
+
 func prepare(ctx context.Context) error {
 	const (
 		binaryName = "gosemantic-release"
