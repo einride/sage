@@ -18,10 +18,7 @@ all: $(magefile)
 
 .PHONY: convco-check
 convco-check: $(magefile)
-ifndef rev
-	$(error missing argument rev="...")
-endif
-	@$(magefile) convcoCheck $(rev)
+	@$(magefile) convcoCheck
 
 .PHONY: format-markdown
 format-markdown: $(magefile)
@@ -30,10 +27,6 @@ format-markdown: $(magefile)
 .PHONY: format-yaml
 format-yaml: $(magefile)
 	@$(magefile) formatYaml
-
-.PHONY: git-verify-no-diff
-git-verify-no-diff: $(magefile)
-	@$(magefile) gitVerifyNoDiff
 
 .PHONY: go-mod-tidy
 go-mod-tidy: $(magefile)

@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func FormatYaml() error {
+func FormatYAML() error {
 	logger := mglog.Logger("format-yaml")
 	logger.Info("formatting yaml files...")
 	return filepath.WalkDir(mgpath.FromGitRoot("."), func(path string, d fs.DirEntry, err error) error {

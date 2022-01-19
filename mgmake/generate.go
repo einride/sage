@@ -131,10 +131,15 @@ func createMakefile(makefilePath, target string, data []byte) error {
 	if target != "" {
 		target = fmt.Sprintf("\n\n.DEFAULT_GOAL := %s", toMakeTarget(target))
 	}
-	out, _ := mgtool.OutputRunInDir("go", mgpath.FromGitRoot("."), "list", "-m")
+	cmd := mgtool.Command("go", "list", "-m")
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	if err := cmd.Run(); err != nil {
+		return err
+	}
 	mageDependencies := fmt.Sprintf("%s/go.mod %s/*.go", includePath, includePath)
 	genCommand := fmt.Sprintf("cd %s && go run go.einride.tech/mage-tools/cmd/build", includePath)
-	if strings.TrimSpace(out) == "go.einride.tech/mage-tools" {
+	if strings.TrimSpace(b.String()) == "go.einride.tech/mage-tools" {
 		mageDependencies = fmt.Sprintf("%s/go.mod $(shell find %s/.. -type f -name '*.go')", includePath, includePath)
 		genCommand = fmt.Sprintf("cd %s && go run ../cmd/build", includePath)
 	}
@@ -240,7 +245,7 @@ func toMageTarget(target string, args []string) string {
 }
 
 func listTargets() ([]string, error) {
-	out, err := invokeMage([]string{"-l"})
+	out, err := invokeMage("-l")
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +282,7 @@ func listTargets() ([]string, error) {
 }
 
 func getTargetArguments(name string) ([]string, error) {
-	out, err := invokeMage([]string{"-h", name})
+	out, err := invokeMage("-h", name)
 	if err != nil {
 		return nil, err
 	}
@@ -291,10 +296,12 @@ func getTargetArguments(name string) ([]string, error) {
 	return args, nil
 }
 
-func invokeMage(args []string) (string, error) {
-	out, err := mgtool.OutputRunInDir(executable, ".", args...)
-	if err != nil {
+func invokeMage(args ...string) (string, error) {
+	cmd := mgtool.Command(executable, args...)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	return out, nil
+	return b.String(), nil
 }
