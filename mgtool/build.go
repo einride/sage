@@ -1,6 +1,7 @@
 package mgtool
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/magefile/mage/sh"
 	"go.einride.tech/mage-tools/mgpath"
 )
 
@@ -24,12 +24,9 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 	}
 	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
 	logr.FromContextOrDiscard(ctx).Info("building...", "pkg", pkgVersion)
-	if err := sh.RunWithV(
-		map[string]string{"GOBIN": filepath.Dir(executable)},
-		"go",
-		"install",
-		pkgVersion,
-	); err != nil {
+	cmd := Command("go", "install", pkgVersion)
+	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
+	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	symlink, err := CreateSymlink(executable)
@@ -42,11 +39,14 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error) {
 	cleanup := mgpath.ChangeWorkDir(filepath.Dir(file))
 	defer cleanup()
-	version, err := sh.Output("go", "list", "-f", "{{.Module.Version}}", pkg)
-	if err != nil {
+	cmd := Command("go", "list", "-f", "{{.Module.Version}}", pkg)
+	cmd.Dir = filepath.Dir(file)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	version = strings.TrimSpace(version)
+	version := strings.TrimSpace(b.String())
 	if version == "" {
 		return "", fmt.Errorf("failed to determine version of package %s", pkg)
 	}
@@ -60,12 +60,9 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 		return symlink, nil
 	}
 	logr.FromContextOrDiscard(ctx).Info("building", "pkg", pkg)
-	if err := sh.RunWithV(
-		map[string]string{"GOBIN": filepath.Dir(executable)},
-		"go",
-		"install",
-		pkg,
-	); err != nil {
+	cmd = Command("go", "install", pkg)
+	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
+	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	symlink, err := CreateSymlink(executable)

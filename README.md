@@ -37,30 +37,22 @@ You can have as many magefiles as you want in the `.mage` folder, as long as you
 package main
 ```
 
-#### Imports
+#### Targets
 
-If you want to import targets from this repository, just import and add the `// mage:import` comment above the import and alias it with `_` if its only to be used as a mage target
-
-```golang
-// mage:import
-"go.einride.tech/mage-tools/targets/mggo"
-
-// mage:import
-_ "go.einride.tech/mage-tools/targets/mgsemanticrelease"
-```
-
-#### Local targets
-
-If you wish to utilize an import, or define your own target; like an `All` target, you can just write one yourself. Just create a public function in a magefile, and it will be included. The target can have no return value other then error.
+Targets gets generated from expored functions in the main package, they can have no return value but error. Arguments are supported but limited to optional first argument of context.Context, string, int or bool.
 
 ```golang
 func All() {
-	mg.Deps(
-		mg.F(mgcommitlint.Commitlint, "main"),
-	)
-	mg.SerialDeps(
-		mggitverifynodiff.GitVerifyNoDiff,
-	)
+  return
+}
+
+func FormatYaml() error {
+	return mgyamlfmt.FormatYAML()
+}
+
+func ConvcoCheck(ctx context.Context, rev string) error {
+	mglog.Logger("convco-check").Info("checking...")
+	return mgconvco.Command(ctx, "check", rev).Run()
 }
 ```
 

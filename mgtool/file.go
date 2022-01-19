@@ -53,6 +53,11 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 	if s.skipFile != "" {
 		// Check if binary already exist
 		if _, err := os.Stat(s.skipFile); err == nil {
+			if s.symlink != "" {
+				if _, err := CreateSymlink(s.symlink); err != nil {
+					return err
+				}
+			}
 			return nil
 		}
 	}
@@ -73,6 +78,11 @@ func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
 	if s.skipFile != "" {
 		// Check if binary already exist
 		if _, err := os.Stat(s.skipFile); err == nil {
+			if s.symlink != "" {
+				if _, err := CreateSymlink(s.symlink); err != nil {
+					return err
+				}
+			}
 			return nil
 		}
 	}
@@ -156,8 +166,7 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 		}
 	}
 	if s.symlink != "" {
-		_, err := CreateSymlink(s.symlink)
-		if err != nil {
+		if _, err := CreateSymlink(s.symlink); err != nil {
 			return err
 		}
 	}

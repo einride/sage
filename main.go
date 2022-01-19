@@ -14,6 +14,7 @@ import (
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/targets/mgyamlfmt"
+	"go.einride.tech/mage-tools/tools/mggo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -70,10 +71,14 @@ func initMageTools() error {
 			return err
 		}
 	}
-	if err := mgtool.RunInDir("go", mageDir, []string{"mod", "init", "mage-tools"}...); err != nil {
+	cmd := mgtool.Command("go", "mod", "init", "mage-tools")
+	cmd.Dir = mageDir
+	if err := cmd.Run(); err != nil {
 		return err
 	}
-	if err := mgtool.RunInDir("go", mageDir, []string{"mod", "tidy"}...); err != nil {
+	cmd = mggo.GoModTidy()
+	cmd.Dir = mageDir
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
@@ -92,7 +97,9 @@ func initMageTools() error {
 		return err
 	}
 	// Generate make targets
-	if err := mgtool.RunInDir("go", mageDir, "run", "go.einride.tech/mage-tools/cmd/build"); err != nil {
+	cmd = mgtool.Command("go", "run", "go.einride.tech/mage-tools/cmd/build")
+	cmd.Dir = mageDir
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 	logger.Info(`
