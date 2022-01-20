@@ -10,8 +10,7 @@ import (
 )
 
 func GoTest() *exec.Cmd {
-	const toolName = "go"
-	coverFile := filepath.Join(mgpath.Tools(), toolName, "coverage", "go-test.txt")
+	coverFile := filepath.Join(mgpath.Tools(), "go", "coverage", "go-test.txt")
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		panic(err)
 	}

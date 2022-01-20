@@ -28,6 +28,10 @@ format-markdown: $(magefile)
 format-yaml: $(magefile)
 	@$(magefile) formatYaml
 
+.PHONY: git-verify-no-diff
+git-verify-no-diff: $(magefile)
+	@$(magefile) gitVerifyNoDiff
+
 .PHONY: go-mod-tidy
 go-mod-tidy: $(magefile)
 	@$(magefile) goModTidy

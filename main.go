@@ -13,8 +13,8 @@ import (
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/targets/mgyamlfmt"
 	"go.einride.tech/mage-tools/tools/mggo"
+	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 	"gopkg.in/yaml.v3"
 )
 
