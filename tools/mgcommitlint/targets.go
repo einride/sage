@@ -58,11 +58,6 @@ func LintCommand(ctx context.Context, branch string) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Commitlint(ctx context.Context) error {
-	// Check if npm is installed
-	if err := mgtool.Command("npm", "version").Run(); err != nil {
-		return err
-	}
-
 	toolDir := filepath.Join(mgpath.Tools(), "commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")

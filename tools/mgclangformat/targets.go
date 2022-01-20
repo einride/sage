@@ -39,11 +39,6 @@ func FormatProtoCommand(path string) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) ClangFormat() error {
-	// Check if npm is installed
-	if err := mgtool.Command("npm", "version").Run(); err != nil {
-		return err
-	}
-
 	var archiveName string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
