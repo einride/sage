@@ -16,46 +16,37 @@ const (
 	MagefileBinary = "bin/magefile"
 )
 
-// nolint: gochecknoglobals
-var mgToolsPath = FromGitRoot(filepath.Join(MageDir, ToolsDir))
-
-func FromWorkDir(path string) string {
+func FromWorkDir(pathElems ...string) string {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	return filepath.Join(cwd, path)
+	return filepath.Join(append([]string{cwd}, pathElems...)...)
 }
 
-func FromGitRoot(path string) string {
+func FromGitRoot(pathElems ...string) string {
 	// We use exec.command here because this command runs in a global,
 	// which is set up before mage has configured logging resulting in unwanted log prints
-	output := &bytes.Buffer{}
+	var output bytes.Buffer
 	c := exec.Command("git", []string{"rev-parse", "--show-toplevel"}...)
 	c.Env = os.Environ()
 	c.Stderr = os.Stderr
-	c.Stdout = output
+	c.Stdout = &output
 	c.Stdin = os.Stdin
-
 	if err := c.Run(); err != nil {
 		panic(err)
 	}
-	return filepath.Join(strings.TrimSpace(output.String()), path)
+	gitRoot := strings.TrimSpace(output.String())
+	return filepath.Join(append([]string{gitRoot}, pathElems...)...)
 }
 
 // Tools returns the base to where tools are downloaded and installed.
 func Tools() string {
-	if mgToolsPath == "" {
-		panic("No tools path set")
-	}
-	return mgToolsPath
+	return FromGitRoot(MageDir, ToolsDir)
 }
 
 func Bins() string {
-	if mgToolsPath == "" {
-		panic("No tools path set")
-	}
-	return filepath.Join(mgToolsPath, BinDir)
+	return FromGitRoot(MageDir, ToolsDir, BinDir)
 }
 
 func ChangeWorkDir(path string) func() {
