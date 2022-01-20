@@ -61,11 +61,6 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Prettier(ctx context.Context) error {
-	// Check if npm is installed
-	if err := mgtool.Command("npm", "version").Run(); err != nil {
-		return err
-	}
-
 	toolDir := filepath.Join(mgpath.Tools(), "prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")

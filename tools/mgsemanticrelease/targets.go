@@ -47,11 +47,6 @@ func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
-	// Check if npm is installed
-	if err := mgtool.Command("npm", "version").Run(); err != nil {
-		return err
-	}
-
 	toolDir := filepath.Join(mgpath.Tools(), "semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
