@@ -8,13 +8,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
 )
 
 const version = "0.9.3"
@@ -67,8 +67,14 @@ func tag() (string, error) {
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	revision := b.String()
-	if err := mggitverifynodiff.GitVerifyNoDiff(); err != nil {
+	revision := strings.TrimSpace(b.String())
+	cmd = mgtool.Command("git", "status", "--porcelain")
+	var diff bytes.Buffer
+	cmd.Stdout = &diff
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	if diff.String() != "" {
 		revision += "-dirty"
 	}
 	_ = os.Setenv("DOCKER_TAG", revision)
