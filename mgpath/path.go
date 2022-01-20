@@ -58,18 +58,6 @@ func Bins() string {
 	return filepath.Join(mgToolsPath, BinDir)
 }
 
-func ChangeWorkDir(path string) func() {
-	cwd := FromWorkDir(".")
-	if err := os.Chdir(path); err != nil {
-		panic(err)
-	}
-	return func() {
-		if err := os.Chdir(cwd); err != nil {
-			panic(err)
-		}
-	}
-}
-
 func FindFilesWithExtension(path, ext string) ([]string, error) {
 	var files []string
 	if err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
