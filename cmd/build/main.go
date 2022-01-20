@@ -22,7 +22,7 @@ func main() {
 	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
 	makeGenGo := filepath.Join(mageDir, "mgmake_gen.go")
 	mglog.Logger("build").Info("building binary and generating makefiles...")
-	executable := filepath.Join(mgpath.Tools(), mgpath.MagefileBinary)
+	executable := mgpath.FromTools(mgpath.MagefileBinary)
 	cmd := mgtool.Command("git", "clean", "-fdx", filepath.Dir(executable))
 	cmd.Dir = mageDir
 	cmd.Stdout = io.Discard

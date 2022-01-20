@@ -13,7 +13,7 @@ import (
 )
 
 func GoInstall(ctx context.Context, pkg, version string) (string, error) {
-	executable := filepath.Join(mgpath.Tools(), "go", pkg, version, filepath.Base(pkg))
+	executable := mgpath.FromTools("go", pkg, version, filepath.Base(pkg))
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)
@@ -48,7 +48,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 	if version == "" {
 		return "", fmt.Errorf("failed to determine version of package %s", pkg)
 	}
-	executable := filepath.Join(mgpath.Tools(), "go", pkg, version, filepath.Base(pkg))
+	executable := mgpath.FromTools("go", pkg, version, filepath.Base(pkg))
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)

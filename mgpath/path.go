@@ -40,13 +40,13 @@ func FromGitRoot(pathElems ...string) string {
 	return filepath.Join(append([]string{gitRoot}, pathElems...)...)
 }
 
-// Tools returns the base to where tools are downloaded and installed.
-func Tools() string {
-	return FromGitRoot(MageDir, ToolsDir)
+// FromTools returns the path relative to where tools are downloaded and installed.
+func FromTools(pathElems ...string) string {
+	return FromGitRoot(append([]string{MageDir, ToolsDir}, pathElems...)...)
 }
 
-func Bins() string {
-	return FromGitRoot(MageDir, ToolsDir, BinDir)
+func FromBins(pathElems ...string) string {
+	return FromGitRoot(append([]string{MageDir, ToolsDir, BinDir}, pathElems...)...)
 }
 
 func FindFilesWithExtension(path, ext string) ([]string, error) {

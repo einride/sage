@@ -31,7 +31,7 @@ const commitlintFileContent = `module.exports = {
 // nolint: gochecknoglobals
 var (
 	commandPath  string
-	commitlintrc = filepath.Join(mgpath.Tools(), "commitlint", ".commitlintrc.js")
+	commitlintrc = mgpath.FromTools("commitlint", ".commitlintrc.js")
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -58,7 +58,7 @@ func LintCommand(ctx context.Context, branch string) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Commitlint(ctx context.Context) error {
-	toolDir := filepath.Join(mgpath.Tools(), "commitlint")
+	toolDir := mgpath.FromTools("commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")
 

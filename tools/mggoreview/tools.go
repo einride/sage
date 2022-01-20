@@ -30,7 +30,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func (Prepare) Goreview(ctx context.Context) error {
 	const toolName = "goreview"
-	toolDir := filepath.Join(mgpath.Tools(), toolName)
+	toolDir := mgpath.FromTools(toolName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, toolName)
 	hostOS := strings.Title(runtime.GOOS)

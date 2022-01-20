@@ -35,7 +35,7 @@ func LintCommand(ctx context.Context) *exec.Cmd {
 	configPath := mgpath.FromWorkDir(".golangci.yml")
 	cmd := Command(ctx)
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath = filepath.Join(mgpath.Tools(), "golangci-lint", ".golangci.yml")
+		configPath = mgpath.FromTools("golangci-lint", ".golangci.yml")
 		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o600); err != nil {
 			panic(err)
 		}
@@ -49,7 +49,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) GolangciLint(ctx context.Context) error {
 	const binaryName = "golangci-lint"
-	toolDir := filepath.Join(mgpath.Tools(), binaryName)
+	toolDir := mgpath.FromTools(binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS

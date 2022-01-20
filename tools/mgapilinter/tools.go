@@ -29,19 +29,15 @@ type Prepare mgtool.Prepare
 
 func (Prepare) APILinter(ctx context.Context) error {
 	const binaryName = "api-linter"
-
 	hostOS := runtime.GOOS
-
-	binDir := filepath.Join(mgpath.Tools(), binaryName, version, "bin")
+	binDir := mgpath.FromTools(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-
 	binURL := fmt.Sprintf(
 		"https://github.com/googleapis/api-linter/releases/download/v%s/api-linter-%s-%s-amd64.tar.gz",
 		version,
 		version,
 		hostOS,
 	)
-
 	if err := mgtool.FromRemote(
 		ctx,
 		binURL,

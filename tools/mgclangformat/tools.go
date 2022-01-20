@@ -48,7 +48,7 @@ func (Prepare) ClangFormat() error {
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
-	toolDir := filepath.Join(mgpath.Tools(), "clang-format")
+	toolDir := mgpath.FromTools("clang-format")
 	binary := filepath.Join(toolDir, "node_modules", "clang-format", "bin", archiveName, "clang-format")
 
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {

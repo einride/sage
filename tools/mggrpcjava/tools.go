@@ -32,7 +32,7 @@ type Prepare mgtool.Prepare
 func (Prepare) ProtocGenGrpcJava(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
 
-	binDir := filepath.Join(mgpath.Tools(), "grpc-java", version, "bin")
+	binDir := mgpath.FromTools("grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 
 	// read the whole pom at once

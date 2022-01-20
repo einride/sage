@@ -88,7 +88,7 @@ func (Prepare) Ko(ctx context.Context) error {
 
 	hostOS := runtime.GOOS
 
-	binDir := filepath.Join(mgpath.Tools(), binaryName, version, "bin")
+	binDir := mgpath.FromTools(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 
 	binURL := fmt.Sprintf(
