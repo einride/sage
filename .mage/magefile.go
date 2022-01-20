@@ -10,13 +10,13 @@ import (
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
-	"go.einride.tech/mage-tools/targets/mggitverifynodiff"
-	"go.einride.tech/mage-tools/targets/mgyamlfmt"
 	"go.einride.tech/mage-tools/tools/mgconvco"
+	"go.einride.tech/mage-tools/tools/mggitverifynodiff"
 	"go.einride.tech/mage-tools/tools/mggo"
 	"go.einride.tech/mage-tools/tools/mggolangcilint"
 	"go.einride.tech/mage-tools/tools/mggoreview"
 	"go.einride.tech/mage-tools/tools/mgmarkdownfmt"
+	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 )
 
 func init() {
@@ -39,11 +39,12 @@ func All() {
 	)
 	mg.SerialDeps(
 		GoModTidy,
-		mggitverifynodiff.GitVerifyNoDiff,
+		GitVerifyNoDiff,
 	)
 }
 
 func FormatYaml() error {
+	mglog.Logger("format-yaml").Info("formatting yaml files...")
 	return mgyamlfmt.FormatYAML()
 }
 
@@ -75,4 +76,9 @@ func FormatMarkdown(ctx context.Context) error {
 func ConvcoCheck(ctx context.Context) error {
 	mglog.Logger("convco-check").Info("checking...")
 	return mgconvco.Command(ctx, "check", "origin/main..HEAD").Run()
+}
+
+func GitVerifyNoDiff() error {
+	mglog.Logger("git-verify-no-diff").Info("verifying that git has no diff...")
+	return mggitverifynodiff.GitVerifyNoDiff()
 }
