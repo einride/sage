@@ -49,7 +49,7 @@ func FromBins(pathElems ...string) string {
 	return FromGitRoot(append([]string{MageDir, ToolsDir, BinDir}, pathElems...)...)
 }
 
-func FindFilesWithExtension(path, ext string) ([]string, error) {
+func FindFilesWithExtension(path, ext string) []string {
 	var files []string
 	if err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ext {
@@ -57,7 +57,7 @@ func FindFilesWithExtension(path, ext string) ([]string, error) {
 		}
 		return nil
 	}); err != nil {
-		return nil, err
+		panic(err)
 	}
-	return files, nil
+	return files
 }
