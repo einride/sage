@@ -31,7 +31,7 @@ type Prepare mgtool.Prepare
 func (Prepare) Protoc(ctx context.Context) error {
 	const binaryName = "protoc"
 
-	binDir := filepath.Join(mgpath.Tools(), binaryName, version)
+	binDir := mgpath.FromTools(binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
 
 	hostOS := runtime.GOOS

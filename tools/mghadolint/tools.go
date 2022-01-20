@@ -49,7 +49,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Hadolint(ctx context.Context) error {
 	const binaryName = "hadolint"
-	toolDir := filepath.Join(mgpath.Tools(), binaryName)
+	toolDir := mgpath.FromTools(binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS

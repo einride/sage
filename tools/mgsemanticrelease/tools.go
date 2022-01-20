@@ -33,7 +33,7 @@ func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
 }
 
 func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
-	releaserc := filepath.Join(mgpath.Tools(), "semantic-release", ".releaserc.json")
+	releaserc := mgpath.FromTools("semantic-release", ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -47,7 +47,7 @@ func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
-	toolDir := filepath.Join(mgpath.Tools(), "semantic-release")
+	toolDir := mgpath.FromTools("semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")

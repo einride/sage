@@ -86,7 +86,7 @@ func initMageTools() error {
 		return err
 	}
 	defer gitIgnore.Close()
-	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.Tools())
+	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromTools())
 	if err != nil {
 		return err
 	}
