@@ -24,12 +24,9 @@ func Command(args ...string) *exec.Cmd {
 }
 
 func FormatProtoCommand(path string) *exec.Cmd {
-	protoFiles, err := mgpath.FindFilesWithExtension(path, ".proto")
-	if err != nil {
-		panic(err)
-	}
+	protoFiles := mgpath.FindFilesWithExtension(path, ".proto")
 	if len(protoFiles) == 0 {
-		panic(fmt.Errorf("found no files to format"))
+		panic("found no files to format")
 	}
 	args := []string{"-i", "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"}
 	args = append(args, protoFiles...)
