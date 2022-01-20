@@ -37,8 +37,6 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 }
 
 func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error) {
-	cleanup := mgpath.ChangeWorkDir(filepath.Dir(file))
-	defer cleanup()
 	cmd := Command("go", "list", "-f", "{{.Module.Version}}", pkg)
 	cmd.Dir = filepath.Dir(file)
 	var b bytes.Buffer
@@ -61,6 +59,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 	}
 	logr.FromContextOrDiscard(ctx).Info("building", "pkg", pkg)
 	cmd = Command("go", "install", pkg)
+	cmd.Dir = filepath.Dir(file)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {
 		return "", err
