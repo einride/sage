@@ -11,7 +11,7 @@ import (
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/tools/mgconvco"
-	"go.einride.tech/mage-tools/tools/mggitverifynodiff"
+	"go.einride.tech/mage-tools/tools/mggit"
 	"go.einride.tech/mage-tools/tools/mggo"
 	"go.einride.tech/mage-tools/tools/mggolangcilint"
 	"go.einride.tech/mage-tools/tools/mggoreview"
@@ -79,5 +79,5 @@ func ConvcoCheck(ctx context.Context) error {
 
 func GitVerifyNoDiff() error {
 	mglog.Logger("git-verify-no-diff").Info("verifying that git has no diff...")
-	return mggitverifynodiff.GitVerifyNoDiff()
+	return mggit.VerifyNoDiff()
 }
