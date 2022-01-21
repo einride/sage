@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mglogr"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
@@ -29,7 +29,7 @@ var (
 )
 
 func main() {
-	ctx := mglog.NewContext(context.Background(), "mage-tools")
+	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools"))
 	usage := func() {
 		logr.FromContextOrDiscard(ctx).Info(`Usage:
 	init	to initialize mage-tools`)
@@ -49,7 +49,7 @@ func main() {
 }
 
 func initMageTools(ctx context.Context) error {
-	logger := mglog.Logger("init")
+	logger := mglogr.New("init")
 	logger.Info("initializing mage-tools...")
 
 	if mgpath.FromWorkDir(".") != mgpath.FromGitRoot(".") {
