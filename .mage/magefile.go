@@ -5,11 +5,11 @@ package main
 
 import (
 	"context"
-
 	"github.com/magefile/mage/mg"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgconvco"
 	"go.einride.tech/mage-tools/tools/mggit"
 	"go.einride.tech/mage-tools/tools/mggo"
@@ -50,7 +50,7 @@ func FormatYaml() error {
 
 func GoModTidy() error {
 	mglog.Logger("go-mod-tidy").Info("tidying Go module files...")
-	return mggo.Command("mod", "tidy", "-v").Run()
+	return mgtool.Command("go", "mod", "tidy", "-v").Run()
 }
 
 func GoTest() error {

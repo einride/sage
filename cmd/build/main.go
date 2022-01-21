@@ -12,7 +12,6 @@ import (
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools/mggo"
 )
 
 //go:embed mgmake_gen.go
@@ -32,7 +31,7 @@ func main() {
 	if err := os.WriteFile(makeGenGo, mgmakeGen, 0o600); err != nil {
 		panic(err)
 	}
-	cmd = mggo.Command("mod", "tidy")
+	cmd = mgtool.Command("go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)
