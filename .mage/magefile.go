@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/magefile/mage/mg"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgmake"
