@@ -13,7 +13,6 @@ import (
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools/mggo"
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 	"gopkg.in/yaml.v3"
 )
@@ -76,7 +75,7 @@ func initMageTools() error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	cmd = mggo.Command("mod", "tidy")
+	cmd = mgtool.Command("go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		return err
