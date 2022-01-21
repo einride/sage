@@ -27,7 +27,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return mgtool.Command(ctx, commandPath, args...)
 }
 
-func LintCommand(ctx context.Context) *exec.Cmd {
+func RunCommand(ctx context.Context) *exec.Cmd {
 	cmd := mgtool.Command(ctx, "git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
 	var b bytes.Buffer
 	cmd.Stdout = &b
@@ -38,17 +38,17 @@ func LintCommand(ctx context.Context) *exec.Cmd {
 		// No Dockerfiles to lint, then there is no need to run hadolint.
 		return nil
 	}
-	dockerfiles := strings.Split(b.String(), "\n")
+	spaceless := strings.TrimSpace(b.String())
+	dockerfiles := strings.Split(spaceless, "\n")
 	return Command(ctx, dockerfiles...)
 }
 
 type Prepare mgtool.Prepare
 
 func (Prepare) Hadolint(ctx context.Context) error {
-	const binaryName = "hadolint"
-	toolDir := mgpath.FromTools(binaryName)
-	binDir := filepath.Join(toolDir, version, "bin")
-	binary := filepath.Join(binDir, binaryName)
+	const toolName = "hadolint"
+	binDir := mgpath.FromTools(toolName, version)
+	binary := filepath.Join(binDir, toolName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == mgtool.AMD64 {
@@ -64,11 +64,11 @@ func (Prepare) Hadolint(ctx context.Context) error {
 		ctx,
 		binURL,
 		mgtool.WithDestinationDir(binDir),
-		mgtool.WithRenameFile(fmt.Sprintf("%s/hadolint", hadolint), binaryName),
+		mgtool.WithRenameFile(fmt.Sprintf("%s/hadolint", hadolint), toolName),
 		mgtool.WithSkipIfFileExists(binary),
 		mgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}
 	commandPath = binary
 	return nil
