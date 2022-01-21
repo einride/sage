@@ -2,6 +2,7 @@ package mgyamlfmt
 
 import (
 	"bytes"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"path/filepath"
@@ -48,13 +49,13 @@ func formatFile(path string) error {
 	}
 	yamlFile = PreserveEmptyLines(yamlFile)
 	if err := yaml.Unmarshal(yamlFile, &node); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", path, err)
 	}
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	encoder.SetIndent(2)
 	if err := encoder.Encode(&node); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", path, err)
 	}
 	return ioutil.WriteFile(path, CleanupPreserveEmptyLines(b.Bytes()), 0o600)
 }
