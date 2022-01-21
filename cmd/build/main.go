@@ -8,8 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mage"
-	"go.einride.tech/mage-tools/mglog"
+	"go.einride.tech/mage-tools/mglogr"
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
@@ -19,10 +20,10 @@ import (
 var mgmakeGen []byte
 
 func main() {
-	ctx := mglog.NewContext(context.Background(), "mage-tools-build")
+	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-build"))
+	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
 	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
 	makeGenGo := filepath.Join(mageDir, "mgmake_gen.go")
-	mglog.Logger("build").Info("building binary and generating makefiles...")
 	executable := mgpath.FromTools(mgpath.MagefileBinary)
 	cmd := mgtool.Command(ctx, "git", "clean", "-fdx", filepath.Dir(executable))
 	cmd.Dir = mageDir
