@@ -31,7 +31,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return mgtool.Command(commandPath, args...)
 }
 
-func LintCommand(ctx context.Context) *exec.Cmd {
+func RunCommand(ctx context.Context) *exec.Cmd {
 	configPath := mgpath.FromWorkDir(".golangci.yml")
 	cmd := Command(ctx)
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
@@ -40,7 +40,6 @@ func LintCommand(ctx context.Context) *exec.Cmd {
 			panic(err)
 		}
 	}
-
 	cmd.Args = append(cmd.Args, "run", "-c", configPath, "--fix")
 	return cmd
 }
