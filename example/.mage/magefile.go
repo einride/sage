@@ -36,6 +36,7 @@ func All() {
 		Goreview,
 		GoTest,
 		FormatMarkdown,
+		FormatYaml,
 	)
 	mg.SerialDeps(
 		GoModTidy,
