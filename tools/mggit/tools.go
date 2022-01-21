@@ -1,4 +1,4 @@
-package mggitverifynodiff
+package mggit
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
-func GitVerifyNoDiff() error {
+func VerifyNoDiff() error {
 	cmd := mgtool.Command("git", "status", "--porcelain")
 	var b bytes.Buffer
 	cmd.Stdout = &b
