@@ -32,7 +32,7 @@ func main() {
 	if err := os.WriteFile(makeGenGo, mgmakeGen, 0o600); err != nil {
 		panic(err)
 	}
-	cmd = mggo.GoModTidy()
+	cmd = mggo.Command("mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)

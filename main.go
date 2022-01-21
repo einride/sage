@@ -76,7 +76,7 @@ func initMageTools() error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	cmd = mggo.GoModTidy()
+	cmd = mggo.Command("mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		return err

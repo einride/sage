@@ -50,12 +50,12 @@ func FormatYaml() error {
 
 func GoModTidy() error {
 	mglog.Logger("go-mod-tidy").Info("tidying Go module files...")
-	return mggo.GoModTidy().Run()
+	return mggo.Command("mod", "tidy", "-v").Run()
 }
 
 func GoTest() error {
 	mglog.Logger("go-test").Info("running Go unit tests..")
-	return mggo.GoTest().Run()
+	return mggo.TestCommand().Run()
 }
 
 func Goreview(ctx context.Context) error {
