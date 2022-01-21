@@ -28,10 +28,6 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return mgtool.Command(commandPath, args...)
 }
 
-func ScrubCommand(ctx context.Context, fileDescriptorPath string) *exec.Cmd {
-	return Command(ctx, "-f", fileDescriptorPath)
-}
-
 func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {
 	const binaryName = "google-cloud-proto-scrubber"
 	binDir := mgpath.FromTools(binaryName, version)
