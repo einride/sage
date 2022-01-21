@@ -17,6 +17,8 @@ func TestCommand() *exec.Cmd {
 	return mgtool.Command(
 		"go",
 		"test",
+		"-shuffle",
+		"on",
 		"-race",
 		"-coverprofile",
 		coverFile,
