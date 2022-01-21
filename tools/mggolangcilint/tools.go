@@ -10,9 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -26,9 +24,8 @@ var commandPath string
 var defaultConfig string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("golangci-lint"))
 	mg.CtxDeps(ctx, Prepare.GolangciLint)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func RunCommand(ctx context.Context) *exec.Cmd {

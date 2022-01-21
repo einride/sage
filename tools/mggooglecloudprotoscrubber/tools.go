@@ -8,9 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -23,9 +21,8 @@ var commandPath string
 type Prepare mgtool.Prepare
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("google-cloud-proto-scrubber"))
 	mg.CtxDeps(ctx, Prepare.GoogleCloudProtoScrubber)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {

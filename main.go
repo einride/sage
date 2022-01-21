@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
@@ -27,9 +29,9 @@ var (
 )
 
 func main() {
-	logger := mglog.Logger("mage-tools")
+	ctx := mglog.NewContext(context.Background(), "mage-tools")
 	usage := func() {
-		logger.Info(`Usage:
+		logr.FromContextOrDiscard(ctx).Info(`Usage:
 	init	to initialize mage-tools`)
 		os.Exit(0)
 	}
@@ -38,7 +40,7 @@ func main() {
 	}
 	switch os.Args[1] {
 	case "init":
-		if err := initMageTools(); err != nil {
+		if err := initMageTools(ctx); err != nil {
 			log.Fatalf(err.Error())
 		}
 	default:
@@ -46,7 +48,7 @@ func main() {
 	}
 }
 
-func initMageTools() error {
+func initMageTools(ctx context.Context) error {
 	logger := mglog.Logger("init")
 	logger.Info("initializing mage-tools...")
 
@@ -61,7 +63,6 @@ func initMageTools() error {
 	if err := os.WriteFile(filepath.Join(mageDir, "magefile.go"), magefile, 0o600); err != nil {
 		return err
 	}
-
 	_, err := os.Stat("Makefile")
 	if err == nil {
 		const mm = "Makefile.old"
@@ -70,12 +71,12 @@ func initMageTools() error {
 			return err
 		}
 	}
-	cmd := mgtool.Command("go", "mod", "init", "mage-tools")
+	cmd := mgtool.Command(ctx, "go", "mod", "init", "mage-tools")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	cmd = mgtool.Command("go", "mod", "tidy")
+	cmd = mgtool.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		return err
@@ -96,7 +97,7 @@ func initMageTools() error {
 		return err
 	}
 	// Generate make targets
-	cmd = mgtool.Command("go", "run", "go.einride.tech/mage-tools/cmd/build")
+	cmd = mgtool.Command(ctx, "go", "run", "go.einride.tech/mage-tools/cmd/build")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		return err

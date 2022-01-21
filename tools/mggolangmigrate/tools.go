@@ -4,9 +4,7 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -18,9 +16,8 @@ var commandPath string
 type Prepare mgtool.Prepare
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("golang-migrate"))
 	mg.CtxDeps(ctx, Prepare.GolangMigrate)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func (Prepare) GolangMigrate(ctx context.Context) error {

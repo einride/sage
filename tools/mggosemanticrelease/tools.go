@@ -9,9 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -20,12 +18,11 @@ import (
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("go-semantic-release"))
 	mg.CtxDeps(ctx, Prepare.GoSemanticRelease)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
-func ReleaseFromCloudBuild(ctx context.Context, ci bool, repo string) *exec.Cmd {
+func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *exec.Cmd {
 	args := []string{
 		"--allow-initial-development-versions",
 		"--allow-no-changes",
@@ -64,7 +61,6 @@ func (Prepare) GoSemanticRelease(ctx context.Context) error {
 		version,
 		hostOS,
 	)
-
 	if err := mgtool.FromRemote(
 		ctx,
 		binURL,

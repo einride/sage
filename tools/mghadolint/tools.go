@@ -11,9 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -25,13 +23,12 @@ const version = "2.8.0"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("hadolint"))
 	mg.CtxDeps(ctx, Prepare.Hadolint)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func LintCommand(ctx context.Context) *exec.Cmd {
-	cmd := mgtool.Command("git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
+	cmd := mgtool.Command(ctx, "git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	if err := cmd.Run(); err != nil {

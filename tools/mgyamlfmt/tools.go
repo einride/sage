@@ -2,6 +2,7 @@ package mgyamlfmt
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -12,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func FormatYAML() error {
+func FormatYAML(context.Context) error {
 	return filepath.WalkDir(mgpath.FromGitRoot("."), func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".yaml" {
 			if err := formatFile(path); err != nil {

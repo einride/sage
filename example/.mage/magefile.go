@@ -36,7 +36,7 @@ func All() {
 		Goreview,
 		GoTest,
 		FormatMarkdown,
-		FormatYaml,
+		FormatYAML,
 	)
 	mg.SerialDeps(
 		GoModTidy,
@@ -44,42 +44,50 @@ func All() {
 	)
 }
 
-func FormatYaml() error {
-	mglog.Logger("format-yaml").Info("formatting yaml files...")
-	return mgyamlfmt.FormatYAML()
+func FormatYAML(ctx context.Context) error {
+	ctx = mglog.NewContext(ctx, "format-yaml")
+	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
+	return mgyamlfmt.FormatYAML(ctx)
 }
 
-func GoModTidy() error {
-	mglog.Logger("go-mod-tidy").Info("tidying Go module files...")
-	return mgtool.Command("go", "mod", "tidy", "-v").Run()
+func GoModTidy(ctx context.Context) error {
+	ctx = mglog.NewContext(ctx, "go-mod-tidy")
+	logr.FromContextOrDiscard(ctx).Info("tidying Go module files...")
+	return mgtool.Command(ctx, "go", "mod", "tidy", "-v").Run()
+}
+
+func GoTest(ctx context.Context) error {
+	ctx = mglog.NewContext(ctx, "go-test")
+	logr.FromContextOrDiscard(ctx).Info("running Go unit tests..")
+	return mggo.TestCommand(ctx).Run()
 }
 
 func Goreview(ctx context.Context) error {
-	mglog.Logger("goreview").Info("running...")
+	ctx = mglog.NewContext(ctx, "goreview")
+	logr.FromContextOrDiscard(ctx).Info("running...")
 	return mggoreview.Command(ctx, "-c", "1", "./...").Run()
 }
 
-func GoTest() error {
-	mglog.Logger("go-test").Info("running Go unit tests..")
-	return mggo.TestCommand().Run()
-}
-
 func GolangciLint(ctx context.Context) error {
-	mglog.Logger("golangci-lint").Info("running...")
+	ctx = mglog.NewContext(ctx, "golangci-lint")
+	logr.FromContextOrDiscard(ctx).Info("running...")
 	return mggolangcilint.RunCommand(ctx).Run()
 }
 
 func FormatMarkdown(ctx context.Context) error {
-	mglog.Logger("format-markdown").Info("formatting..")
+	ctx = mglog.NewContext(ctx, "format-markdown")
+	logr.FromContextOrDiscard(ctx).Info("formatting Markdown files...")
 	return mgmarkdownfmt.Command(ctx, "-w", ".").Run()
 }
 
 func ConvcoCheck(ctx context.Context) error {
-	mglog.Logger("convco-check").Info("checking...")
-	return mgconvco.Command(ctx, "check", "origin/master..HEAD").Run()
+	ctx = mglog.NewContext(ctx, "convco-check")
+	logr.FromContextOrDiscard(ctx).Info("checking git commits...")
+	return mgconvco.Command(ctx, "check", "origin/main..HEAD").Run()
 }
 
-func GitVerifyNoDiff() error {
-	mglog.Logger("git-verify-no-diff").Info("verifying that git has no diff...")
-	return mggit.VerifyNoDiff()
+func GitVerifyNoDiff(ctx context.Context) error {
+	ctx = mglog.NewContext(ctx, "git-verify-no-diff")
+	logr.FromContextOrDiscard(ctx).Info("verifying that git has no diff...")
+	return mggit.VerifyNoDiff(ctx)
 }

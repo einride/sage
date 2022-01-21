@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -18,11 +19,12 @@ import (
 var mgmakeGen []byte
 
 func main() {
+	ctx := mglog.NewContext(context.Background(), "mage-tools-build")
 	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
 	makeGenGo := filepath.Join(mageDir, "mgmake_gen.go")
 	mglog.Logger("build").Info("building binary and generating makefiles...")
 	executable := mgpath.FromTools(mgpath.MagefileBinary)
-	cmd := mgtool.Command("git", "clean", "-fdx", filepath.Dir(executable))
+	cmd := mgtool.Command(ctx, "git", "clean", "-fdx", filepath.Dir(executable))
 	cmd.Dir = mageDir
 	cmd.Stdout = io.Discard
 	if err := cmd.Run(); err != nil {
@@ -31,7 +33,7 @@ func main() {
 	if err := os.WriteFile(makeGenGo, mgmakeGen, 0o600); err != nil {
 		panic(err)
 	}
-	cmd = mgtool.Command("go", "mod", "tidy")
+	cmd = mgtool.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)
@@ -42,7 +44,7 @@ func main() {
 	if err := os.Remove(makeGenGo); err != nil {
 		panic(err)
 	}
-	cmd = mgtool.Command(executable, mgmake.GenMakefilesTarget, executable)
+	cmd = mgtool.Command(ctx, executable, mgmake.GenMakefilesTarget, executable)
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)

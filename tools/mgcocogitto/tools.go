@@ -9,9 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -22,9 +20,8 @@ const version = "4.0.1"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("cog"))
 	mg.CtxDeps(ctx, Prepare.Cog)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 type Prepare mgtool.Prepare

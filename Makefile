@@ -26,7 +26,7 @@ format-markdown: $(magefile)
 
 .PHONY: format-yaml
 format-yaml: $(magefile)
-	@$(magefile) formatYaml
+	@$(magefile) formatYAML
 
 .PHONY: git-verify-no-diff
 git-verify-no-diff: $(magefile)

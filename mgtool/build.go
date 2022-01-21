@@ -24,7 +24,7 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 	}
 	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
 	logr.FromContextOrDiscard(ctx).Info("building...", "pkg", pkgVersion)
-	cmd := Command("go", "install", pkgVersion)
+	cmd := Command(ctx, "go", "install", pkgVersion)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -37,7 +37,7 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 }
 
 func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error) {
-	cmd := Command("go", "list", "-f", "{{.Module.Version}}", pkg)
+	cmd := Command(ctx, "go", "list", "-f", "{{.Module.Version}}", pkg)
 	cmd.Dir = filepath.Dir(file)
 	var b bytes.Buffer
 	cmd.Stdout = &b
@@ -58,7 +58,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 		return symlink, nil
 	}
 	logr.FromContextOrDiscard(ctx).Info("building", "pkg", pkg)
-	cmd = Command("go", "install", pkg)
+	cmd = Command(ctx, "go", "install", pkg)
 	cmd.Dir = filepath.Dir(file)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {
