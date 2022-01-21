@@ -64,7 +64,7 @@ func GoTest() error {
 
 func GolangciLint(ctx context.Context) error {
 	mglog.Logger("golangci-lint").Info("running...")
-	return mggolangcilint.LintCommand(ctx).Run()
+	return mggolangcilint.RunCommand(ctx).Run()
 }
 
 func FormatMarkdown(ctx context.Context) error {
