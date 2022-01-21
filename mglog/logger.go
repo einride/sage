@@ -1,11 +1,17 @@
 package mglog
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/funcr"
 )
+
+// NewContext returns a new context.Context with a named logger.
+func NewContext(ctx context.Context, name string) context.Context {
+	return logr.NewContext(ctx, Logger(name))
+}
 
 // Logger returns a standard logger.
 func Logger(name string) logr.Logger {

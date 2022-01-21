@@ -8,9 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -21,25 +19,21 @@ const version = "3.15.7"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("protoc"))
 	mg.CtxDeps(ctx, Prepare.Protoc)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 type Prepare mgtool.Prepare
 
 func (Prepare) Protoc(ctx context.Context) error {
 	const binaryName = "protoc"
-
 	binDir := mgpath.FromTools(binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
-
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == mgtool.AMD64 {
 		hostArch = mgtool.X8664
 	}
-
 	binURL := fmt.Sprintf(
 		"https://github.com/protocolbuffers/protobuf/releases/download/v%s/protoc-%s-%s-%s.zip",
 		version,
@@ -47,7 +41,6 @@ func (Prepare) Protoc(ctx context.Context) error {
 		hostOS,
 		hostArch,
 	)
-
 	if err := mgtool.FromRemote(
 		ctx,
 		binURL,
@@ -58,7 +51,6 @@ func (Prepare) Protoc(ctx context.Context) error {
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
-
 	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
 		return err
 	}

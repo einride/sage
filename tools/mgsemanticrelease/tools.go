@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -27,9 +26,8 @@ const packageJSONContent = `{
 var commandPath string
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("semantic-release"))
 	mg.CtxDeps(ctx, mg.F(Prepare.SemanticRelease, branch))
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
@@ -51,11 +49,9 @@ func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")
-
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
-
 	releasercFileContent := fmt.Sprintf(`{
   "plugins": [
     [
@@ -83,22 +79,20 @@ func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
   "success": false,
   "fail": false
 }`, branch)
-
 	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o600); err != nil {
 		return err
 	}
 	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o600); err != nil {
 		return err
 	}
-
 	symlink, err := mgtool.CreateSymlink(binary)
 	if err != nil {
 		return err
 	}
 	commandPath = symlink
-
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
 	return mgtool.Command(
+		ctx,
 		"npm",
 		"--silent",
 		"install",

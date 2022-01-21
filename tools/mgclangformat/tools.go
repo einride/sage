@@ -1,6 +1,7 @@
 package mgclangformat
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,19 +19,19 @@ const version = "1.6.0"
 // nolint: gochecknoglobals
 var commandPath string
 
-func Command(args ...string) *exec.Cmd {
+func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(Prepare.ClangFormat)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
-func FormatProtoCommand(args ...string) *exec.Cmd {
+func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 	const protoStyle = "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"
-	return Command(append([]string{"-i", protoStyle}, args...)...)
+	return Command(ctx, append([]string{"-i", protoStyle}, args...)...)
 }
 
 type Prepare mgtool.Prepare
 
-func (Prepare) ClangFormat() error {
+func (Prepare) ClangFormat(ctx context.Context) error {
 	var archiveName string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
@@ -47,6 +48,7 @@ func (Prepare) ClangFormat() error {
 		return err
 	}
 	if err := mgtool.Command(
+		ctx,
 		"npm",
 		"--silent",
 		"install",

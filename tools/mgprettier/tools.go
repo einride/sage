@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -31,9 +30,8 @@ var (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("prettier"))
 	mg.CtxDeps(ctx, Prepare.Prettier)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
@@ -64,7 +62,6 @@ func (Prepare) Prettier(ctx context.Context) error {
 	toolDir := mgpath.FromTools("prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
-
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
@@ -81,6 +78,7 @@ func (Prepare) Prettier(ctx context.Context) error {
 	commandPath = symlink
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
 	return mgtool.Command(
+		ctx,
 		"npm",
 		"--silent",
 		"install",

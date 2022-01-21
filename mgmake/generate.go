@@ -2,6 +2,7 @@ package mgmake
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -70,16 +71,16 @@ func GenerateMakefiles(mks ...Makefile) {
 	}
 }
 
-func GenMakefiles(exec string) error {
+func GenMakefiles(ctx context.Context, exec string) error {
 	if len(makefiles) == 0 {
 		return fmt.Errorf("no makefiles to generate, see https://github.com/einride/mage-tools#readme for more info")
 	}
 	executable = exec
-	targets, err := listTargets()
+	targets, err := listTargets(ctx)
 	if err != nil {
 		return err
 	}
-	buffers, err := generateMakeTargets(targets)
+	buffers, err := generateMakeTargets(ctx, targets)
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func GenMakefiles(exec string) error {
 	for _, ns := range namespaces {
 		if buf, ok := buffers[ns]; ok {
 			mk := makefiles[ns]
-			if err := createMakefile(mk.Path, mk.DefaultTarget, buf.Bytes()); err != nil {
+			if err := createMakefile(ctx, mk.Path, mk.DefaultTarget, buf.Bytes()); err != nil {
 				return err
 			}
 		}
@@ -123,7 +124,7 @@ func GenMakefiles(exec string) error {
 	return nil
 }
 
-func createMakefile(makefilePath, target string, data []byte) error {
+func createMakefile(ctx context.Context, makefilePath, target string, data []byte) error {
 	includePath, err := filepath.Rel(filepath.Dir(makefilePath), mgpath.FromWorkDir("."))
 	if err != nil {
 		return err
@@ -131,7 +132,7 @@ func createMakefile(makefilePath, target string, data []byte) error {
 	if target != "" {
 		target = fmt.Sprintf("\n\n.DEFAULT_GOAL := %s", toMakeTarget(target))
 	}
-	cmd := mgtool.Command("go", "list", "-m")
+	cmd := mgtool.Command(ctx, "go", "list", "-m")
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	if err := cmd.Run(); err != nil {
@@ -174,7 +175,7 @@ clean-mage-tools:
 	return nil
 }
 
-func generateMakeTargets(targets []string) (map[string]*bytes.Buffer, error) {
+func generateMakeTargets(ctx context.Context, targets []string) (map[string]*bytes.Buffer, error) {
 	buffers := make(map[string]*bytes.Buffer)
 	for _, target := range targets {
 		var b *bytes.Buffer
@@ -189,7 +190,7 @@ func generateMakeTargets(targets []string) (map[string]*bytes.Buffer, error) {
 		} else {
 			b = bytes.NewBuffer(make([]byte, 0))
 		}
-		args, _ := getTargetArguments(target)
+		args, _ := getTargetArguments(ctx, target)
 		templateTarget := templateTarget{
 			MakeTarget: toMakeTarget(target),
 			MageTarget: toMageTarget(target, toMakeVars(args)),
@@ -244,8 +245,8 @@ func toMageTarget(target string, args []string) string {
 	return target
 }
 
-func listTargets() ([]string, error) {
-	out, err := invokeMage("-l")
+func listTargets(ctx context.Context) ([]string, error) {
+	out, err := invokeMage(ctx, "-l")
 	if err != nil {
 		return nil, err
 	}
@@ -281,8 +282,8 @@ func listTargets() ([]string, error) {
 	return targets, nil
 }
 
-func getTargetArguments(name string) ([]string, error) {
-	out, err := invokeMage("-h", name)
+func getTargetArguments(ctx context.Context, name string) ([]string, error) {
+	out, err := invokeMage(ctx, "-h", name)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +297,8 @@ func getTargetArguments(name string) ([]string, error) {
 	return args, nil
 }
 
-func invokeMage(args ...string) (string, error) {
-	cmd := mgtool.Command(executable, args...)
+func invokeMage(ctx context.Context, args ...string) (string, error) {
+	cmd := mgtool.Command(ctx, executable, args...)
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	if err := cmd.Run(); err != nil {

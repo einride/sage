@@ -1,6 +1,7 @@
 package mggo
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,12 +10,13 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
-func TestCommand() *exec.Cmd {
+func TestCommand(ctx context.Context) *exec.Cmd {
 	coverFile := mgpath.FromTools("go", "coverage", "go-test.txt")
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		panic(err)
 	}
 	return mgtool.Command(
+		ctx,
 		"go",
 		"test",
 		"-shuffle",

@@ -7,9 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-logr/logr"
 	"github.com/magefile/mage/mg"
-	"go.einride.tech/mage-tools/mglog"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -20,9 +18,8 @@ const version = "1.29.3"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	ctx = logr.NewContext(ctx, mglog.Logger("api-linter-lint"))
 	mg.CtxDeps(ctx, Prepare.APILinter)
-	return mgtool.Command(commandPath, args...)
+	return mgtool.Command(ctx, commandPath, args...)
 }
 
 type Prepare mgtool.Prepare
