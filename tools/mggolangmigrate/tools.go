@@ -23,16 +23,8 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return mgtool.Command(commandPath, args...)
 }
 
-func MigrateCommand(ctx context.Context, source, database string) *exec.Cmd {
-	return Command(ctx, "-source", source, "-database", database, "up")
-}
-
 func (Prepare) GolangMigrate(ctx context.Context) error {
-	binary, err := mgtool.GoInstall(
-		ctx,
-		"github.com/golang-migrate/migrate/v4/cmd/migrate",
-		version,
-	)
+	binary, err := mgtool.GoInstall(ctx, "github.com/golang-migrate/migrate/v4/cmd/migrate", version)
 	if err != nil {
 		return err
 	}
