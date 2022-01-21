@@ -23,14 +23,9 @@ func Command(args ...string) *exec.Cmd {
 	return mgtool.Command(commandPath, args...)
 }
 
-func FormatProtoCommand(path string) *exec.Cmd {
-	protoFiles := mgpath.FindFilesWithExtension(path, ".proto")
-	if len(protoFiles) == 0 {
-		panic("found no files to format")
-	}
-	args := []string{"-i", "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"}
-	args = append(args, protoFiles...)
-	return Command(args...)
+func FormatProtoCommand(args ...string) *exec.Cmd {
+	const protoStyle = "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"
+	return Command(append([]string{"-i", protoStyle}, args...)...)
 }
 
 type Prepare mgtool.Prepare
