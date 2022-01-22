@@ -20,6 +20,10 @@ all: $(magefile)
 convco-check: $(magefile)
 	@$(magefile) convcoCheck
 
+.PHONY: format-go
+format-go: $(magefile)
+	@$(magefile) formatGo
+
 .PHONY: format-markdown
 format-markdown: $(magefile)
 	@$(magefile) formatMarkdown

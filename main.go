@@ -162,8 +162,10 @@ func addToDependabot() error {
 	if updatesIdx == 0 {
 		return fmt.Errorf("could not find updates key in dependabot.yml")
 	}
-	dependabotNode.Content[0].Content[updatesIdx].Content =
-		append(dependabotNode.Content[0].Content[updatesIdx].Content, mageNode.Content[0])
+	dependabotNode.Content[0].Content[updatesIdx].Content = append(
+		dependabotNode.Content[0].Content[updatesIdx].Content,
+		mageNode.Content[0],
+	)
 
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)

@@ -38,17 +38,12 @@ func All() {
 		GoTest,
 		FormatMarkdown,
 		FormatYAML,
+		FormatGo,
 	)
 	mg.SerialDeps(
 		GoModTidy,
 		GitVerifyNoDiff,
 	)
-}
-
-func FormatYAML(ctx context.Context) error {
-	ctx = logr.NewContext(ctx, mglogr.New("format-yaml"))
-	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
-	return mgyamlfmt.FormatYAML(ctx)
 }
 
 func GoModTidy(ctx context.Context) error {
@@ -79,6 +74,20 @@ func FormatMarkdown(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglogr.New("format-markdown"))
 	logr.FromContextOrDiscard(ctx).Info("formatting Markdown files...")
 	return mgmarkdownfmt.Command(ctx, "-w", ".").Run()
+}
+
+func FormatYAML(ctx context.Context) error {
+	ctx = logr.NewContext(ctx, mglogr.New("format-yaml"))
+	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
+	return mgyamlfmt.FormatYAML(ctx)
+}
+
+func FormatGo(ctx context.Context) error {
+	ctx = logr.NewContext(ctx, mglogr.New("format-go"))
+	logr.FromContextOrDiscard(ctx).Info("formatting Go files...")
+	return mggolangcilint.
+		Command(ctx, "run", "--disable-all", "--no-config", "--enable", "gofumpt", "--fix").
+		Run()
 }
 
 func ConvcoCheck(ctx context.Context) error {
