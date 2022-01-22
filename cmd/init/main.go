@@ -63,7 +63,7 @@ func main() {
 		panic(err)
 	}
 	defer gitIgnore.Close()
-	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromTools())
+	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromToolsDir())
 	if err != nil {
 		panic(err)
 	}

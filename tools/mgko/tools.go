@@ -27,7 +27,7 @@ type Prepare mgtool.Prepare
 func (Prepare) Ko(ctx context.Context) error {
 	const binaryName = "ko"
 	hostOS := runtime.GOOS
-	binDir := mgpath.FromTools(binaryName, version, "bin")
+	binDir := mgpath.FromToolsDir(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	binURL := fmt.Sprintf(
 		"https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz",

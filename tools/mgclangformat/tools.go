@@ -20,7 +20,7 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(Prepare.ClangFormat)
-	return mgtool.Command(ctx, mgpath.FromBins(toolName), args...)
+	return mgtool.Command(ctx, mgpath.FromBinDir(toolName), args...)
 }
 
 func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
@@ -40,7 +40,7 @@ func (Prepare) ClangFormat(ctx context.Context) error {
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
-	toolDir := mgpath.FromTools(toolName, version)
+	toolDir := mgpath.FromToolsDir(toolName, version)
 	binary := filepath.Join(toolDir, toolName)
 	binURL := fmt.Sprintf(
 		"https://github.com/angular/clang-format/blob/%s/bin/%s/clang-format?raw=true",

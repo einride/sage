@@ -92,7 +92,7 @@ func GenMakefiles(ctx context.Context) {
 	}
 	sort.Sort(targets.Funcs)
 	// Compile binary
-	executable := mgpath.FromTools(mgpath.MagefileBinary)
+	executable := mgpath.FromToolsDir(mgpath.MagefileBinary)
 	genMagefile := mgpath.FromGitRoot(mgpath.MageDir, "generating_magefile.go")
 	if err := mage.GenerateMainfile(filepath.Base(executable), genMagefile, targets); err != nil {
 		panic(err)
