@@ -27,7 +27,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {
 	const binaryName = "google-cloud-proto-scrubber"
-	binDir := mgpath.FromTools(binaryName, version)
+	binDir := mgpath.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

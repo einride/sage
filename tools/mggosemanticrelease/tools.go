@@ -44,7 +44,7 @@ func (Prepare) GoSemanticRelease(ctx context.Context) error {
 		binaryName = "gosemantic-release"
 		version    = "2.18.0"
 	)
-	binDir := mgpath.FromTools(binaryName, version)
+	binDir := mgpath.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {

@@ -26,7 +26,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Sops(ctx context.Context) error {
 	const binaryName = "sops"
-	binDir := mgpath.FromTools(binaryName, version)
+	binDir := mgpath.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	binURL := fmt.Sprintf(

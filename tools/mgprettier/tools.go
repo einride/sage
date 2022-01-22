@@ -26,7 +26,7 @@ const prettierConfigContent = `module.exports = {
 // nolint: gochecknoglobals
 var (
 	commandPath string
-	prettierrc  = mgpath.FromTools("prettier", ".prettierrc.js")
+	prettierrc  = mgpath.FromToolsDir("prettier", ".prettierrc.js")
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -40,7 +40,7 @@ func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
 		prettierrc,
 		"--write",
 		"**/*.md",
-		"!" + mgpath.MageDir,
+		"!" + mgpath.FromMageDir(),
 	}
 	return Command(ctx, args...)
 }
@@ -51,7 +51,7 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 		prettierrc,
 		"--write",
 		"**/*.y*ml",
-		"!" + mgpath.MageDir,
+		"!" + mgpath.FromMageDir(),
 	}
 	return Command(ctx, args...)
 }
@@ -59,7 +59,7 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Prettier(ctx context.Context) error {
-	toolDir := mgpath.FromTools("prettier")
+	toolDir := mgpath.FromToolsDir("prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {

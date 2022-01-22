@@ -26,7 +26,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Buf(ctx context.Context) error {
 	const binaryName = "buf"
-	binDir := mgpath.FromTools(binaryName, version, "bin")
+	binDir := mgpath.FromToolsDir(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

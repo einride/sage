@@ -354,8 +354,8 @@ func Exists(file string) error {
 }
 
 func CreateSymlink(src string) (string, error) {
-	symlink := filepath.Join(mgpath.FromBins(), filepath.Base(src))
-	if err := os.MkdirAll(mgpath.FromBins(), 0o755); err != nil {
+	symlink := filepath.Join(mgpath.FromBinDir(), filepath.Base(src))
+	if err := os.MkdirAll(mgpath.FromBinDir(), 0o755); err != nil {
 		return "", err
 	}
 	if _, err := os.Stat(symlink); err == nil {

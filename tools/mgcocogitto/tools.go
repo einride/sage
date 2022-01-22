@@ -28,7 +28,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Cog(ctx context.Context) error {
 	const toolName = "cocogitto"
-	binDir := mgpath.FromTools(toolName, version)
+	binDir := mgpath.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, "cog")
 	var archiveName string
 	switch strings.Split(runtime.GOOS, "/")[0] {
