@@ -9,14 +9,42 @@ import (
 	"go.einride.tech/mage-tools/mgtool"
 )
 
+// DefaultBranch returns the default git branch name.
+func DefaultBranch(ctx context.Context) string {
+	// git branch -r --points-at refs/remotes/origin/HEAD --format '%(refname)'
+	cmd := mgtool.Command(
+		ctx,
+		"git",
+		"branch",
+		"-r",
+		"--points-at",
+		"refs/remotes/origin/HEAD",
+		"--format",
+		"%(refname)",
+	)
+	var stdout strings.Builder
+	cmd.Stdout = &stdout
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+	for _, line := range strings.Split(stdout.String(), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "refs/remotes/origin/HEAD" {
+			continue
+		}
+		return strings.TrimPrefix(line, "refs/remotes/origin/")
+	}
+	panic(fmt.Errorf("failed to determine default git branch"))
+}
+
 func VerifyNoDiff(ctx context.Context) error {
 	cmd := mgtool.Command(ctx, "git", "status", "--porcelain")
-	var b bytes.Buffer
-	cmd.Stdout = &b
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	if b.String() != "" {
+	if stdout.Len() != 0 {
 		if err := mgtool.Command(ctx, "git", "diff", "--patch").Run(); err != nil {
 			return err
 		}
