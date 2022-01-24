@@ -81,7 +81,7 @@ func FormatMarkdown(ctx context.Context) error {
 func ConvcoCheck(ctx context.Context) error {
 	ctx = logr.NewContext(ctx, mglogr.New("convco-check"))
 	logr.FromContextOrDiscard(ctx).Info("checking git commits...")
-	return mgconvco.Command(ctx, "check", "origin/main..HEAD").Run()
+	return mgconvco.Command(ctx, "check", "origin/master..HEAD").Run()
 }
 
 func GitVerifyNoDiff(ctx context.Context) error {
