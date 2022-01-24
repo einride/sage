@@ -1,9 +1,9 @@
-Mage-tools
-==========
+sage
+====
 
-Mage-tools is an opinionated set of [mage](https://github.com/magefile/mage) targets to help with build automation of different projects
+sage is an opinionated set of [mage](https://github.com/sagefile/mage) targets to help with build automation of different projects
 
-[![Release](https://github.com/einride/mage-tools/actions/workflows/release.yml/badge.svg)](https://github.com/einride/mage-tools/actions/workflows/release.yml)
+[![Release](https://github.com/einride/sage/actions/workflows/release.yml/badge.svg)](https://github.com/einride/sage/actions/workflows/release.yml)
 
 Requirements
 ------------
@@ -14,10 +14,10 @@ Requirements
 Getting started
 ---------------
 
-To initilize mage-tools in a repository, just run:
+To initilize sage in a repository, just run:
 
 ```bash
-go run go.einride.tech/mage-tools/cmd/init@latest
+go run go.einride.tech/sage/cmd/init@latest
 ```
 
 Run `make`
@@ -25,11 +25,11 @@ Run `make`
 Usage
 -----
 
-Mage imports, and targets within the magefiles, can be written to Makefiles, you can generate as many Makefiles as you want, see more at [Makefiles / Mage namespaces](https://github.com/einride/mage-tools#makefiles--mage-namespaces).
+Mage imports, and targets within the sagefiles, can be written to Makefiles, you can generate as many Makefiles as you want, see more at [Makefiles / Mage namespaces](https://github.com/einride/sage#makefiles--mage-namespaces).
 
 ### Magefiles
 
-You can have as many magefiles as you want in the `.mage` folder.
+You can have as many sagefiles as you want in the `.sage` folder.
 
 #### Targets
 
@@ -55,7 +55,7 @@ func ConvcoCheck(ctx context.Context, rev string) error {
 
 #### Makefiles / Mage namespaces
 
-To generate makefiles, an `init` method needs to exist in one of the magefiles where we call the `mgmake.GenerateMakefiles` method.
+To generate makefiles, an `init` method needs to exist in one of the sagefiles where we call the `mgmake.GenerateMakefiles` method.
 
 ```golang
 func init() {
