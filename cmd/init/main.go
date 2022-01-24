@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -24,83 +23,61 @@ var (
 	magefile []byte
 	//go:embed example/.github/dependabot.yml
 	dependabotYaml []byte
-	// nolint: gochecknoglobals
-	mageDir = mgpath.FromGitRoot(mgpath.MageDir)
 )
 
 func main() {
-	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools"))
-	usage := func() {
-		logr.FromContextOrDiscard(ctx).Info(`Usage:
-	init	to initialize mage-tools`)
-		os.Exit(0)
-	}
-	if len(os.Args) <= 1 {
-		usage()
-	}
-	switch os.Args[1] {
-	case "init":
-		if err := initMageTools(ctx); err != nil {
-			log.Fatalf(err.Error())
-		}
-	default:
-		usage()
-	}
-}
-
-func initMageTools(ctx context.Context) error {
-	logger := mglogr.New("init")
+	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-init"))
+	logger := logr.FromContextOrDiscard(ctx)
+	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
 	logger.Info("initializing mage-tools...")
 
-	if mgpath.FromWorkDir(".") != mgpath.FromGitRoot(".") {
-		return fmt.Errorf("can only be generated in git root directory")
+	if mgpath.FromWorkDir() != mgpath.FromGitRoot() {
+		panic("can only be generated in git root directory")
 	}
-
 	if err := os.Mkdir(mageDir, 0o755); err != nil {
-		return err
+		panic(err)
 	}
-
 	if err := os.WriteFile(filepath.Join(mageDir, "magefile.go"), magefile, 0o600); err != nil {
-		return err
+		panic(err)
 	}
-	_, err := os.Stat("Makefile")
+	_, err := os.Stat(mgpath.FromGitRoot("Makefile"))
 	if err == nil {
 		const mm = "Makefile.old"
 		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
-		if err := os.Rename("Makefile", mm); err != nil {
-			return err
+		if err := os.Rename(mgpath.FromGitRoot("Makefile"), mgpath.FromGitRoot(mm)); err != nil {
+			panic(err)
 		}
 	}
 	cmd := mgtool.Command(ctx, "go", "mod", "init", "mage-tools")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
-		return err
+		panic(err)
 	}
 	cmd = mgtool.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
-		return err
+		panic(err)
 	}
 	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	defer gitIgnore.Close()
 	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromTools())
 	if err != nil {
-		return err
+		panic(err)
 	}
 	if _, err := gitIgnore.WriteString(fmt.Sprintf("%s\n", relToolsPath)); err != nil {
-		return err
+		panic(err)
 	}
 	if err := addToDependabot(); err != nil {
-		return err
+		panic(err)
 	}
 	// Generate make targets
 	cmd = mgtool.Command(ctx, "go", "run", "go.einride.tech/mage-tools/cmd/build")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
-		return err
+		panic(err)
 	}
 	logger.Info(`
 Mage-tools has been successfully initialized!
@@ -108,7 +85,6 @@ Mage-tools has been successfully initialized!
 To get started, have a look at the magefile.go in the .mage directory,
 and look at https://github.com/einride/mage-tools#readme to learn more
 `)
-	return nil
 }
 
 type dependabot struct {
@@ -120,7 +96,7 @@ type dependabot struct {
 }
 
 func addToDependabot() error {
-	dependabotYamlPath := filepath.Join(".github", "dependabot.yml")
+	dependabotYamlPath := mgpath.FromGitRoot(".github", "dependabot.yml")
 	currentConfig, err := ioutil.ReadFile(dependabotYamlPath)
 	if errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(filepath.Dir(dependabotYamlPath), 0o755); err != nil {
