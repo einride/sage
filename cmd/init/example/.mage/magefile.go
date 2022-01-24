@@ -27,7 +27,7 @@ func init() {
 	)
 }
 
-func All() {
+func All(context.Context) error {
 	mg.Deps(
 		ConvcoCheck,
 		GolangciLint,
@@ -40,6 +40,7 @@ func All() {
 		GoModTidy,
 		GitVerifyNoDiff,
 	)
+	return nil
 }
 
 func FormatYAML(ctx context.Context) error {

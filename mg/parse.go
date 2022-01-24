@@ -1,7 +1,6 @@
 package mg
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/doc"
@@ -21,11 +20,9 @@ type PkgInfo struct {
 
 // Function represented a job function from a mage file.
 type Function struct {
-	Name      string
-	Receiver  string
-	IsError   bool
-	IsContext bool
-	Args      []Arg
+	Name     string
+	Receiver string
+	Args     []Arg
 }
 
 var _ sort.Interface = (Functions)(nil)
@@ -102,23 +99,15 @@ func (f Function) ExecCode() string {
 	out := parseargs + `
 				wrapFn := func(ctx context.Context) error {
 					`
-	if f.IsError {
-		out += "return "
-	}
+	out += "return "
 	out += name + "("
 	args := make([]string, 0, len(f.Args))
-	if f.IsContext {
-		args = append(args, "ctx")
-	}
+	args = append(args, "ctx")
 	for x := 0; x < len(f.Args); x++ {
 		args = append(args, fmt.Sprintf("arg%d", x))
 	}
 	out += strings.Join(args, ", ")
 	out += ")"
-	if !f.IsError {
-		out += `
-					return nil`
-	}
 	out += `
 				}
 				ret := runTarget(wrapFn)`
@@ -147,8 +136,7 @@ func setFuncs(pi *PkgInfo) {
 			// skip methods
 			continue
 		}
-		if !ast.IsExported(f.Name) {
-			// skip non-exported functions
+		if !ast.IsExported(f.Name) || !hasContextParam(f.Decl.Type) || !hasErrorReturn(f.Decl.Type) {
 			continue
 		}
 		fn, err := funcType(f.Decl.Type)
@@ -166,7 +154,7 @@ func setNamespaces(pi *PkgInfo) {
 			continue
 		}
 		for _, f := range t.Methods {
-			if !ast.IsExported(f.Name) {
+			if !ast.IsExported(f.Name) || !hasContextParam(f.Decl.Type) || !hasErrorReturn(f.Decl.Type) {
 				continue
 			}
 			fn, err := funcType(f.Decl.Type)
@@ -235,69 +223,43 @@ func getPackage(path string, files []string, fset *token.FileSet) (*ast.Package,
 	}
 }
 
-// hasContextParams returns whether or not the first parameter is a context.Context. If it
-// determines that hte first parameter makes this function invalid for mage, it'll return a non-nil
-// error.
-func hasContextParam(ft *ast.FuncType) (bool, error) {
-	if ft.Params.NumFields() < 1 {
-		return false, nil
+func hasContextParam(ft *ast.FuncType) bool {
+	if ft.Params.NumFields() != 1 {
+		return false
 	}
 	param := ft.Params.List[0]
 	sel, ok := param.Type.(*ast.SelectorExpr)
 	if !ok {
-		return false, nil
+		return false
 	}
 	pkg, ok := sel.X.(*ast.Ident)
 	if !ok {
-		return false, nil
+		return false
 	}
 	if pkg.Name != "context" {
-		return false, nil
+		return false
 	}
 	if sel.Sel.Name != "Context" {
-		return false, nil
+		return false
 	}
-	if len(param.Names) > 1 {
-		// something like foo, bar context.Context
-		return false, errors.New("ETOOMANYCONTEXTS")
-	}
-	return true, nil
+	return true
 }
 
-func hasErrorReturn(ft *ast.FuncType) (bool, error) {
+func hasErrorReturn(ft *ast.FuncType) bool {
 	res := ft.Results
-	if res.NumFields() == 0 {
-		// void return is ok
-		return false, nil
-	}
-	if res.NumFields() > 1 {
-		return false, errors.New("ETOOMANYRETURNS")
+	if res.NumFields() != 1 {
+		return false
 	}
 	ret := res.List[0]
 	if len(ret.Names) > 1 {
-		return false, errors.New("ETOOMANYERRORS")
+		return false
 	}
-	if fmt.Sprint(ret.Type) == "error" {
-		return true, nil
-	}
-	return false, errors.New("EBADRETURNTYPE")
+	return fmt.Sprint(ret.Type) == "error"
 }
 
 func funcType(ft *ast.FuncType) (*Function, error) {
-	var err error
 	f := &Function{}
-	f.IsContext, err = hasContextParam(ft)
-	if err != nil {
-		return nil, err
-	}
-	f.IsError, err = hasErrorReturn(ft)
-	if err != nil {
-		return nil, err
-	}
-	x := 0
-	if f.IsContext {
-		x++
-	}
+	x := 1
 	for ; x < len(ft.Params.List); x++ {
 		param := ft.Params.List[x]
 		t := fmt.Sprint(param.Type)

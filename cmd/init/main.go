@@ -30,7 +30,6 @@ func main() {
 	logger := logr.FromContextOrDiscard(ctx)
 	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
 	logger.Info("initializing mage-tools...")
-
 	if mgpath.FromWorkDir() != mgpath.FromGitRoot() {
 		panic("can only be generated in git root directory")
 	}
