@@ -2,14 +2,17 @@ package mgtool
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"go.einride.tech/mage-tools/mgpath"
 )
 
 // Command should be used when returning exec.Cmd from tools to set opinionated standard fields.
 func Command(_ context.Context, path string, args ...string) *exec.Cmd {
+	// TODO: use exec.CommandContext when we have determined there are no side-effects.
 	cmd := exec.Command(path)
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Dir = mgpath.FromGitRoot(".")
@@ -18,4 +21,15 @@ func Command(_ context.Context, path string, args ...string) *exec.Cmd {
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd
+}
+
+// Output runs the given command, and returns all output from stdout in a neatly, trimmed manner,
+// panicking if an error occurs.
+func Output(cmd *exec.Cmd) string {
+	cmd.Stdout = nil
+	output, err := cmd.Output()
+	if err != nil {
+		panic(fmt.Sprintf("%s failed: %v", cmd.Path, err))
+	}
+	return strings.TrimSpace(string(output))
 }
