@@ -17,8 +17,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/google/uuid"
-	"go.einride.tech/mage-tools/mgpath"
+	"go.einride.tech/sage/sg"
 )
 
 type archiveType int
@@ -27,6 +26,11 @@ const (
 	None archiveType = iota
 	Zip
 	TarGz
+)
+
+const (
+	AMD64 = "amd64"
+	X8664 = "x86_64"
 )
 
 type Opt func(f *fileState)
@@ -96,15 +100,8 @@ func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
 }
 
 func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
-	// If no destination path is set we create one with a random uuid
 	if s.dstPath == "" {
-		// Set a default destination on a temporary path and output filename has
-		path, err := os.MkdirTemp("", uuid.NewString())
-		if err != nil {
-			return fmt.Errorf("unable to creatre temporary directory: %w", err)
-		}
-		defer os.RemoveAll(path)
-		s.dstPath = path
+		return fmt.Errorf("destination directory is missing")
 	}
 
 	f, err := os.Open(s.dstPath)
@@ -354,8 +351,8 @@ func Exists(file string) error {
 }
 
 func CreateSymlink(src string) (string, error) {
-	symlink := filepath.Join(mgpath.FromBinDir(), filepath.Base(src))
-	if err := os.MkdirAll(mgpath.FromBinDir(), 0o755); err != nil {
+	symlink := filepath.Join(sg.FromBinDir(), filepath.Base(src))
+	if err := os.MkdirAll(sg.FromBinDir(), 0o755); err != nil {
 		return "", err
 	}
 	if _, err := os.Lstat(symlink); err == nil {

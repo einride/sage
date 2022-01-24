@@ -11,50 +11,46 @@ import (
 	"path/filepath"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/mage-tools/mglogr"
-	"go.einride.tech/mage-tools/mgpath"
-	"go.einride.tech/mage-tools/mgtool"
-	"go.einride.tech/mage-tools/tools/mgyamlfmt"
+	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sgyamlfmt"
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	//go:embed example/.mage/magefile.go
-	magefile []byte
+	//go:embed example/.sage/sagefile.go
+	sagefile []byte
 	//go:embed example/.github/dependabot.yml
 	dependabotYaml []byte
 )
 
 func main() {
-	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-init"))
+	ctx := logr.NewContext(context.Background(), sg.NewLogger("sage"))
 	logger := logr.FromContextOrDiscard(ctx)
-	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
-	logger.Info("initializing mage-tools...")
-
-	if mgpath.FromWorkDir() != mgpath.FromGitRoot() {
+	logger.Info("initializing sage...")
+	if sg.FromWorkDir() != sg.FromGitRoot() {
 		panic("can only be generated in git root directory")
 	}
-	if err := os.Mkdir(mageDir, 0o755); err != nil {
+	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile(filepath.Join(mageDir, "magefile.go"), magefile, 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(sg.FromSageDir(), "sagefile.go"), sagefile, 0o600); err != nil {
 		panic(err)
 	}
-	_, err := os.Stat(mgpath.FromGitRoot("Makefile"))
+	_, err := os.Stat(sg.FromGitRoot("Makefile"))
 	if err == nil {
 		const mm = "Makefile.old"
 		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
-		if err := os.Rename(mgpath.FromGitRoot("Makefile"), mgpath.FromGitRoot(mm)); err != nil {
+		if err := os.Rename(sg.FromGitRoot("Makefile"), sg.FromGitRoot(mm)); err != nil {
 			panic(err)
 		}
 	}
-	cmd := mgtool.Command(ctx, "go", "mod", "init", "mage-tools")
-	cmd.Dir = mageDir
+	cmd := sg.Command(ctx, "go", "mod", "init", "sage")
+	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
-	cmd = mgtool.Command(ctx, "go", "mod", "tidy")
-	cmd.Dir = mageDir
+	cmd = sg.Command(ctx, "go", "mod", "tidy")
+	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
@@ -63,7 +59,7 @@ func main() {
 		panic(err)
 	}
 	defer gitIgnore.Close()
-	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromToolsDir())
+	relToolsPath, err := filepath.Rel(sg.FromGitRoot("."), sg.FromToolsDir())
 	if err != nil {
 		panic(err)
 	}
@@ -74,16 +70,16 @@ func main() {
 		panic(err)
 	}
 	// Generate make targets
-	cmd = mgtool.Command(ctx, "go", "run", "go.einride.tech/mage-tools/cmd/build")
-	cmd.Dir = mageDir
+	cmd = sg.Command(ctx, "go", "run", "go.einride.tech/sage/cmd/build")
+	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
 	logger.Info(`
-Mage-tools has been successfully initialized!
+sage has been successfully initialized!
 
-To get started, have a look at the magefile.go in the .mage directory,
-and look at https://github.com/einride/mage-tools#readme to learn more
+To get started, have a look at the sagefile.go in the .sage directory,
+and look at https://github.com/einride/sage#readme to learn more
 `)
 }
 
@@ -96,7 +92,7 @@ type dependabot struct {
 }
 
 func addToDependabot() error {
-	dependabotYamlPath := mgpath.FromGitRoot(".github", "dependabot.yml")
+	dependabotYamlPath := sg.FromGitRoot(".github", "dependabot.yml")
 	currentConfig, err := ioutil.ReadFile(dependabotYamlPath)
 	if errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(filepath.Dir(dependabotYamlPath), 0o755); err != nil {
@@ -108,23 +104,23 @@ func addToDependabot() error {
 		}
 		return nil
 	}
-	dependabotMageConfig := dependabot{
+	dependabotSageConfig := dependabot{
 		PackageEcosystem: "gomod",
-		Directory:        ".mage/",
+		Directory:        ".sage",
 		Schedule: struct {
 			Interval string `yaml:"interval"`
 		}{Interval: "daily"},
 	}
-	marshalDependabot, err := yaml.Marshal(&dependabotMageConfig)
+	marshalDependabot, err := yaml.Marshal(&dependabotSageConfig)
 	if err != nil {
 		return err
 	}
-	mageNode := yaml.Node{}
-	currentConfig = mgyamlfmt.PreserveEmptyLines(currentConfig)
-	if err := yaml.Unmarshal(marshalDependabot, &mageNode); err != nil {
+	var sageNode yaml.Node
+	currentConfig = sgyamlfmt.PreserveEmptyLines(currentConfig)
+	if err := yaml.Unmarshal(marshalDependabot, &sageNode); err != nil {
 		return err
 	}
-	dependabotNode := yaml.Node{}
+	var dependabotNode yaml.Node
 	if err := yaml.Unmarshal(currentConfig, &dependabotNode); err != nil {
 		return err
 	}
@@ -139,13 +135,12 @@ func addToDependabot() error {
 		return fmt.Errorf("could not find updates key in dependabot.yml")
 	}
 	dependabotNode.Content[0].Content[updatesIdx].Content =
-		append(dependabotNode.Content[0].Content[updatesIdx].Content, mageNode.Content[0])
-
+		append(dependabotNode.Content[0].Content[updatesIdx].Content, sageNode.Content[0])
 	var b bytes.Buffer
 	encoder := yaml.NewEncoder(&b)
 	encoder.SetIndent(2)
 	if err := encoder.Encode(&dependabotNode); err != nil {
 		return err
 	}
-	return os.WriteFile(dependabotYamlPath, mgyamlfmt.CleanupPreserveEmptyLines(b.Bytes()), 0o600)
+	return os.WriteFile(dependabotYamlPath, sgyamlfmt.CleanupPreserveEmptyLines(b.Bytes()), 0o600)
 }

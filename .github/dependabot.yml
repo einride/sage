@@ -6,6 +6,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: ".mage/"
+    directory: ".sage/"
     schedule:
       interval: "daily"
