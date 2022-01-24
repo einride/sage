@@ -224,7 +224,7 @@ func getPackage(path string, files []string, fset *token.FileSet) (*ast.Package,
 }
 
 func hasContextParam(ft *ast.FuncType) bool {
-	if ft.Params.NumFields() != 1 {
+	if ft.Params.NumFields() == 0 {
 		return false
 	}
 	param := ft.Params.List[0]
