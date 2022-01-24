@@ -17,7 +17,7 @@ Getting started
 To initilize mage-tools in a repository, just run:
 
 ```bash
-go run go.einride.tech/mage-tools@latest init
+go run go.einride.tech/mage-tools/cmd/init@latest
 ```
 
 Run `make`
@@ -29,21 +29,18 @@ Mage imports, and targets within the magefiles, can be written to Makefiles, you
 
 ### Magefiles
 
-You can have as many magefiles as you want in the `.mage` folder, as long as you tag them and put them in the main package
-
-```golang
-// +build mage
-
-package main
-```
+You can have as many magefiles as you want in the `.mage` folder.
 
 #### Targets
 
-Targets gets generated from expored functions in the main package, they can have no return value but error. Arguments are supported but limited to optional first argument of context.Context, string, int or bool.
+Any public function in the main package will be exported. Functions can have no return value but error. The following arguments are supported: Optional first argument of context.Context, string, int or bool.
 
 ```golang
 func All() {
-  return
+  mg.Deps(
+	  FormatYaml,
+	  mg.F(ConvcoCheck, "origin/main..HEAD"),
+  )
 }
 
 func FormatYaml() error {
