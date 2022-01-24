@@ -210,9 +210,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
+
+	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mglogr"
 )
 
 var _ = strconv.Atoi 
@@ -220,61 +222,8 @@ var _ = strconv.Atoi
 func main() {
 	args := os.Args[1:]
 
-	var ctx context.Context
-	var ctxCancel func()
+	ctx := context.Background()
 
-	getContext := func() (context.Context, func()) {
-		if ctx != nil {
-			return ctx, ctxCancel
-		}
-
-		ctx = context.Background()
-		ctxCancel = func() {}
-		return ctx, ctxCancel
-	}
-
-	runTarget := func(fn func(context.Context) error) interface{} {
-		var err interface{}
-		ctx, cancel := getContext()
-		d := make(chan interface{})
-		go func() {
-			defer func() {
-				err := recover()
-				d <- err
-			}()
-			err := fn(ctx)
-			d <- err
-		}()
-		select {
-		case <-ctx.Done():
-			cancel()
-			e := ctx.Err()
-			fmt.Printf("ctx err: %v\n", e)
-			return e
-		case err = <-d:
-			cancel()
-			return err
-		}
-	}
-	// This is necessary in case there aren't any targets, to avoid an unused
-	// variable error.
-	_ = runTarget
-
-	handleError := func(logger *log.Logger, err interface{}) {
-		if err != nil {
-			logger.Printf("Error: %+v\n", err)
-			type code interface {
-				ExitStatus() int
-			}
-			if c, ok := err.(code); ok {
-				os.Exit(c.ExitStatus())
-			}
-			os.Exit(1)
-		}
-	}
-	_ = handleError
-	log.SetFlags(0)
-	logger := log.New(os.Stderr, "", 0)
 	if len(args) < 1 {
 		fmt.Println("Targets:")
 		{{- range .Funcs}}
@@ -288,23 +237,26 @@ func main() {
 		switch target {
 		{{range .Funcs }}
 			case "{{.TargetName}}":
+				ctx = logr.NewContext(ctx, mglogr.New("{{.TargetName}}"))
+				logger := logr.FromContextOrDiscard(ctx)
 				expected := x + {{len .Args}}
 				if expected > len(args) {
 					// note that expected and args at this point include the arg for the target itself
 					// so we subtract 1 here to show the number of args without the target.
-					logger.Printf(
+					logger.Info(
 						"not enough arguments for target \"{{.TargetName}}\", expected %v, got %v\n", 
 						expected-1, 
 						len(args)-1,
 					)
-					os.Exit(2)
+					os.Exit(1)
 				}
 				{{.ExecCode}}
-				handleError(logger, ret)
 		{{- end}}
 		default:
-			logger.Printf("Unknown target specified: %q\n", target)
-			os.Exit(2)
+			ctx = logr.NewContext(ctx, mglogr.New("magefile"))
+			logger := logr.FromContextOrDiscard(ctx)
+			logger.Info("Unknown target specified: %q\n", target)
+			os.Exit(1)
 		}
 	}
 }

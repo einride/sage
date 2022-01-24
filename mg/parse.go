@@ -81,36 +81,33 @@ func (f Function) ExecCode() string {
 			parseargs += fmt.Sprintf(`
 				arg%d, err := strconv.Atoi(args[x])
 				if err != nil {
-					logger.Printf("can't convert argument %%q to int\n", args[x])
-					os.Exit(2)
+					logger.Info("can't convert argument %%q to int\n", args[x])
+					os.Exit(1)
 				}
 				x++`, x)
 		case "bool":
 			parseargs += fmt.Sprintf(`
 				arg%d, err := strconv.ParseBool(args[x])
 				if err != nil {
-					logger.Printf("can't convert argument %%q to bool\n", args[x])
-					os.Exit(2)
+					logger.Info convert argument %%q to bool\n", args[x])
+					os.Exit(1)
 				}
 				x++`, x)
 		}
 	}
 
-	out := parseargs + `
-				wrapFn := func(ctx context.Context) error {
-					`
-	out += "return "
-	out += name + "("
+	out := parseargs
+	out += "if err := " + name + "("
 	args := make([]string, 0, len(f.Args))
 	args = append(args, "ctx")
 	for x := 0; x < len(f.Args); x++ {
 		args = append(args, fmt.Sprintf("arg%d", x))
 	}
 	out += strings.Join(args, ", ")
-	out += ")"
-	out += `
-				}
-				ret := runTarget(wrapFn)`
+	out += `); err != nil {
+				logger.Info(err.Error())
+				os.Exit(1)	
+			}`
 	return out
 }
 
