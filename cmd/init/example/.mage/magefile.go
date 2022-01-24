@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/magefile/mage/mg"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mglogr"
 	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"

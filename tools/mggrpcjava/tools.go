@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/magefile/mage/mg"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )

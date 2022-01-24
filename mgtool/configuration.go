@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/magefile/mage/mg"
+	"go.einride.tech/mage-tools/mg"
 )
 
 const (

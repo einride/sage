@@ -15,8 +15,7 @@ import (
 	"unicode"
 
 	"github.com/iancoleman/strcase"
-	"github.com/magefile/mage/mage"
-	"github.com/magefile/mage/parse"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -86,29 +85,22 @@ func GenMakefiles(ctx context.Context) {
 	}); err != nil {
 		panic(err)
 	}
-	targets, err := parse.Package(mageDir, mageFiles)
+	targets, err := mg.Package(mageDir, mageFiles)
 	if err != nil {
 		panic(err)
 	}
 	sort.Sort(targets.Funcs)
-	// Compile binary
+	// compile binary
 	executable := mgpath.FromToolsDir(mgpath.MagefileBinary)
-	genMagefile := mgpath.FromGitRoot(mgpath.MageDir, "generating_magefile.go")
-	if err := mage.GenerateMainfile(filepath.Base(executable), genMagefile, targets); err != nil {
+	genMagefile := mgpath.FromMageDir("generating_magefile.go")
+	if err := generateMainFile(genMagefile, targets); err != nil {
 		panic(err)
 	}
 	defer os.Remove(genMagefile)
-	if err := mage.Compile(
-		runtime.GOOS,
-		runtime.GOARCH,
-		"",
-		mgpath.FromGitRoot(mgpath.MageDir),
-		"go",
+	if err := compile(
+		mgpath.FromMageDir(),
 		executable,
 		append(mageFiles, genMagefile),
-		false,
-		os.Stderr,
-		os.Stdout,
 	); err != nil {
 		panic(err)
 	}
@@ -207,7 +199,7 @@ clean-mage-tools:
 	return nil
 }
 
-func generateMakeTargets(targets parse.Functions) (map[string]*bytes.Buffer, error) {
+func generateMakeTargets(targets mg.Functions) (map[string]*bytes.Buffer, error) {
 	buffers := make(map[string]*bytes.Buffer)
 	for _, target := range targets {
 		var b *bytes.Buffer
@@ -245,7 +237,7 @@ endif{{end}}
 }
 
 // toMakeVars converts input to make vars.
-func toMakeVars(args []parse.Arg) []string {
+func toMakeVars(args []mg.Arg) []string {
 	makeVars := make([]string, 0, len(args))
 	for _, arg := range args {
 		name := strcase.ToSnake(arg.Name)

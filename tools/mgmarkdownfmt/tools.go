@@ -4,7 +4,7 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/magefile/mage/mg"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
