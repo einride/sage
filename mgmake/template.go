@@ -203,6 +203,36 @@
 
 package mgmake
 
+import (
+	"fmt"
+	"os"
+	"text/template"
+
+	"go.einride.tech/mage-tools/mg"
+)
+
+type mainfileTemplateData struct {
+	Funcs []*mg.Function
+}
+
+// generateMainFile generates the mage mainfile at path.
+func generateMainFile(path string, info *mg.PkgInfo) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("error creating generated mainfile: %v", err)
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+	data := mainfileTemplateData{
+		Funcs: info.Funcs,
+	}
+	if err := template.Must(template.New("").Parse(mageMainfileTplString)).Execute(f, data); err != nil {
+		return fmt.Errorf("can't execute mainfile template: %v", err)
+	}
+	return nil
+}
+
 const mageMainfileTplString = `// +build ignore
 
 package main

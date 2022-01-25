@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -66,6 +67,24 @@ func GenerateMakefiles(mks ...Makefile) {
 		}
 		makefiles[toMakeTarget(namespace)] = makefile{Path: i.Path, DefaultTarget: defaultTarget}
 	}
+}
+
+// compile uses the go tool to compile the files into an executable at path.
+func compile(magePath, compileTo string, gofiles []string) error {
+	// strip off the path since we're setting the path in the build command
+	for i := range gofiles {
+		gofiles[i] = filepath.Base(gofiles[i])
+	}
+	// nolint: gosec
+	c := exec.Command("go", append([]string{"build", "-o", compileTo}, gofiles...)...)
+	c.Env = os.Environ()
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stdout
+	c.Dir = magePath
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("error compiling magefiles: %w", err)
+	}
+	return nil
 }
 
 // GenMakefiles should only be used by go.einride.tech/cmd/build.
