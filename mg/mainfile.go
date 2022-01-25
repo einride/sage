@@ -36,8 +36,8 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 			"ctx = ",
 			g.Import("github.com/go-logr/logr"),
 			".NewContext(ctx, ",
-			g.Import("go.einride.tech/mage-tools/mglogr"),
-			`.New("`,
+			g.Import("go.einride.tech/mage-tools/mg"),
+			`.NewLogger("`,
 			getTargetFunctionName(function),
 			`"))`,
 		)
@@ -106,8 +106,8 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 		"ctx = ",
 		g.Import("github.com/go-logr/logr"),
 		".NewContext(ctx, ",
-		g.Import("go.einride.tech/mage-tools/mglogr"),
-		`.New("magefile"))`,
+		g.Import("go.einride.tech/mage-tools/mg"),
+		`.NewLogger("magefile"))`,
 	)
 	g.P("logger := logr.FromContextOrDiscard(ctx)")
 	g.P(`logger.Info("Unknown target specified: %q\n", target)`)

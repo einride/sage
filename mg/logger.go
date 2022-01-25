@@ -1,4 +1,4 @@
-package mglogr
+package mg
 
 import (
 	"fmt"
@@ -8,9 +8,9 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
-// New returns a standard logger.
-func New(name string) logr.Logger {
-	return logr.New(&sink{
+// NewLogger returns a standard logger.
+func NewLogger(name string) logr.Logger {
+	return logr.New(&logSink{
 		name: strcase.ToKebab(name),
 		formatter: funcr.NewFormatter(funcr.Options{
 			RenderBuiltinsHook: func(kvList []interface{}) []interface{} {
@@ -21,33 +21,35 @@ func New(name string) logr.Logger {
 	})
 }
 
-type sink struct {
+type logSink struct {
 	formatter funcr.Formatter
 	name      string
 }
 
-func (s *sink) Init(info logr.RuntimeInfo) {
+var _ logr.LogSink = &logSink{}
+
+func (s *logSink) Init(info logr.RuntimeInfo) {
 }
 
-func (s *sink) Enabled(level int) bool {
+func (s *logSink) Enabled(level int) bool {
 	return true
 }
 
-func (s *sink) Info(level int, msg string, keysAndValues ...interface{}) {
+func (s *logSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	_, args := s.formatter.FormatInfo(level, msg, keysAndValues)
 	fmt.Printf("[%s] %s%s\n", s.name, msg, args)
 }
 
-func (s *sink) Error(err error, msg string, keysAndValues ...interface{}) {
+func (s *logSink) Error(err error, msg string, keysAndValues ...interface{}) {
 	_, args := s.formatter.FormatError(err, msg, keysAndValues)
 	fmt.Printf("[%s | ERROR] %s%s\n", s.name, msg, args)
 }
 
-func (s *sink) WithValues(keysAndValues ...interface{}) logr.LogSink {
+func (s *logSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
 	panic("implement me")
 }
 
-func (s *sink) WithName(name string) logr.LogSink {
+func (s *logSink) WithName(name string) logr.LogSink {
 	s.name = name
 	return s
 }

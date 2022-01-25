@@ -29,6 +29,11 @@ const (
 	TarGz
 )
 
+const (
+	AMD64 = "amd64"
+	X8664 = "x86_64"
+)
+
 type Opt func(f *fileState)
 
 type fileState struct {

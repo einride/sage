@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/mage-tools/mglogr"
 )
 
 // Deps runs the given functions as dependencies of the calling function in parallel.
@@ -31,7 +30,7 @@ func Deps(ctx context.Context, fns ...interface{}) {
 		fn := onces.LoadOrStore(f)
 		wg.Add(1)
 		go func() {
-			ctx = logr.NewContext(ctx, mglogr.New(fn.displayName))
+			ctx = logr.NewContext(ctx, NewLogger(fn.displayName))
 			defer func() {
 				if v := recover(); v != nil {
 					errs[fn.displayName] = fmt.Errorf(fmt.Sprint(v))
@@ -49,7 +48,7 @@ func Deps(ctx context.Context, fns ...interface{}) {
 	wg.Wait()
 	if len(errs) > 0 {
 		for name, err := range errs {
-			mglogr.New(name).Error(err, err.Error())
+			NewLogger(name).Error(err, err.Error())
 		}
 		os.Exit(1)
 	}

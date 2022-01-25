@@ -8,14 +8,13 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mglogr"
 )
 
 //go:embed gen/mgmake_gen.go
 var mgmakeGen []byte
 
 func main() {
-	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-build"))
+	ctx := logr.NewContext(context.Background(), mg.NewLogger("mage-tools-build"))
 	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
 	mageDir := mg.FromMageDir()
 	makeGenGo := filepath.Join(mageDir, mg.MakeGenGo)

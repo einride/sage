@@ -7,10 +7,9 @@ import (
 	"go.einride.tech/mage-tools/mg"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/mage-tools/mglogr"
 )
 
 func main() {
-	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-build"))
+	ctx := logr.NewContext(context.Background(), mg.NewLogger("mage-tools-build"))
 	mg.GenMakefiles(ctx)
 }
