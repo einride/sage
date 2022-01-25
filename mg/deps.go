@@ -7,6 +7,9 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mglogr"
 )
 
 type onceMap struct {
@@ -92,6 +95,7 @@ func runDeps(ctx context.Context, fns []Fn) {
 				}
 				wg.Done()
 			}()
+			ctx = logr.NewContext(ctx, mglogr.New(fn.displayName))
 			if err := fn.run(ctx); err != nil {
 				mu.Lock()
 				errs = append(errs, fmt.Sprint(err))

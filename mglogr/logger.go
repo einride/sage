@@ -5,12 +5,13 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/funcr"
+	"github.com/iancoleman/strcase"
 )
 
 // New returns a standard logger.
 func New(name string) logr.Logger {
 	return logr.New(&sink{
-		name: name,
+		name: strcase.ToKebab(name),
 		formatter: funcr.NewFormatter(funcr.Options{
 			RenderBuiltinsHook: func(kvList []interface{}) []interface{} {
 				// Don't render builtins.
