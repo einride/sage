@@ -2,6 +2,7 @@ package mg
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/funcr"
@@ -11,7 +12,7 @@ import (
 // NewLogger returns a standard logger.
 func NewLogger(name string) logr.Logger {
 	return logr.New(&logSink{
-		name: strcase.ToKebab(name),
+		name: strcase.ToKebab(strings.TrimPrefix(name, "main.")),
 		formatter: funcr.NewFormatter(funcr.Options{
 			RenderBuiltinsHook: func(kvList []interface{}) []interface{} {
 				// Don't render builtins.

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/go-logr/logr"
@@ -30,17 +29,17 @@ func Deps(ctx context.Context, fns ...interface{}) {
 		fn := onces.LoadOrStore(f)
 		wg.Add(1)
 		go func() {
-			ctx = logr.NewContext(ctx, NewLogger(fn.displayName))
+			ctx = logr.NewContext(ctx, NewLogger(fn.fn.Name()))
 			defer func() {
 				if v := recover(); v != nil {
-					errs[fn.displayName] = fmt.Errorf(fmt.Sprint(v))
+					errs[fn.fn.Name()] = fmt.Errorf(fmt.Sprint(v))
 					mu.Unlock()
 				}
 				wg.Done()
 			}()
 			if err := fn.run(ctx); err != nil {
 				mu.Lock()
-				errs[fn.displayName] = err
+				errs[fn.fn.Name()] = err
 				mu.Unlock()
 			}
 		}()
@@ -74,8 +73,7 @@ func (o *onceMap) LoadOrStore(f Fn) *onceFun {
 		return existing
 	}
 	one := &onceFun{
-		fn:          f,
-		displayName: displayName(f.Name()),
+		fn: f,
 	}
 	o.m[f.Name()] = one
 	return one
@@ -103,19 +101,10 @@ func checkFns(fns []interface{}) []Fn {
 	return funcs
 }
 
-func displayName(name string) string {
-	splitByPackage := strings.Split(name, ".")
-	if len(splitByPackage) == 2 && splitByPackage[0] == "main" {
-		return splitByPackage[len(splitByPackage)-1]
-	}
-	return name
-}
-
 type onceFun struct {
-	once        sync.Once
-	fn          Fn
-	err         error
-	displayName string
+	once sync.Once
+	fn   Fn
+	err  error
 }
 
 // run will run the function exactly once and capture the error output. Further runs simply return
