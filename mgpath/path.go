@@ -1,12 +1,11 @@
 package mgpath
 
 import (
-	"bytes"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
+
+	"github.com/go-git/go-git/v5"
 )
 
 const (
@@ -25,19 +24,21 @@ func FromWorkDir(pathElems ...string) string {
 }
 
 func FromGitRoot(pathElems ...string) string {
-	// We use exec.command here because this command runs in a global,
-	// which is set up before mage has configured logging resulting in unwanted log prints
-	var output bytes.Buffer
-	c := exec.Command("git", []string{"rev-parse", "--show-toplevel"}...)
-	c.Env = os.Environ()
-	c.Stderr = os.Stderr
-	c.Stdout = &output
-	c.Stdin = os.Stdin
-	if err := c.Run(); err != nil {
+	cwd, err := os.Getwd()
+	if err != nil {
 		panic(err)
 	}
-	gitRoot := strings.TrimSpace(output.String())
-	return filepath.Join(append([]string{gitRoot}, pathElems...)...)
+	repo, err := git.PlainOpenWithOptions(cwd, &git.PlainOpenOptions{
+		DetectDotGit: true,
+	})
+	if err != nil {
+		panic(err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(append([]string{wt.Filesystem.Root()}, pathElems...)...)
 }
 
 // FromMageDir returns the path relative to the mage root.
