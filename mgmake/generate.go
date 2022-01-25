@@ -112,7 +112,7 @@ func GenMakefiles(ctx context.Context) {
 		Package:     targets.DocPkg.Name,
 		GeneratedBy: "go.einride.tech/mage-tools",
 	})
-	if err := generateMainFile2(targets.DocPkg, mainFile); err != nil {
+	if err := generateMainFile(targets.DocPkg, mainFile); err != nil {
 		panic(err)
 	}
 	mainFileContent, err := mainFile.Content()

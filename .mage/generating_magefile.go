@@ -76,6 +76,13 @@ func main() {
 				logger.Error(err, err.Error())
 				os.Exit(1)
 			}
+		case "GoReview":
+			ctx = logr.NewContext(ctx, mglogr.New("GoReview"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := GoReview(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
 		case "GoTest":
 			ctx = logr.NewContext(ctx, mglogr.New("GoTest"))
 			logger := logr.FromContextOrDiscard(ctx)
@@ -87,13 +94,6 @@ func main() {
 			ctx = logr.NewContext(ctx, mglogr.New("GolangciLint"))
 			logger := logr.FromContextOrDiscard(ctx)
 			if err := GolangciLint(ctx); err != nil {
-				logger.Error(err, err.Error())
-				os.Exit(1)
-			}
-		case "Goreview":
-			ctx = logr.NewContext(ctx, mglogr.New("Goreview"))
-			logger := logr.FromContextOrDiscard(ctx)
-			if err := Goreview(ctx); err != nil {
 				logger.Error(err, err.Error())
 				os.Exit(1)
 			}

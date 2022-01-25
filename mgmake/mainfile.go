@@ -9,7 +9,7 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-func generateMainFile2(pkg *doc.Package, g *codegen.File) error {
+func generateMainFile(pkg *doc.Package, g *codegen.File) error {
 	g.P("func main() {")
 	g.P("args := ", g.Import("os"), ".Args[1:]")
 	g.P("ctx := ", g.Import("context"), ".Background()")
@@ -53,7 +53,7 @@ func generateMainFile2(pkg *doc.Package, g *codegen.File) error {
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
 			var args []string
-			// TODO: Can we make this better, probably add some saftey checks :) ?
+			// TODO: Can we make this better, probably add some safety checks :) ?
 			for i, customParam := range function.Decl.Type.Params.List[1:] {
 				args = append(args, fmt.Sprintf("arg%v", i))
 				switch fmt.Sprint(customParam.Type) {
@@ -81,7 +81,8 @@ func generateMainFile2(pkg *doc.Package, g *codegen.File) error {
 				getTargetFunctionName(function, namespace),
 				"(ctx,",
 				strings.Join(args, ","),
-				"); err != nil {")
+				"); err != nil {",
+			)
 			g.P("logger.Error(err, err.Error())")
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")

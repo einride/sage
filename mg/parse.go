@@ -63,56 +63,6 @@ func (f Function) TargetName() string {
 	return strings.Join(names, ":")
 }
 
-// ExecCode returns code for the template switch to run the target.
-// It wraps each target call to match the func(context.Context) error that
-// runTarget requires.
-func (f Function) ExecCode() string {
-	name := f.Name
-	if f.Receiver != "" {
-		name = f.Receiver + "{}." + name
-	}
-
-	var parseargs string
-	for x, arg := range f.Args {
-		switch arg.Type {
-		case "string":
-			parseargs += fmt.Sprintf(`
-			arg%d := args[x]
-			x++`+"\n", x)
-		case "int":
-			parseargs += fmt.Sprintf(`
-				arg%d, err := strconv.Atoi(args[x])
-				if err != nil {
-					logger.Error(err, "can't convert argument %%q to int\n", args[x])
-					os.Exit(1)
-				}
-				x++`, x)
-		case "bool":
-			parseargs += fmt.Sprintf(`
-				arg%d, err := strconv.ParseBool(args[x])
-				if err != nil {
-					logger.Error(err, "convert argument %%q to bool\n", args[x])
-					os.Exit(1)
-				}
-				x++`, x)
-		}
-	}
-
-	out := parseargs
-	out += "if err := " + name + "("
-	args := make([]string, 0, len(f.Args))
-	args = append(args, "ctx")
-	for x := 0; x < len(f.Args); x++ {
-		args = append(args, fmt.Sprintf("arg%d", x))
-	}
-	out += strings.Join(args, ", ")
-	out += `); err != nil {
-				logger.Error(err, err.Error())
-				os.Exit(1)	
-			}`
-	return out
-}
-
 // Package compiles information about a mage package.
 func Package(path string) (*PkgInfo, error) {
 	fset := token.NewFileSet()
@@ -255,62 +205,4 @@ func funcType(ft *ast.FuncType) (*Function, error) {
 		}
 	}
 	return f, nil
-}
-
-func isSupportedTargetParams(params []*ast.Field) bool {
-	if len(params) == 0 {
-		return false
-	}
-	if !isContextParam(params[0]) {
-		return false
-	}
-	for _, customParam := range params[1:] {
-		if !isSupportedCustomParam(customParam) {
-			return false
-		}
-	}
-	return true
-}
-
-func isSupportedCustomParam(arg *ast.Field) bool {
-	switch fmt.Sprint(arg.Type) {
-	case "string", "int", "bool":
-		return true
-	default:
-		return false
-	}
-}
-
-func isContextParam(param *ast.Field) bool {
-	selectorExpr, ok := param.Type.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-	ident, ok := selectorExpr.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	return ident.Name == "context" && selectorExpr.Sel.Name == "Context"
-}
-
-func isContextType(ft *ast.FuncType) bool {
-	if ft.Params.NumFields() == 0 {
-		return false
-	}
-	param := ft.Params.List[0]
-	sel, ok := param.Type.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-	pkg, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	if pkg.Name != "context" {
-		return false
-	}
-	if sel.Sel.Name != "Context" {
-		return false
-	}
-	return true
 }
