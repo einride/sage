@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go.einride.tech/mage-tools/mg"
 	"io/fs"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
 
-	"go.einride.tech/mage-tools/mgpath"
 	"gopkg.in/yaml.v3"
 )
 
 func FormatYAML(context.Context) error {
-	return filepath.WalkDir(mgpath.FromGitRoot("."), func(path string, d fs.DirEntry, err error) error {
+	return filepath.WalkDir(mg.FromGitRoot("."), func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".yaml" {
 			if err := formatFile(path); err != nil {
 				return err

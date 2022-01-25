@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -28,7 +27,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Cog(ctx context.Context) error {
 	const toolName = "cocogitto"
-	binDir := mgpath.FromToolsDir(toolName, version)
+	binDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, "cog")
 	var archiveName string
 	switch strings.Split(runtime.GOOS, "/")[0] {

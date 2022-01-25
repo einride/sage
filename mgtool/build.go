@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go.einride.tech/mage-tools/mg"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/mage-tools/mgpath"
 )
 
 func GoInstall(ctx context.Context, pkg, version string) (string, error) {
-	executable := mgpath.FromToolsDir("go", pkg, version, filepath.Base(pkg))
+	executable := mg.FromToolsDir("go", pkg, version, filepath.Base(pkg))
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)
@@ -50,7 +50,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 	if version == "" {
 		return "", fmt.Errorf("failed to determine version of package %s", pkg)
 	}
-	executable := mgpath.FromToolsDir("go", pkg, version, filepath.Base(pkg))
+	executable := mg.FromToolsDir("go", pkg, version, filepath.Base(pkg))
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)

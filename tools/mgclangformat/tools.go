@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -20,7 +19,7 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.ClangFormat)
-	return mgtool.Command(ctx, mgpath.FromBinDir(toolName), args...)
+	return mgtool.Command(ctx, mg.FromBinDir(toolName), args...)
 }
 
 func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
@@ -40,7 +39,7 @@ func (Prepare) ClangFormat(ctx context.Context) error {
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
-	toolDir := mgpath.FromToolsDir(toolName, version)
+	toolDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(toolDir, toolName)
 	binURL := fmt.Sprintf(
 		"https://github.com/angular/clang-format/blob/%s/bin/%s/clang-format?raw=true",

@@ -8,7 +8,6 @@ import (
 	"runtime"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -26,7 +25,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Buf(ctx context.Context) error {
 	const binaryName = "buf"
-	binDir := mgpath.FromToolsDir(binaryName, version, "bin")
+	binDir := mg.FromToolsDir(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

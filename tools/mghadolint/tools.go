@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -47,7 +46,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) Hadolint(ctx context.Context) error {
 	const toolName = "hadolint"
-	binDir := mgpath.FromToolsDir(toolName, version)
+	binDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

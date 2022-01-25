@@ -16,7 +16,6 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"go.einride.tech/mage-tools/internal/codegen"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -73,9 +72,9 @@ func compile(ctx context.Context, files []string) error {
 	for file := range files {
 		files[file] = filepath.Base(files[file])
 	}
-	cmd := mgtool.Command(ctx, "go", "build", "-o", mgpath.FromToolsDir(mgpath.MagefileBinary))
+	cmd := mgtool.Command(ctx, "go", "build", "-o", FromToolsDir(MagefileBinary))
 	cmd.Args = append(cmd.Args, files...)
-	cmd.Dir = mgpath.FromMageDir()
+	cmd.Dir = FromMageDir()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error compiling magefiles: %w", err)
 	}
@@ -87,11 +86,11 @@ func GenMakefiles(ctx context.Context) {
 	if len(makefiles) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/mage-tools#readme for more info")
 	}
-	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
+	mageDir := FromGitRoot(MageDir)
 	var mageFiles []string
 	if err := filepath.WalkDir(mageDir, func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ".go" {
-			if filepath.Base(path) != mgpath.MakeGenGo {
+			if filepath.Base(path) != MakeGenGo {
 				mageFiles = append(mageFiles, path)
 			}
 		}
@@ -105,7 +104,7 @@ func GenMakefiles(ctx context.Context) {
 	}
 	sort.Sort(targets.Funcs)
 	// compile binary
-	mainFilename := mgpath.FromMageDir("generating_magefile.go")
+	mainFilename := FromMageDir("generating_magefile.go")
 	mainFile := codegen.NewFile(codegen.FileConfig{
 		Filename:    mainFilename,
 		Package:     targets.DocPkg.Name,
@@ -149,7 +148,7 @@ func GenMakefiles(ctx context.Context) {
 				if strings.Contains(defaultBuf.String(), fmt.Sprintf(".PHONY: %s\n", ns)) {
 					panic(fmt.Errorf("can't create target for makefile, %s already exist", ns))
 				}
-				mkPath, err := filepath.Rel(mgpath.FromGitRoot("."), filepath.Dir(mk.Path))
+				mkPath, err := filepath.Rel(FromGitRoot("."), filepath.Dir(mk.Path))
 				if err != nil {
 					panic(err)
 				}
@@ -174,7 +173,7 @@ func GenMakefiles(ctx context.Context) {
 }
 
 func createMakefile(ctx context.Context, makefilePath, target string, data []byte) error {
-	includePath, err := filepath.Rel(filepath.Dir(makefilePath), mgpath.FromGitRoot(mgpath.MageDir))
+	includePath, err := filepath.Rel(filepath.Dir(makefilePath), FromGitRoot(MageDir))
 	if err != nil {
 		return err
 	}
@@ -210,10 +209,10 @@ clean-mage-tools:
 		// TODO: Refer to the source file that the default target or namespace comes from.
 		filepath.Join(includePath, "magefile.go"),
 		target,
-		filepath.Join(includePath, mgpath.ToolsDir, mgpath.MagefileBinary),
+		filepath.Join(includePath, ToolsDir, MagefileBinary),
 		mageDependencies,
 		genCommand,
-		filepath.Join(includePath, mgpath.ToolsDir),
+		filepath.Join(includePath, ToolsDir),
 	))
 	// Removes trailing empty line
 	data = data[:len(data)-1]

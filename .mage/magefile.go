@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgconvco"
 	"go.einride.tech/mage-tools/tools/mggit"
@@ -19,7 +18,7 @@ import (
 func init() {
 	mg.GenerateMakefiles(
 		mg.Makefile{
-			Path:          mgpath.FromGitRoot("Makefile"),
+			Path:          mg.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
 	)

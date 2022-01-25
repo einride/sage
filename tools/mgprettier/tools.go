@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -26,7 +25,7 @@ const prettierConfigContent = `module.exports = {
 // nolint: gochecknoglobals
 var (
 	commandPath string
-	prettierrc  = mgpath.FromToolsDir("prettier", ".prettierrc.js")
+	prettierrc  = mg.FromToolsDir("prettier", ".prettierrc.js")
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -40,7 +39,7 @@ func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
 		prettierrc,
 		"--write",
 		"**/*.md",
-		"!" + mgpath.FromMageDir(),
+		"!" + mg.FromMageDir(),
 	}
 	return Command(ctx, args...)
 }
@@ -51,7 +50,7 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 		prettierrc,
 		"--write",
 		"**/*.y*ml",
-		"!" + mgpath.FromMageDir(),
+		"!" + mg.FromMageDir(),
 	}
 	return Command(ctx, args...)
 }
@@ -59,7 +58,7 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Prettier(ctx context.Context) error {
-	toolDir := mgpath.FromToolsDir("prettier")
+	toolDir := mg.FromToolsDir("prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {

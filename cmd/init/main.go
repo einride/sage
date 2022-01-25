@@ -6,13 +6,13 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"go.einride.tech/mage-tools/mg"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mglogr"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 	"gopkg.in/yaml.v3"
@@ -28,9 +28,9 @@ var (
 func main() {
 	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-init"))
 	logger := logr.FromContextOrDiscard(ctx)
-	mageDir := mgpath.FromGitRoot(mgpath.MageDir)
+	mageDir := mg.FromGitRoot(mg.MageDir)
 	logger.Info("initializing mage-tools...")
-	if mgpath.FromWorkDir() != mgpath.FromGitRoot() {
+	if mg.FromWorkDir() != mg.FromGitRoot() {
 		panic("can only be generated in git root directory")
 	}
 	if err := os.Mkdir(mageDir, 0o755); err != nil {
@@ -39,11 +39,11 @@ func main() {
 	if err := os.WriteFile(filepath.Join(mageDir, "magefile.go"), magefile, 0o600); err != nil {
 		panic(err)
 	}
-	_, err := os.Stat(mgpath.FromGitRoot("Makefile"))
+	_, err := os.Stat(mg.FromGitRoot("Makefile"))
 	if err == nil {
 		const mm = "Makefile.old"
 		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
-		if err := os.Rename(mgpath.FromGitRoot("Makefile"), mgpath.FromGitRoot(mm)); err != nil {
+		if err := os.Rename(mg.FromGitRoot("Makefile"), mg.FromGitRoot(mm)); err != nil {
 			panic(err)
 		}
 	}
@@ -62,7 +62,7 @@ func main() {
 		panic(err)
 	}
 	defer gitIgnore.Close()
-	relToolsPath, err := filepath.Rel(mgpath.FromGitRoot("."), mgpath.FromToolsDir())
+	relToolsPath, err := filepath.Rel(mg.FromGitRoot("."), mg.FromToolsDir())
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +95,7 @@ type dependabot struct {
 }
 
 func addToDependabot() error {
-	dependabotYamlPath := mgpath.FromGitRoot(".github", "dependabot.yml")
+	dependabotYamlPath := mg.FromGitRoot(".github", "dependabot.yml")
 	currentConfig, err := ioutil.ReadFile(dependabotYamlPath)
 	if errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(filepath.Dir(dependabotYamlPath), 0o755); err != nil {

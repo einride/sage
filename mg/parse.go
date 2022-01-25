@@ -9,8 +9,6 @@ import (
 	"io/fs"
 	"sort"
 	"strings"
-
-	"go.einride.tech/mage-tools/mgpath"
 )
 
 // PkgInfo contains inforamtion about a package of files according to mage's
@@ -67,7 +65,7 @@ func (f Function) TargetName() string {
 func Package(path string) (*PkgInfo, error) {
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, path, func(info fs.FileInfo) bool {
-		return info.Name() != mgpath.MakeGenGo
+		return info.Name() != MakeGenGo
 	}, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse directory: %v", err)

@@ -9,7 +9,6 @@ import (
 	"runtime"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -27,7 +26,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {
 	const binaryName = "google-cloud-proto-scrubber"
-	binDir := mgpath.FromToolsDir(binaryName, version)
+	binDir := mg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH

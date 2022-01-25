@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -21,7 +20,7 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.Balena)
-	return mgtool.Command(ctx, mgpath.FromBinDir(binaryName), args...)
+	return mgtool.Command(ctx, mg.FromBinDir(binaryName), args...)
 }
 
 func Whoami(ctx context.Context) (WhoamiInfo, error) {
@@ -57,7 +56,7 @@ func Whoami(ctx context.Context) (WhoamiInfo, error) {
 type Prepare mgtool.Prepare
 
 func (Prepare) Balena(ctx context.Context) error {
-	binDir := mgpath.FromToolsDir(toolName, version)
+	binDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName, binaryName)
 	hostOS := runtime.GOOS
 	balena := fmt.Sprintf("balena-cli-%s-%s-x64-standalone", version, hostOS) // only x64 supported.

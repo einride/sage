@@ -1,4 +1,4 @@
-package mgpath
+package mg
 
 import (
 	"bytes"

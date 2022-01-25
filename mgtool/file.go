@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.einride.tech/mage-tools/mg"
 	"io"
 	"io/fs"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
-	"go.einride.tech/mage-tools/mgpath"
 )
 
 type archiveType int
@@ -354,8 +354,8 @@ func Exists(file string) error {
 }
 
 func CreateSymlink(src string) (string, error) {
-	symlink := filepath.Join(mgpath.FromBinDir(), filepath.Base(src))
-	if err := os.MkdirAll(mgpath.FromBinDir(), 0o755); err != nil {
+	symlink := filepath.Join(mg.FromBinDir(), filepath.Base(src))
+	if err := os.MkdirAll(mg.FromBinDir(), 0o755); err != nil {
 		return "", err
 	}
 	if _, err := os.Lstat(symlink); err == nil {

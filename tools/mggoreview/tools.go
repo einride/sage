@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -27,7 +26,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func (Prepare) Goreview(ctx context.Context) error {
 	const toolName = "goreview"
-	toolDir := mgpath.FromToolsDir(toolName)
+	toolDir := mg.FromToolsDir(toolName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, toolName)
 	hostOS := strings.Title(runtime.GOOS)

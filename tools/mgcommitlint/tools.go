@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -30,7 +29,7 @@ const commitlintFileContent = `module.exports = {
 // nolint: gochecknoglobals
 var (
 	commandPath  string
-	commitlintrc = mgpath.FromToolsDir("commitlint", ".commitlintrc.js")
+	commitlintrc = mg.FromToolsDir("commitlint", ".commitlintrc.js")
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -56,7 +55,7 @@ func LintCommand(ctx context.Context, branch string) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) Commitlint(ctx context.Context) error {
-	toolDir := mgpath.FromToolsDir("commitlint")
+	toolDir := mg.FromToolsDir("commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {

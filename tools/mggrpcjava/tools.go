@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -28,7 +27,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) ProtocGenGrpcJava(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
-	binDir := mgpath.FromToolsDir("grpc-java", version, "bin")
+	binDir := mg.FromToolsDir("grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	// read the whole pom at once
 	b, err := os.ReadFile("pom.xml")

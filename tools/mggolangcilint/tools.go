@@ -11,7 +11,6 @@ import (
 	"runtime"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -29,10 +28,10 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func RunCommand(ctx context.Context) *exec.Cmd {
-	configPath := mgpath.FromWorkDir(".golangci.yml")
+	configPath := mg.FromWorkDir(".golangci.yml")
 	cmd := Command(ctx)
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath = mgpath.FromToolsDir("golangci-lint", ".golangci.yml")
+		configPath = mg.FromToolsDir("golangci-lint", ".golangci.yml")
 		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o600); err != nil {
 			panic(err)
 		}
@@ -45,7 +44,7 @@ type Prepare mgtool.Prepare
 
 func (Prepare) GolangciLint(ctx context.Context) error {
 	const binaryName = "golangci-lint"
-	toolDir := mgpath.FromToolsDir(binaryName)
+	toolDir := mg.FromToolsDir(binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS

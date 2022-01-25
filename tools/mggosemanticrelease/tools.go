@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -44,7 +43,7 @@ func (Prepare) GoSemanticRelease(ctx context.Context) error {
 		binaryName = "gosemantic-release"
 		version    = "2.18.0"
 	)
-	binDir := mgpath.FromToolsDir(binaryName, version)
+	binDir := mg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {

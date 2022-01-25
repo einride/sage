@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
 
@@ -31,7 +30,7 @@ func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
 }
 
 func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
-	releaserc := mgpath.FromToolsDir("semantic-release", ".releaserc.json")
+	releaserc := mg.FromToolsDir("semantic-release", ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -45,7 +44,7 @@ func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
 type Prepare mgtool.Prepare
 
 func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
-	toolDir := mgpath.FromToolsDir("semantic-release")
+	toolDir := mg.FromToolsDir("semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")
