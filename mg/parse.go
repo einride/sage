@@ -6,7 +6,6 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"io/fs"
 	"sort"
 	"strings"
 )
@@ -112,21 +111,9 @@ func (f Function) ExecCode() string {
 }
 
 // Package compiles information about a mage package.
-func Package(path string, files []string) (*PkgInfo, error) {
+func Package(path string) (*PkgInfo, error) {
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(
-		fset,
-		path,
-		func(info fs.FileInfo) bool {
-			for _, f := range files {
-				if info.Name() == f {
-					return true
-				}
-			}
-			return false
-		},
-		parser.ParseComments,
-	)
+	pkgs, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse directory: %v", err)
 	}

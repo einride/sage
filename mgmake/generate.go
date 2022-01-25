@@ -104,7 +104,7 @@ func GenMakefiles(ctx context.Context) {
 	}); err != nil {
 		panic(err)
 	}
-	targets, err := mg.Package(mageDir, mageFiles)
+	targets, err := mg.Package(mageDir)
 	if err != nil {
 		panic(err)
 	}
