@@ -13,7 +13,7 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-func generateMakefile(g *codegen.File, pkg *doc.Package, mk *Makefile, ns string) error {
+func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromGitRoot(MageDir))
 	if err != nil {
 		return err
@@ -46,8 +46,7 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk *Makefile, ns string
 	g.P("clean-mage-tools:")
 	g.P("\t@git clean -fdx ", filepath.Join(includePath, ToolsDir))
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
-		// TODO: Lets see if we can make this conditional better
-		if function.Recv == ns || function.Recv == "" && ns == defaultNamespace {
+		if function.Recv == mk.namespaceName() {
 			g.P()
 			g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(function)))
 			g.P(toMakeTarget(getTargetFunctionName(function)), ": $(magefile)")
@@ -66,6 +65,23 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk *Makefile, ns string
 		}
 		return true
 	})
+	// Add additional makefiles to default makefile
+	if mk.namespaceName() == "" {
+		for _, i := range makefiles {
+			if i.namespaceName() == "" {
+				continue
+			}
+			mkPath, err := filepath.Rel(FromGitRoot(), filepath.Dir(i.Path))
+			if err != nil {
+				panic(err)
+			}
+			g.P()
+			g.P(".PHONY: ", toMakeTarget(i.namespaceName()))
+			g.P(toMakeTarget(i.namespaceName()), ":")
+			g.P("\tmake -C ", mkPath)
+			g.P()
+		}
+	}
 	return nil
 }
 

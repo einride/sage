@@ -12,17 +12,14 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
-	"sort"
 	"strings"
 	"unicode"
 
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-const defaultNamespace = "default"
-
 // nolint: gochecknoglobals
-var makefiles = make(map[string]Makefile)
+var makefiles []Makefile
 
 type Makefile struct {
 	Namespace     interface{}
@@ -32,7 +29,7 @@ type Makefile struct {
 
 func (m Makefile) namespaceName() string {
 	if m.Namespace == nil {
-		return defaultNamespace
+		return ""
 	}
 	return reflect.TypeOf(m.Namespace).Name()
 }
@@ -59,7 +56,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		if i.Path == "" {
 			panic("Path needs to be defined")
 		}
-		makefiles[i.namespaceName()] = i
+		makefiles = append(makefiles, i)
 	}
 }
 
@@ -98,7 +95,7 @@ func GenMakefiles(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	// compile binary
+	// generate main file before compiling
 	mainFilename := FromMageDir("generating_magefile.go")
 	mainFile := codegen.NewFile(codegen.FileConfig{
 		Filename:    mainFilename,
@@ -118,69 +115,27 @@ func GenMakefiles(ctx context.Context) {
 	defer func() {
 		_ = os.Remove(mainFilename)
 	}()
+	// Compile binary
 	if err := compile(
 		ctx,
 		append(mageFiles, mainFilename),
 	); err != nil {
 		panic(err)
 	}
-	buffers, err := generateMakeTargets(pkg)
-	if err != nil {
-		panic(err)
-	}
-
-	namespaces := make([]string, 0, len(makefiles))
-	for k := range makefiles {
-		namespaces = append(namespaces, k)
-	}
-	sort.Strings(namespaces)
-
-	// Add target for non-root makefile to default makefile
-	for _, ns := range namespaces {
-		if ns != defaultNamespace {
-			mk := makefiles[ns]
-			if defaultBuf, ok := buffers[defaultNamespace]; ok {
-				if strings.Contains(string(defaultBuf), fmt.Sprintf(".PHONY: %s\n", ns)) {
-					panic(fmt.Errorf("can't create target for makefile, %s already exist", ns))
-				}
-				mkPath, err := filepath.Rel(FromGitRoot("."), filepath.Dir(mk.Path))
-				if err != nil {
-					panic(err)
-				}
-				mkTarget := []byte(fmt.Sprintf(`
-.PHONY: %s
-%s:
-	make -C %s
-
-`, toMakeTarget(ns), toMakeTarget(ns), mkPath))
-				buffers[defaultNamespace] = append(defaultBuf, mkTarget...)
-			}
-		}
-	}
-	// Write non-root makefiles
-	for _, ns := range namespaces {
-		if buf, ok := buffers[ns]; ok {
-			mk := makefiles[ns]
-			if err := os.WriteFile(mk.Path, buf[:len(buf)-1], 0o600); err != nil {
-				panic(err)
-			}
-		}
-	}
-}
-
-func generateMakeTargets(targets *doc.Package) (map[string][]byte, error) {
-	buffers := make(map[string][]byte)
-	for k, v := range makefiles {
+	// Generate makefiles
+	for _, v := range makefiles {
 		mk := codegen.NewMakefile(codegen.FileConfig{
 			GeneratedBy: "go.einride.tech/mage-tools",
 		})
-		// nolint: gosec
-		if err := generateMakefile(mk, targets, &v, k); err != nil {
+
+		if err := generateMakefile(mk, pkg, v); err != nil {
 			panic(err)
 		}
-		buffers[k] = mk.Bytes()
+		// Remove trailing whitespace with len
+		if err := os.WriteFile(v.Path, mk.Bytes()[:len(mk.Bytes())-1], 0o600); err != nil {
+			panic(err)
+		}
 	}
-	return buffers, nil
 }
 
 func parsePackage(path string) (*doc.Package, error) {
