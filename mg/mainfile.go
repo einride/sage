@@ -139,7 +139,7 @@ func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespa
 		}
 	}
 	for _, namespace := range pkg.Types {
-		if !ast.IsExported(namespace.Name) || !isNamespace2(namespace) {
+		if !ast.IsExported(namespace.Name) || !isNamespace(namespace) {
 			continue
 		}
 		for _, function := range namespace.Methods {
@@ -190,7 +190,7 @@ func isContextParam(param *ast.Field) bool {
 	return ident.Name == "context" && selectorExpr.Sel.Name == "Context"
 }
 
-func isNamespace2(t *doc.Type) bool {
+func isNamespace(t *doc.Type) bool {
 	if len(t.Decl.Specs) != 1 {
 		return false
 	}

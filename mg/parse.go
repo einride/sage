@@ -132,25 +132,6 @@ func setNamespaces(pi *PkgInfo) {
 	}
 }
 
-func isNamespace(t *doc.Type) bool {
-	if len(t.Decl.Specs) != 1 {
-		return false
-	}
-	id, ok := t.Decl.Specs[0].(*ast.TypeSpec)
-	if !ok {
-		return false
-	}
-	sel, ok := id.Type.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-	ident, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	return ident.Name == "mg" && sel.Sel.Name == "Namespace"
-}
-
 func hasContextParam(ft *ast.FuncType) bool {
 	if ft.Params.NumFields() == 0 {
 		return false
