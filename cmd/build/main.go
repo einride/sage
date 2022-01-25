@@ -19,7 +19,7 @@ func main() {
 	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-build"))
 	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
 	mageDir := mgpath.FromMageDir()
-	makeGenGo := filepath.Join(mageDir, "mgmake_gen.go")
+	makeGenGo := filepath.Join(mageDir, mgpath.MakeGenGo)
 	if err := os.WriteFile(makeGenGo, mgmakeGen, 0o600); err != nil {
 		panic(err)
 	}

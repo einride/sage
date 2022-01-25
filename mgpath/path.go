@@ -14,6 +14,7 @@ const (
 	ToolsDir       = "tools"
 	BinDir         = "bin"
 	MagefileBinary = "bin/magefile"
+	MakeGenGo      = "mgmake_gen.go"
 )
 
 func FromWorkDir(pathElems ...string) string {

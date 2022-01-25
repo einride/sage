@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -71,18 +70,14 @@ func GenerateMakefiles(mks ...Makefile) {
 }
 
 // compile uses the go tool to compile the files into an executable at path.
-func compile(magePath, compileTo string, gofiles []string) error {
-	// strip off the path since we're setting the path in the build command
-	for i := range gofiles {
-		gofiles[i] = filepath.Base(gofiles[i])
+func compile(ctx context.Context, files []string) error {
+	for file := range files {
+		files[file] = filepath.Base(files[file])
 	}
-	// nolint: gosec
-	c := exec.Command("go", append([]string{"build", "-o", compileTo}, gofiles...)...)
-	c.Env = os.Environ()
-	c.Stderr = os.Stderr
-	c.Stdout = os.Stdout
-	c.Dir = magePath
-	if err := c.Run(); err != nil {
+	cmd := mgtool.Command(ctx, "go", "build", "-o", mgpath.FromToolsDir(mgpath.MagefileBinary))
+	cmd.Args = append(cmd.Args, files...)
+	cmd.Dir = mgpath.FromMageDir()
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error compiling magefiles: %w", err)
 	}
 	return nil
@@ -97,8 +92,8 @@ func GenMakefiles(ctx context.Context) {
 	var mageFiles []string
 	if err := filepath.WalkDir(mageDir, func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ".go" {
-			if filepath.Base(path) != "mgmake_gen.go" {
-				mageFiles = append(mageFiles, filepath.Base(path))
+			if filepath.Base(path) != mgpath.MakeGenGo {
+				mageFiles = append(mageFiles, path)
 			}
 		}
 		return nil
@@ -111,7 +106,6 @@ func GenMakefiles(ctx context.Context) {
 	}
 	sort.Sort(targets.Funcs)
 	// compile binary
-	executable := mgpath.FromToolsDir(mgpath.MagefileBinary)
 	mainFilename := mgpath.FromMageDir("generating_magefile.go")
 	mainFile := codegen.NewFile(codegen.FileConfig{
 		Filename:    mainFilename,
@@ -130,8 +124,7 @@ func GenMakefiles(ctx context.Context) {
 	}
 	//defer os.Remove(mainFilename)
 	if err := compile(
-		mgpath.FromMageDir(),
-		executable,
+		ctx,
 		append(mageFiles, mainFilename),
 	); err != nil {
 		panic(err)
