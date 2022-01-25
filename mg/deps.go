@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -96,11 +95,6 @@ func checkFns(fns []interface{}) []Fn {
 		funcs[i] = F(f)
 	}
 	return funcs
-}
-
-// funcName returns the unique name for the function.
-func funcName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
 func displayName(name string) string {

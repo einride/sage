@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"runtime"
 )
 
 // Fn represents a function that can be run with mg.Deps. Package, Name, and ID must combine to
@@ -29,7 +30,7 @@ func F(target interface{}, args ...interface{}) Fn {
 		panic(err)
 	}
 	return fn{
-		name: funcName(target),
+		name: runtime.FuncForPC(reflect.ValueOf(target).Pointer()).Name(),
 		f: func(ctx context.Context) error {
 			v := reflect.ValueOf(target)
 			count := len(args)
@@ -85,26 +86,21 @@ func checkF(target interface{}, args []interface{}) (hasContext, isNamespace boo
 	if t == nil || t.Kind() != reflect.Func {
 		return false, false, fmt.Errorf("non-function passed to mg.F: %T", target)
 	}
-
 	if t.NumOut() > 1 {
 		return false, false, fmt.Errorf("target has too many return values, must be zero or just an error: %T", target)
 	}
 	if t.NumOut() == 1 && t.Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
 		return false, false, fmt.Errorf("target's return value is not an error")
 	}
-
 	// more inputs than slots is always an error
 	if len(args) > t.NumIn() {
 		return false, false, fmt.Errorf("too many arguments for target, got %d for %T", len(args), target)
 	}
-
 	if t.NumIn() == 0 {
 		return false, false, nil
 	}
-
 	x := 0
 	inputs := t.NumIn()
-
 	if t.In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
 		// nameSpace func
 		isNamespace = true
@@ -115,19 +111,15 @@ func checkF(target interface{}, args []interface{}) (hasContext, isNamespace boo
 	if t.NumIn() > x && t.In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
 		// callers must leave off the context
 		inputs--
-
 		// let the upper function know it should pass us a context.
 		hasContext = true
-
 		// skip checking the first argument in the below loop if it's a context, since first arg is
 		// special.
 		x++
 	}
-
 	if len(args) != inputs {
 		return false, false, fmt.Errorf("wrong number of arguments for target, got %d for %T", len(args), target)
 	}
-
 	for _, arg := range args {
 		argT := t.In(x)
 		switch argT {
