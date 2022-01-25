@@ -20,9 +20,9 @@ func main() {
 		fmt.Println("\tFormatYAML")
 		fmt.Println("\tGitVerifyNoDiff")
 		fmt.Println("\tGoModTidy")
+		fmt.Println("\tGoReview")
 		fmt.Println("\tGoTest")
 		fmt.Println("\tGolangciLint")
-		fmt.Println("\tGoreview")
 		fmt.Println("\tHelloWorld")
 	}
 }

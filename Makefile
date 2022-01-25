@@ -36,6 +36,10 @@ git-verify-no-diff: $(magefile)
 go-mod-tidy: $(magefile)
 	@$(magefile) GoModTidy
 
+.PHONY: go-review
+go-review: $(magefile)
+	@$(magefile) GoReview
+
 .PHONY: go-test
 go-test: $(magefile)
 	@$(magefile) GoTest
@@ -43,10 +47,6 @@ go-test: $(magefile)
 .PHONY: golangci-lint
 golangci-lint: $(magefile)
 	@$(magefile) GolangciLint
-
-.PHONY: goreview
-goreview: $(magefile)
-	@$(magefile) Goreview
 
 .PHONY: hello-world
 hello-world: $(magefile)

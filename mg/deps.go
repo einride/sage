@@ -13,59 +13,9 @@ import (
 	"go.einride.tech/mage-tools/mglogr"
 )
 
-type onceMap struct {
-	mu *sync.Mutex
-	m  map[onceKey]*onceFun
-}
-
-type onceKey struct {
-	Name string
-	ID   string
-}
-
-func (o *onceMap) LoadOrStore(f Fn) *onceFun {
-	defer o.mu.Unlock()
-	o.mu.Lock()
-
-	key := onceKey{
-		Name: f.Name(),
-		ID:   f.ID(),
-	}
-	existing, ok := o.m[key]
-	if ok {
-		return existing
-	}
-	one := &onceFun{
-		once:        &sync.Once{},
-		fn:          f,
-		displayName: displayName(f.Name()),
-	}
-	o.m[key] = one
-	return one
-}
-
-// nolint: gochecknoglobals
-var onces = &onceMap{
-	mu: &sync.Mutex{},
-	m:  map[onceKey]*onceFun{},
-}
-
-// SerialDeps is like Deps except it runs each dependency serially, instead of
-// in parallel. This can be useful for resource intensive dependencies that
-// shouldn't be run at the same time.
-func SerialDeps(ctx context.Context, fns ...interface{}) {
-	funcs := checkFns(fns)
-	for i := range fns {
-		runDeps(ctx, funcs[i:i+1])
-	}
-}
-
 // Deps runs the given functions as dependencies of the calling function.
-// Dependencies must only be of type:
-//     func()
-//     func() error
-//     func(context.Context)
-//     func(context.Context) error
+//
+// Dependencies must only be of type func(context.Context) error.
 // Or a similar method on a mg.Namespace type.
 // Or an mg.Fn interface.
 //
@@ -76,15 +26,10 @@ func SerialDeps(ctx context.Context, fns ...interface{}) {
 // prototype allows for it.
 func Deps(ctx context.Context, fns ...interface{}) {
 	funcs := checkFns(fns)
-	runDeps(ctx, funcs)
-}
-
-// runDeps assumes you've already called checkFns.
-func runDeps(ctx context.Context, fns []Fn) {
-	mu := &sync.Mutex{}
+	var mu sync.Mutex
 	errs := make(map[string]error)
-	wg := &sync.WaitGroup{}
-	for _, f := range fns {
+	var wg sync.WaitGroup
+	for _, f := range funcs {
 		fn := onces.LoadOrStore(f)
 		wg.Add(1)
 		go func() {
@@ -103,7 +48,6 @@ func runDeps(ctx context.Context, fns []Fn) {
 			}
 		}()
 	}
-
 	wg.Wait()
 	if len(errs) > 0 {
 		for name, err := range errs {
@@ -113,6 +57,40 @@ func runDeps(ctx context.Context, fns []Fn) {
 	}
 }
 
+type onceMap struct {
+	mu sync.Mutex
+	m  map[onceKey]*onceFun
+}
+
+type onceKey struct {
+	Name string
+	ID   string
+}
+
+func (o *onceMap) LoadOrStore(f Fn) *onceFun {
+	defer o.mu.Unlock()
+	o.mu.Lock()
+	key := onceKey{
+		Name: f.Name(),
+		ID:   f.ID(),
+	}
+	existing, ok := o.m[key]
+	if ok {
+		return existing
+	}
+	one := &onceFun{
+		fn:          f,
+		displayName: displayName(f.Name()),
+	}
+	o.m[key] = one
+	return one
+}
+
+// nolint: gochecknoglobals
+var onces = &onceMap{
+	m: map[onceKey]*onceFun{},
+}
+
 func checkFns(fns []interface{}) []Fn {
 	funcs := make([]Fn, len(fns))
 	for i, f := range fns {
@@ -120,13 +98,11 @@ func checkFns(fns []interface{}) []Fn {
 			funcs[i] = fn
 			continue
 		}
-
 		// Check if the target provided is a not function so we can give a clear warning
 		t := reflect.TypeOf(f)
 		if t == nil || t.Kind() != reflect.Func {
 			panic(fmt.Errorf("non-function used as a target dependency: %T", f))
 		}
-
 		funcs[i] = F(f)
 	}
 	return funcs
@@ -146,10 +122,9 @@ func displayName(name string) string {
 }
 
 type onceFun struct {
-	once *sync.Once
-	fn   Fn
-	err  error
-
+	once        sync.Once
+	fn          Fn
+	err         error
 	displayName string
 }
 

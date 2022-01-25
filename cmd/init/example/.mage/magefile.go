@@ -27,20 +27,9 @@ func init() {
 }
 
 func All(ctx context.Context) error {
-	mg.Deps(
-		ctx,
-		ConvcoCheck,
-		GolangciLint,
-		Goreview,
-		GoTest,
-		FormatMarkdown,
-		FormatYAML,
-	)
-	mg.SerialDeps(
-		ctx,
-		GoModTidy,
-		GitVerifyNoDiff,
-	)
+	mg.Deps(ctx, ConvcoCheck, GolangciLint, GoReview, GoTest, FormatMarkdown, FormatYAML)
+	mg.Deps(ctx, GoModTidy)
+	mg.Deps(ctx, GitVerifyNoDiff)
 	return nil
 }
 
@@ -59,7 +48,7 @@ func GoTest(ctx context.Context) error {
 	return mggo.TestCommand(ctx).Run()
 }
 
-func Goreview(ctx context.Context) error {
+func GoReview(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("reviewing Go files...")
 	return mggoreview.Command(ctx, "-c", "1", "./...").Run()
 }
