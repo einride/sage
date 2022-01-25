@@ -6,6 +6,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+
+	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mglogr"
 )
 
 func main() {
@@ -24,5 +28,110 @@ func main() {
 		fmt.Println("\tGoTest")
 		fmt.Println("\tGolangciLint")
 		fmt.Println("\tHelloWorld")
+		return
+	}
+	for x := 0; x < len(args); {
+		target := args[x]
+		x++
+		switch target {
+		case "All":
+			ctx = logr.NewContext(ctx, mglogr.New("All"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := All(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "ConvcoCheck":
+			ctx = logr.NewContext(ctx, mglogr.New("ConvcoCheck"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := ConvcoCheck(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "FormatMarkdown":
+			ctx = logr.NewContext(ctx, mglogr.New("FormatMarkdown"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := FormatMarkdown(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "FormatYAML":
+			ctx = logr.NewContext(ctx, mglogr.New("FormatYAML"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := FormatYAML(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "GitVerifyNoDiff":
+			ctx = logr.NewContext(ctx, mglogr.New("GitVerifyNoDiff"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := GitVerifyNoDiff(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "GoModTidy":
+			ctx = logr.NewContext(ctx, mglogr.New("GoModTidy"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := GoModTidy(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "GoTest":
+			ctx = logr.NewContext(ctx, mglogr.New("GoTest"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := GoTest(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "GolangciLint":
+			ctx = logr.NewContext(ctx, mglogr.New("GolangciLint"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := GolangciLint(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "Goreview":
+			ctx = logr.NewContext(ctx, mglogr.New("Goreview"))
+			logger := logr.FromContextOrDiscard(ctx)
+			if err := Goreview(ctx); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		case "HelloWorld":
+			ctx = logr.NewContext(ctx, mglogr.New("HelloWorld"))
+			logger := logr.FromContextOrDiscard(ctx)
+			expected := x + 0
+			if expected > len(args) {
+				logger.Info(
+					"not enough arguments for target \"HelloWorld\" expected %v, got %s\n",
+					expected-1,
+					len(args)-1,
+				)
+				os.Exit(1)
+			}
+			arg0, err := strconv.Atoi(args[x])
+			if err != nil {
+				logger.Error(err, "can't convert argument %q to int\n", args[x])
+				os.Exit(1)
+			}
+			x++
+			arg1 := args[x]
+			x++
+			arg2, err := strconv.ParseBool(args[x])
+			if err != nil {
+				logger.Error(err, "can't convert argument %q to bool\n", args[x])
+				os.Exit(1)
+			}
+			x++
+			if err := HelloWorld(ctx, arg0, arg1, arg2); err != nil {
+				logger.Error(err, err.Error())
+				os.Exit(1)
+			}
+		default:
+			ctx = logr.NewContext(ctx, mglogr.New("magefile"))
+			logger := logr.FromContextOrDiscard(ctx)
+			logger.Info("Unknown target specified: %q\n", target)
+			os.Exit(1)
+		}
 	}
 }

@@ -122,7 +122,7 @@ func GenMakefiles(ctx context.Context) {
 	if err := os.WriteFile(mainFilename, mainFileContent, 0o600); err != nil {
 		panic(err)
 	}
-	//defer os.Remove(mainFilename)
+	// defer os.Remove(mainFilename)
 	if err := compile(
 		ctx,
 		append(mageFiles, mainFilename),
