@@ -3,6 +3,7 @@ package mg
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
@@ -81,24 +82,23 @@ func Deps(ctx context.Context, fns ...interface{}) {
 // runDeps assumes you've already called checkFns.
 func runDeps(ctx context.Context, fns []Fn) {
 	mu := &sync.Mutex{}
-	var errs []string
+	errs := make(map[string]error)
 	wg := &sync.WaitGroup{}
 	for _, f := range fns {
 		fn := onces.LoadOrStore(f)
 		wg.Add(1)
 		go func() {
+			ctx = logr.NewContext(ctx, mglogr.New(fn.displayName))
 			defer func() {
 				if v := recover(); v != nil {
-					mu.Lock()
-					errs = append(errs, fmt.Sprint(v))
+					errs[fn.displayName] = fmt.Errorf(fmt.Sprint(v))
 					mu.Unlock()
 				}
 				wg.Done()
 			}()
-			ctx = logr.NewContext(ctx, mglogr.New(fn.displayName))
 			if err := fn.run(ctx); err != nil {
 				mu.Lock()
-				errs = append(errs, fmt.Sprint(err))
+				errs[fn.displayName] = err
 				mu.Unlock()
 			}
 		}()
@@ -106,7 +106,10 @@ func runDeps(ctx context.Context, fns []Fn) {
 
 	wg.Wait()
 	if len(errs) > 0 {
-		panic(fmt.Errorf(strings.Join(errs, "\n")))
+		for name, err := range errs {
+			mglogr.New(name).Error(err, err.Error())
+		}
+		os.Exit(1)
 	}
 }
 

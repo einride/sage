@@ -80,7 +80,7 @@ func (f Function) ExecCode() string {
 			parseargs += fmt.Sprintf(`
 				arg%d, err := strconv.Atoi(args[x])
 				if err != nil {
-					logger.Info("can't convert argument %%q to int\n", args[x])
+					logger.Error(err, "can't convert argument %%q to int\n", args[x])
 					os.Exit(1)
 				}
 				x++`, x)
@@ -88,7 +88,7 @@ func (f Function) ExecCode() string {
 			parseargs += fmt.Sprintf(`
 				arg%d, err := strconv.ParseBool(args[x])
 				if err != nil {
-					logger.Info convert argument %%q to bool\n", args[x])
+					logger.Error(err, "convert argument %%q to bool\n", args[x])
 					os.Exit(1)
 				}
 				x++`, x)
@@ -104,7 +104,7 @@ func (f Function) ExecCode() string {
 	}
 	out += strings.Join(args, ", ")
 	out += `); err != nil {
-				logger.Info(err.Error())
+				logger.Error(err, err.Error())
 				os.Exit(1)	
 			}`
 	return out
