@@ -358,7 +358,7 @@ func CreateSymlink(src string) (string, error) {
 	if err := os.MkdirAll(mgpath.FromBinDir(), 0o755); err != nil {
 		return "", err
 	}
-	if _, err := os.Stat(symlink); err == nil {
+	if _, err := os.Lstat(symlink); err == nil {
 		if err := os.Remove(symlink); err != nil {
 			return "", err
 		}
