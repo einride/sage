@@ -83,3 +83,8 @@ func GitVerifyNoDiff(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("verifying that git has no diff...")
 	return mggit.VerifyNoDiff(ctx)
 }
+
+func HelloWorld(ctx context.Context, a int, b string) error {
+	logr.FromContextOrDiscard(ctx).Info("hello world", "a", a, "b", b)
+	return nil
+}

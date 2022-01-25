@@ -76,7 +76,7 @@ func (f Function) ExecCode() string {
 		case "string":
 			parseargs += fmt.Sprintf(`
 			arg%d := args[x]
-			x++`, x)
+			x++`+"\n", x)
 		case "int":
 			parseargs += fmt.Sprintf(`
 				arg%d, err := strconv.Atoi(args[x])

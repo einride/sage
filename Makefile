@@ -47,3 +47,13 @@ golangci-lint: $(magefile)
 .PHONY: goreview
 goreview: $(magefile)
 	@$(magefile) Goreview
+
+.PHONY: hello-world
+hello-world: $(magefile)
+ifndef a
+	$(error missing argument a="...")
+endif
+ifndef b
+	$(error missing argument b="...")
+endif
+	@$(magefile) HelloWorld $(a) $(b)
