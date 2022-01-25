@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"go.einride.tech/mage-tools/mg"
 	"io/fs"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
 
+	"go.einride.tech/mage-tools/mg"
 	"gopkg.in/yaml.v3"
 )
 

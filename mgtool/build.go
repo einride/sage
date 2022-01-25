@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"go.einride.tech/mage-tools/mg"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mg"
 )
 
 func GoInstall(ctx context.Context, pkg, version string) (string, error) {

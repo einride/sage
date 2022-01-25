@@ -6,12 +6,14 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"go.einride.tech/mage-tools/mg"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"go.einride.tech/mage-tools/mg"
+
 	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mglogr"
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 	"gopkg.in/yaml.v3"

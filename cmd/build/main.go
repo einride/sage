@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	_ "embed"
-	"go.einride.tech/mage-tools/mg"
 	"os"
 	"path/filepath"
 
 	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mglogr"
 )
 

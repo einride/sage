@@ -103,6 +103,25 @@ func GenMakefiles(ctx context.Context) {
 	}
 	sort.Sort(targets.Funcs)
 	// compile binary
+	for _, v := range makefiles {
+		makefileName := FromMageDir("Makefile")
+		makefile2 := codegen.NewMakefile(codegen.FileConfig{
+			Filename:    makefileName,
+			Package:     targets.DocPkg.Name,
+			GeneratedBy: "go.einride.tech/mage-tools",
+		})
+		if err := generateMakefile(makefile2, targets.DocPkg, &v); err != nil {
+			panic(err)
+		}
+		makefileContent := makefile2.Bytes()
+		if err != nil {
+			panic(err)
+		}
+		if err := os.WriteFile(makefileName, makefileContent, 0o600); err != nil {
+			panic(err)
+		}
+	}
+
 	mainFilename := FromMageDir("generating_magefile.go")
 	mainFile := codegen.NewFile(codegen.FileConfig{
 		Filename:    mainFilename,

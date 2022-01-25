@@ -2,10 +2,11 @@ package mggo
 
 import (
 	"context"
-	"go.einride.tech/mage-tools/mg"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"go.einride.tech/mage-tools/mg"
 )
 
 func TestCommand(ctx context.Context) *exec.Cmd {

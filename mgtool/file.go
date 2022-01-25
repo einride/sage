@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.einride.tech/mage-tools/mg"
 	"io"
 	"io/fs"
 	"net/http"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
+	"go.einride.tech/mage-tools/mg"
 )
 
 type archiveType int
