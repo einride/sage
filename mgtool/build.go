@@ -24,7 +24,7 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 	}
 	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
 	logr.FromContextOrDiscard(ctx).Info("building...", "pkg", pkgVersion)
-	cmd := Command(ctx, "go", "install", pkgVersion)
+	cmd := mg.Command(ctx, "go", "install", pkgVersion)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -39,7 +39,7 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 // GoInstallWithModfile builds and installs a go binary given the package and a path
 // to the local go.mod file.
 func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error) {
-	cmd := Command(ctx, "go", "list", "-f", "{{.Module.Version}}", pkg)
+	cmd := mg.Command(ctx, "go", "list", "-f", "{{.Module.Version}}", pkg)
 	cmd.Dir = filepath.Dir(file)
 	var b bytes.Buffer
 	cmd.Stdout = &b
@@ -60,7 +60,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 		return symlink, nil
 	}
 	logr.FromContextOrDiscard(ctx).Info("building", "pkg", pkg)
-	cmd = Command(ctx, "go", "install", pkg+"@"+version)
+	cmd = mg.Command(ctx, "go", "install", pkg+"@"+version)
 	cmd.Dir = filepath.Dir(file)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {

@@ -34,7 +34,7 @@ var (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, mg.F(Prepare.Commitlint, commitlintrc))
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 func LintCommand(ctx context.Context, branch string) *exec.Cmd {
@@ -46,7 +46,7 @@ func LintCommand(ctx context.Context, branch string) *exec.Cmd {
 		"--to",
 		"HEAD",
 	}
-	if err := mgtool.Command(ctx, "git", "fetch", "--tags").Run(); err != nil {
+	if err := mg.Command(ctx, "git", "fetch", "--tags").Run(); err != nil {
 		panic(err)
 	}
 	return Command(ctx, args...)
@@ -73,7 +73,7 @@ func (Prepare) Commitlint(ctx context.Context) error {
 	}
 	commandPath = symlink
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
-	return mgtool.Command(
+	return mg.Command(
 		ctx,
 		"npm",
 		"--silent",

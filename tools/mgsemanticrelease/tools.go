@@ -26,7 +26,7 @@ var commandPath string
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
 	mg.Deps(ctx, mg.F(Prepare.SemanticRelease, branch))
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
@@ -90,7 +90,7 @@ func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
 	}
 	commandPath = symlink
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
-	return mgtool.Command(
+	return mg.Command(
 		ctx,
 		"npm",
 		"--silent",

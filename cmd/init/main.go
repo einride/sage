@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mglogr"
-	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 	"gopkg.in/yaml.v3"
 )
@@ -47,12 +46,12 @@ func main() {
 			panic(err)
 		}
 	}
-	cmd := mgtool.Command(ctx, "go", "mod", "init", "mage-tools")
+	cmd := mg.Command(ctx, "go", "mod", "init", "mage-tools")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
-	cmd = mgtool.Command(ctx, "go", "mod", "tidy")
+	cmd = mg.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)
@@ -73,7 +72,7 @@ func main() {
 		panic(err)
 	}
 	// Generate make targets
-	cmd = mgtool.Command(ctx, "go", "run", "go.einride.tech/mage-tools/cmd/build")
+	cmd = mg.Command(ctx, "go", "run", "go.einride.tech/mage-tools/cmd/build")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)

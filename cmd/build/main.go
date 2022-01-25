@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mglogr"
-	"go.einride.tech/mage-tools/mgtool"
 )
 
 //go:embed gen/mgmake_gen.go
@@ -28,12 +27,12 @@ func main() {
 			panic(err)
 		}
 	}()
-	cmd := mgtool.Command(ctx, "go", "mod", "tidy")
+	cmd := mg.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
-	cmd = mgtool.Command(ctx, "go", "run", ".")
+	cmd = mg.Command(ctx, "go", "run", ".")
 	cmd.Dir = mageDir
 	if err := cmd.Run(); err != nil {
 		panic(err)

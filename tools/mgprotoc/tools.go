@@ -19,7 +19,7 @@ var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.Protoc)
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 type Prepare mgtool.Prepare

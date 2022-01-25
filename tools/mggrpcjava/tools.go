@@ -20,7 +20,7 @@ var commandPath string
 
 func Command(ctx context.Context) *exec.Cmd {
 	mg.Deps(ctx, Prepare.ProtocGenGrpcJava)
-	return mgtool.Command(ctx, commandPath)
+	return mg.Command(ctx, commandPath)
 }
 
 type Prepare mgtool.Prepare

@@ -21,7 +21,7 @@ type Prepare mgtool.Prepare
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.GoogleCloudProtoScrubber)
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {

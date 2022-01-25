@@ -16,7 +16,6 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"go.einride.tech/mage-tools/internal/codegen"
-	"go.einride.tech/mage-tools/mgtool"
 )
 
 const defaultNamespace = "default"
@@ -72,7 +71,7 @@ func compile(ctx context.Context, files []string) error {
 	for file := range files {
 		files[file] = filepath.Base(files[file])
 	}
-	cmd := mgtool.Command(ctx, "go", "build", "-o", FromToolsDir(MagefileBinary))
+	cmd := Command(ctx, "go", "build", "-o", FromToolsDir(MagefileBinary))
 	cmd.Args = append(cmd.Args, files...)
 	cmd.Dir = FromMageDir()
 	if err := cmd.Run(); err != nil {
@@ -180,7 +179,7 @@ func createMakefile(ctx context.Context, makefilePath, target string, data []byt
 	if target != "" {
 		target = fmt.Sprintf("\n\n.DEFAULT_GOAL := %s", toMakeTarget(target))
 	}
-	cmd := mgtool.Command(ctx, "go", "list", "-m")
+	cmd := Command(ctx, "go", "list", "-m")
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	if err := cmd.Run(); err != nil {

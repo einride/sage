@@ -23,11 +23,11 @@ var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.Hadolint)
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 func RunCommand(ctx context.Context) *exec.Cmd {
-	cmd := mgtool.Command(ctx, "git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
+	cmd := mg.Command(ctx, "git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	if err := cmd.Run(); err != nil {

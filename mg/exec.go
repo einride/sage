@@ -1,9 +1,8 @@
-package mgtool
+package mg
 
 import (
 	"context"
 	"fmt"
-	"go.einride.tech/mage-tools/mg"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,7 +13,7 @@ func Command(_ context.Context, path string, args ...string) *exec.Cmd {
 	// TODO: use exec.CommandContext when we have determined there are no side-effects.
 	cmd := exec.Command(path)
 	cmd.Args = append(cmd.Args, args...)
-	cmd.Dir = mg.FromGitRoot(".")
+	cmd.Dir = FromGitRoot(".")
 	cmd.Env = os.Environ()
 	// TODO: Pipe stdout/stderr through the current context logger to get tagged output.
 	cmd.Stderr = os.Stderr

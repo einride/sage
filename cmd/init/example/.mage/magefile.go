@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgconvco"
 	"go.einride.tech/mage-tools/tools/mggit"
 	"go.einride.tech/mage-tools/tools/mggo"
@@ -37,7 +36,7 @@ func FormatYAML(ctx context.Context) error {
 
 func GoModTidy(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("tidying Go module files...")
-	return mgtool.Command(ctx, "go", "mod", "tidy", "-v").Run()
+	return mg.Command(ctx, "go", "mod", "tidy", "-v").Run()
 }
 
 func GoTest(ctx context.Context) error {

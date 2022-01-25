@@ -6,8 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"go.einride.tech/mage-tools/mgtool"
 )
 
 func TestCommand(ctx context.Context) *exec.Cmd {
@@ -15,7 +13,7 @@ func TestCommand(ctx context.Context) *exec.Cmd {
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		panic(err)
 	}
-	return mgtool.Command(
+	return mg.Command(
 		ctx,
 		"go",
 		"test",

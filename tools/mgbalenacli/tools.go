@@ -20,7 +20,7 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.Balena)
-	return mgtool.Command(ctx, mg.FromBinDir(binaryName), args...)
+	return mg.Command(ctx, mg.FromBinDir(binaryName), args...)
 }
 
 func Whoami(ctx context.Context) (WhoamiInfo, error) {

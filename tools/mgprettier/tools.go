@@ -30,7 +30,7 @@ var (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	mg.Deps(ctx, Prepare.Prettier)
-	return mgtool.Command(ctx, commandPath, args...)
+	return mg.Command(ctx, commandPath, args...)
 }
 
 func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
@@ -76,7 +76,7 @@ func (Prepare) Prettier(ctx context.Context) error {
 	}
 	commandPath = symlink
 	logr.FromContextOrDiscard(ctx).Info("installing packages...")
-	return mgtool.Command(
+	return mg.Command(
 		ctx,
 		"npm",
 		"--silent",
