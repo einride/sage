@@ -16,6 +16,7 @@ import (
 	"unicode"
 
 	"github.com/iancoleman/strcase"
+	"go.einride.tech/mage-tools/internal/codegen"
 	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
@@ -111,19 +112,30 @@ func GenMakefiles(ctx context.Context) {
 	sort.Sort(targets.Funcs)
 	// compile binary
 	executable := mgpath.FromToolsDir(mgpath.MagefileBinary)
-	genMagefile := mgpath.FromMageDir("generating_magefile.go")
-	if err := generateMainFile(genMagefile, targets); err != nil {
+	mainFilename := mgpath.FromMageDir("generating_magefile.go")
+	mainFile := codegen.NewFile(codegen.FileConfig{
+		Filename:    mainFilename,
+		Package:     targets.DocPkg.Name,
+		GeneratedBy: "go.einride.tech/mage-tools",
+	})
+	if err := generateMainFile2(targets.DocPkg, mainFile); err != nil {
 		panic(err)
 	}
-	defer os.Remove(genMagefile)
+	mainFileContent, err := mainFile.Content()
+	if err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile(mainFilename, mainFileContent, 0o600); err != nil {
+		panic(err)
+	}
+	//defer os.Remove(mainFilename)
 	if err := compile(
 		mgpath.FromMageDir(),
 		executable,
-		append(mageFiles, genMagefile),
+		append(mageFiles, mainFilename),
 	); err != nil {
 		panic(err)
 	}
-
 	buffers, err := generateMakeTargets(targets.Funcs)
 	if err != nil {
 		panic(err)

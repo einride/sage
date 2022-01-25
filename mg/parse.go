@@ -6,6 +6,7 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"sort"
 	"strings"
 )
@@ -113,7 +114,9 @@ func (f Function) ExecCode() string {
 // Package compiles information about a mage package.
 func Package(path string) (*PkgInfo, error) {
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
+	pkgs, err := parser.ParseDir(fset, path, func(info fs.FileInfo) bool {
+		return info.Name() != "mgmake_gen.go"
+	}, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse directory: %v", err)
 	}
@@ -250,4 +253,62 @@ func funcType(ft *ast.FuncType) (*Function, error) {
 		}
 	}
 	return f, nil
+}
+
+func isSupportedTargetParams(params []*ast.Field) bool {
+	if len(params) == 0 {
+		return false
+	}
+	if !isContextParam(params[0]) {
+		return false
+	}
+	for _, customParam := range params[1:] {
+		if !isSupportedCustomParam(customParam) {
+			return false
+		}
+	}
+	return true
+}
+
+func isSupportedCustomParam(arg *ast.Field) bool {
+	switch fmt.Sprint(arg.Type) {
+	case "string", "int", "bool":
+		return true
+	default:
+		return false
+	}
+}
+
+func isContextParam(param *ast.Field) bool {
+	selectorExpr, ok := param.Type.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+	ident, ok := selectorExpr.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	return ident.Name == "context" && selectorExpr.Sel.Name == "Context"
+}
+
+func isContextType(ft *ast.FuncType) bool {
+	if ft.Params.NumFields() == 0 {
+		return false
+	}
+	param := ft.Params.List[0]
+	sel, ok := param.Type.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+	pkg, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	if pkg.Name != "context" {
+		return false
+	}
+	if sel.Sel.Name != "Context" {
+		return false
+	}
+	return true
 }

@@ -75,7 +75,7 @@ func (f *File) Content() (_ []byte, err error) {
 	if f.err != nil {
 		return nil, fmt.Errorf("content of %s: %w", f.cfg.Filename, f.err)
 	}
-	content := bytes.Replace(f.buf.Bytes(), []byte("import ()\n"), f.imports.Bytes(), 1)
+	content := bytes.Replace(f.buf.Bytes(), []byte("import ()"), f.imports.Bytes(), 1)
 	fileSet := token.NewFileSet()
 	file, err := parser.ParseFile(fileSet, f.cfg.Filename, content, parser.ParseComments)
 	if err != nil {
