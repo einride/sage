@@ -6,7 +6,7 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"os"
+	"io/fs"
 	"sort"
 	"strings"
 )
@@ -114,9 +114,36 @@ func (f Function) ExecCode() string {
 // Package compiles information about a mage package.
 func Package(path string, files []string) (*PkgInfo, error) {
 	fset := token.NewFileSet()
-	pkg, err := getPackage(path, files, fset)
+	pkgs, err := parser.ParseDir(
+		fset,
+		path,
+		func(info fs.FileInfo) bool {
+			for _, f := range files {
+				if info.Name() == f {
+					return true
+				}
+			}
+			return false
+		},
+		parser.ParseComments,
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse directory: %v", err)
+	}
+	var pkg *ast.Package
+	switch len(pkgs) {
+	case 1:
+		for _, p := range pkgs {
+			pkg = p
+		}
+	case 0:
+		return nil, fmt.Errorf("no importable packages found in %s", path)
+	default:
+		var names []string
+		for name := range pkgs {
+			names = append(names, name)
+		}
+		return nil, fmt.Errorf("multiple packages found in %s: %v", path, strings.Join(names, ", "))
 	}
 	p := doc.New(pkg, "./", 0)
 	pi := &PkgInfo{
@@ -182,42 +209,6 @@ func isNamespace(t *doc.Type) bool {
 		return false
 	}
 	return ident.Name == "mg" && sel.Sel.Name == "Namespace"
-}
-
-// getPackage returns the importable package at the given path.
-func getPackage(path string, files []string, fset *token.FileSet) (*ast.Package, error) {
-	var filter func(f os.FileInfo) bool
-	if len(files) > 0 {
-		fm := make(map[string]bool, len(files))
-		for _, f := range files {
-			fm[f] = true
-		}
-
-		filter = func(f os.FileInfo) bool {
-			return fm[f.Name()]
-		}
-	}
-
-	pkgs, err := parser.ParseDir(fset, path, filter, parser.ParseComments)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse directory: %v", err)
-	}
-
-	switch len(pkgs) {
-	case 1:
-		var pkg *ast.Package
-		for _, pkg = range pkgs {
-		}
-		return pkg, nil
-	case 0:
-		return nil, fmt.Errorf("no importable packages found in %s", path)
-	default:
-		var names []string
-		for name := range pkgs {
-			names = append(names, name)
-		}
-		return nil, fmt.Errorf("multiple packages found in %s: %v", path, strings.Join(names, ", "))
-	}
 }
 
 func hasContextParam(ft *ast.FuncType) bool {
