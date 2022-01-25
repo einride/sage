@@ -1,4 +1,4 @@
-package mgmake
+package mg
 
 import (
 	"bytes"
@@ -16,7 +16,6 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"go.einride.tech/mage-tools/internal/codegen"
-	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 )
@@ -100,7 +99,7 @@ func GenMakefiles(ctx context.Context) {
 	}); err != nil {
 		panic(err)
 	}
-	targets, err := mg.Package(mageDir)
+	targets, err := Package(mageDir)
 	if err != nil {
 		panic(err)
 	}
@@ -225,7 +224,7 @@ clean-mage-tools:
 	return nil
 }
 
-func generateMakeTargets(targets mg.Functions) (map[string]*bytes.Buffer, error) {
+func generateMakeTargets(targets Functions) (map[string]*bytes.Buffer, error) {
 	buffers := make(map[string]*bytes.Buffer)
 	for _, target := range targets {
 		var b *bytes.Buffer
@@ -263,7 +262,7 @@ endif{{end}}
 }
 
 // toMakeVars converts input to make vars.
-func toMakeVars(args []mg.Arg) []string {
+func toMakeVars(args []Arg) []string {
 	makeVars := make([]string, 0, len(args))
 	for _, arg := range args {
 		name := strcase.ToSnake(arg.Name)

@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
-	"go.einride.tech/mage-tools/mgmake"
 	"go.einride.tech/mage-tools/mgpath"
 	"go.einride.tech/mage-tools/mgtool"
 	"go.einride.tech/mage-tools/tools/mgconvco"
@@ -18,8 +17,8 @@ import (
 )
 
 func init() {
-	mgmake.GenerateMakefiles(
-		mgmake.Makefile{
+	mg.GenerateMakefiles(
+		mg.Makefile{
 			Path:          mgpath.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
@@ -28,8 +27,7 @@ func init() {
 
 func All(ctx context.Context) error {
 	mg.Deps(ctx, ConvcoCheck, GolangciLint, GoReview, GoTest, FormatMarkdown, FormatYAML)
-	mg.Deps(ctx, GoModTidy)
-	mg.Deps(ctx, GitVerifyNoDiff)
+	mg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
 }
 

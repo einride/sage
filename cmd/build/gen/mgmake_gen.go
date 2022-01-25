@@ -4,13 +4,13 @@ package main
 
 import (
 	"context"
+	"go.einride.tech/mage-tools/mg"
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mglogr"
-	"go.einride.tech/mage-tools/mgmake"
 )
 
 func main() {
 	ctx := logr.NewContext(context.Background(), mglogr.New("mage-tools-build"))
-	mgmake.GenMakefiles(ctx)
+	mg.GenMakefiles(ctx)
 }

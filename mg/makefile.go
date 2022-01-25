@@ -1,4 +1,4 @@
-package mgmake
+package mg
 
 import (
 	"go/doc"
