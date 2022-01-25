@@ -18,7 +18,7 @@ import (
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.GoSemanticRelease)
+	mg.Deps(ctx, Prepare.GoSemanticRelease)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

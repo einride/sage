@@ -23,7 +23,7 @@ const version = "2.8.0"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.Hadolint)
+	mg.Deps(ctx, Prepare.Hadolint)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

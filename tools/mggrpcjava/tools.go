@@ -20,7 +20,7 @@ const version = "1.33.0"
 var commandPath string
 
 func Command(ctx context.Context) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.ProtocGenGrpcJava)
+	mg.Deps(ctx, Prepare.ProtocGenGrpcJava)
 	return mgtool.Command(ctx, commandPath)
 }
 

@@ -18,7 +18,7 @@ const version = "1.29.3"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.APILinter)
+	mg.Deps(ctx, Prepare.APILinter)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

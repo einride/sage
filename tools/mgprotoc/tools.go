@@ -19,7 +19,7 @@ const version = "3.15.7"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.Protoc)
+	mg.Deps(ctx, Prepare.Protoc)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

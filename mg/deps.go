@@ -49,25 +49,14 @@ var onces = &onceMap{
 // SerialDeps is like Deps except it runs each dependency serially, instead of
 // in parallel. This can be useful for resource intensive dependencies that
 // shouldn't be run at the same time.
-func SerialDeps(fns ...interface{}) {
-	funcs := checkFns(fns)
-	ctx := context.Background()
-	for i := range fns {
-		runDeps(ctx, funcs[i:i+1])
-	}
-}
-
-// SerialCtxDeps is like CtxDeps except it runs each dependency serially,
-// instead of in parallel. This can be useful for resource intensive
-// dependencies that shouldn't be run at the same time.
-func SerialCtxDeps(ctx context.Context, fns ...interface{}) {
+func SerialDeps(ctx context.Context, fns ...interface{}) {
 	funcs := checkFns(fns)
 	for i := range fns {
 		runDeps(ctx, funcs[i:i+1])
 	}
 }
 
-// CtxDeps runs the given functions as dependencies of the calling function.
+// Deps runs the given functions as dependencies of the calling function.
 // Dependencies must only be of type:
 //     func()
 //     func() error
@@ -81,7 +70,7 @@ func SerialCtxDeps(ctx context.Context, fns ...interface{}) {
 // their own dependencies using Deps. Each dependency is run in their own
 // goroutines. Each function is given the context provided if the function
 // prototype allows for it.
-func CtxDeps(ctx context.Context, fns ...interface{}) {
+func Deps(ctx context.Context, fns ...interface{}) {
 	funcs := checkFns(fns)
 	runDeps(ctx, funcs)
 }
@@ -134,22 +123,6 @@ func checkFns(fns []interface{}) []Fn {
 		funcs[i] = F(f)
 	}
 	return funcs
-}
-
-// Deps runs the given functions in parallel, exactly once. Dependencies must
-// only be of type:
-//     func()
-//     func() error
-//     func(context.Context)
-//     func(context.Context) error
-// Or a similar method on a mg.Namespace type.
-// Or an mg.Fn interface.
-//
-// This is a way to build up a tree of dependencies with each dependency
-// defining its own dependencies.  Functions must have the same signature as a
-// Mage target, i.e. optional context argument, optional error return.
-func Deps(fns ...interface{}) {
-	CtxDeps(context.Background(), fns...)
 }
 
 // funcName returns the unique name for the function.

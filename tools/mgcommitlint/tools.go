@@ -34,7 +34,7 @@ var (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, mg.F(Prepare.Commitlint, commitlintrc))
+	mg.Deps(ctx, mg.F(Prepare.Commitlint, commitlintrc))
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

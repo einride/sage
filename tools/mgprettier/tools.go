@@ -30,7 +30,7 @@ var (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.Prettier)
+	mg.Deps(ctx, Prepare.Prettier)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

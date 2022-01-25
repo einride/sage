@@ -19,7 +19,7 @@ const (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(Prepare.ClangFormat)
+	mg.Deps(ctx, Prepare.ClangFormat)
 	return mgtool.Command(ctx, mgpath.FromBinDir(toolName), args...)
 }
 

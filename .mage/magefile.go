@@ -27,7 +27,7 @@ func init() {
 }
 
 func All(ctx context.Context) error {
-	mg.CtxDeps(
+	mg.Deps(
 		ctx,
 		ConvcoCheck,
 		GolangciLint,
@@ -36,7 +36,7 @@ func All(ctx context.Context) error {
 		FormatMarkdown,
 		FormatYAML,
 	)
-	mg.SerialCtxDeps(
+	mg.SerialDeps(
 		ctx,
 		GoModTidy,
 		GitVerifyNoDiff,

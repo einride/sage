@@ -26,7 +26,7 @@ const packageJSONContent = `{
 var commandPath string
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, mg.F(Prepare.SemanticRelease, branch))
+	mg.Deps(ctx, mg.F(Prepare.SemanticRelease, branch))
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

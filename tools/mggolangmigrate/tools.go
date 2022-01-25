@@ -16,7 +16,7 @@ var commandPath string
 type Prepare mgtool.Prepare
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.GolangMigrate)
+	mg.Deps(ctx, Prepare.GolangMigrate)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

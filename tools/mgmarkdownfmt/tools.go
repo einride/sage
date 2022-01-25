@@ -14,7 +14,7 @@ const version = "75134924a9fd3335f76a9709314c5f5cef4d6ddc"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.MarkdownFmt)
+	mg.Deps(ctx, Prepare.MarkdownFmt)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

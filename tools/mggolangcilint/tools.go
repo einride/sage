@@ -24,7 +24,7 @@ var commandPath string
 var defaultConfig string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.GolangciLint)
+	mg.Deps(ctx, Prepare.GolangciLint)
 	return mgtool.Command(ctx, commandPath, args...)
 }
 

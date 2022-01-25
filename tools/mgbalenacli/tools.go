@@ -20,7 +20,7 @@ const (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.CtxDeps(ctx, Prepare.Balena)
+	mg.Deps(ctx, Prepare.Balena)
 	return mgtool.Command(ctx, mgpath.FromBinDir(binaryName), args...)
 }
 
