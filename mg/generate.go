@@ -22,7 +22,7 @@ import (
 const defaultNamespace = "default"
 
 // nolint: gochecknoglobals
-var makefiles = make(map[string]makefile)
+var makefiles = make(map[string]Makefile)
 
 type Makefile struct {
 	Namespace     interface{}
@@ -30,9 +30,27 @@ type Makefile struct {
 	DefaultTarget interface{}
 }
 
-type makefile struct {
-	Path          string
-	DefaultTarget string
+func (m Makefile) namespaceName() string {
+	if m.Namespace == nil {
+		return defaultNamespace
+	}
+	return reflect.TypeOf(m.Namespace).Name()
+}
+
+func (m Makefile) defaultTargetName() string {
+	if m.DefaultTarget == nil {
+		return ""
+	}
+	result := runtime.FuncForPC(reflect.ValueOf(m.DefaultTarget).Pointer()).Name()
+	result = strings.TrimPrefix(result, "main.")
+	result = strings.TrimPrefix(result, m.namespaceName()+".")
+	result = strings.Split(result, "-")[0]
+	for _, r := range result {
+		if !unicode.IsLetter(r) {
+			panic(fmt.Sprintf("Invalid default target %s", result))
+		}
+	}
+	return result
 }
 
 // GenerateMakefiles define which makefiles should be created by go.einride.tech/cmd/build.
@@ -41,23 +59,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		if i.Path == "" {
 			panic("Path needs to be defined")
 		}
-		namespace := defaultNamespace
-		if i.Namespace != nil {
-			namespace = reflect.TypeOf(i.Namespace).Name()
-		}
-		var defaultTarget string
-		if i.DefaultTarget != nil {
-			defaultTarget = runtime.FuncForPC(reflect.ValueOf(i.DefaultTarget).Pointer()).Name()
-			defaultTarget = strings.TrimPrefix(defaultTarget, "main.")
-			defaultTarget = strings.TrimPrefix(defaultTarget, namespace+".")
-			defaultTarget = strings.Split(defaultTarget, "-")[0]
-			for _, r := range defaultTarget {
-				if !unicode.IsLetter(r) {
-					panic(fmt.Sprintf("Invalid default target %s", defaultTarget))
-				}
-			}
-		}
-		makefiles[namespace] = makefile{Path: i.Path, DefaultTarget: defaultTarget}
+		makefiles[i.namespaceName()] = i
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-func generateMakefile(g *codegen.File, pkg *doc.Package, mk *makefile, ns string) error {
+func generateMakefile(g *codegen.File, pkg *doc.Package, mk *Makefile, ns string) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromGitRoot(MageDir))
 	if err != nil {
 		return err
@@ -33,8 +33,8 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk *makefile, ns string
 
 	g.P("# To learn more, see ", includePath, "/magefile.go and https://github.com/einride/mage-tools.")
 	g.P()
-	if len(mk.DefaultTarget) != 0 {
-		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.DefaultTarget))
+	if len(mk.defaultTargetName()) != 0 {
+		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
 		g.P()
 	}
 	g.P("magefile := ", filepath.Join(includePath, ToolsDir, MagefileBinary))
