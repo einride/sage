@@ -9,28 +9,36 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
+const (
+	stringType = "string"
+	intType    = "int"
+	boolType   = "bool"
+)
+
 func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 	g.P("func main() {")
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
-		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function, namespace), `")`)
+		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function), `")`)
 		return true
 	})
 	g.P("return")
 	g.P("}")
 	g.P("target, args := ", g.Import("os"), ".Args[1], ", g.Import("os"), ".Args[2:]")
+	g.P("_ = args")
+	g.P("var err error")
 	g.P("switch target {")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
-		g.P(`case "`, getTargetFunctionName(function, namespace), `":`)
+		g.P(`case "`, getTargetFunctionName(function), `":`)
 		g.P(
 			"ctx = ",
 			g.Import("github.com/go-logr/logr"),
 			".NewContext(ctx, ",
 			g.Import("go.einride.tech/mage-tools/mglogr"),
 			`.New("`,
-			getTargetFunctionName(function, namespace),
+			getTargetFunctionName(function),
 			`"))`,
 		)
 		g.P("logger := logr.FromContextOrDiscard(ctx)")
@@ -40,9 +48,9 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 			g.P(
 				"logger.Info(",
 				`"wrong number of arguments",`,
-				`"target", `,
-				getTargetFunctionName(function, namespace),
-				",",
+				`"target", "`,
+				getTargetFunctionName(function),
+				`",`,
 				`"expected",`,
 				expected,
 				`, "got", len(args))`,
@@ -55,15 +63,15 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 				for range customParam.Names {
 					args = append(args, fmt.Sprintf("arg%v", i))
 					switch fmt.Sprint(customParam.Type) {
-					case "string":
+					case stringType:
 						g.P("arg", i, " := args[", i, "]")
-					case "int":
+					case intType:
 						g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[", i, "])")
 						g.P("if err != nil {")
 						g.P(`logger.Error(err, "can't convert argument %q to int\n", args[`, i, `])`)
 						g.P(g.Import("os"), ".Exit(1)")
 						g.P("}")
-					case "bool":
+					case boolType:
 						g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
 						g.P("if err != nil {")
 						g.P(`logger.Error(err, "can't convert argument %q to bool\n", args[`, i, `])`)
@@ -74,17 +82,19 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 				}
 			}
 			g.P(
-				"if err := ",
-				getTargetFunctionName(function, namespace),
+				"err = ",
+				strings.ReplaceAll(getTargetFunctionName(function), ":", "{}."),
 				"(ctx,",
 				strings.Join(args, ","),
-				"); err != nil {",
+				")",
 			)
+			g.P("if err != nil {")
 			g.P("logger.Error(err, err.Error())")
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
 		} else {
-			g.P("if err := ", getTargetFunctionName(function, namespace), "(ctx); err != nil {")
+			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", "{}."), "(ctx)")
+			g.P("if err != nil {")
 			g.P("logger.Error(err, err.Error())")
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
@@ -107,10 +117,10 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 	return nil
 }
 
-func getTargetFunctionName(function *doc.Func, namespace *doc.Type) string {
+func getTargetFunctionName(function *doc.Func) string {
 	var result strings.Builder
-	if namespace != nil {
-		_, _ = result.WriteString(namespace.Name)
+	if function.Recv != "" {
+		_, _ = result.WriteString(function.Recv)
 		_ = result.WriteByte(':')
 	}
 	_, _ = result.WriteString(function.Name)
@@ -133,8 +143,7 @@ func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespa
 			continue
 		}
 		for _, function := range namespace.Methods {
-			if function.Recv != "" ||
-				!ast.IsExported(function.Name) ||
+			if !ast.IsExported(function.Name) ||
 				!isSupportedTargetFunctionParams(function.Decl.Type.Params.List) {
 				continue
 			}
@@ -162,7 +171,7 @@ func isSupportedTargetFunctionParams(params []*ast.Field) bool {
 
 func isSupportedCustomParam(arg *ast.Field) bool {
 	switch fmt.Sprint(arg.Type) {
-	case "string", "int", "bool":
+	case stringType, intType, boolType:
 		return true
 	default:
 		return false

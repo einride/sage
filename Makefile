@@ -48,18 +48,6 @@ go-test: $(magefile)
 golangci-lint: $(magefile)
 	@$(magefile) GolangciLint
 
-.PHONY: hello-world
-hello-world: $(magefile)
-ifndef a
-	$(error missing argument a="...")
-endif
-ifndef b
-	$(error missing argument b="...")
-endif
-ifndef c
-	$(error missing argument c="...")
-endif
-ifndef d
-	$(error missing argument d="...")
-endif
-	@$(magefile) HelloWorld $(a) $(b) $(c) $(d)
+.PHONY: proto
+proto:
+	make -C proto

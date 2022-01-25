@@ -10,8 +10,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.einride.tech/mage-tools/mg"
-
 	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/mg"
 	"go.einride.tech/mage-tools/mglogr"

@@ -20,6 +20,11 @@ func init() {
 			Path:          mg.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
+		mg.Makefile{
+			Path:          mg.FromGitRoot("proto", "Makefile"),
+			Namespace:     Proto{},
+			DefaultTarget: Proto.HelloWorld,
+		},
 	)
 }
 
@@ -69,7 +74,9 @@ func GitVerifyNoDiff(ctx context.Context) error {
 	return mggit.VerifyNoDiff(ctx)
 }
 
-func HelloWorld(ctx context.Context, a int, b string, c, d bool) error {
+type Proto mg.Namespace
+
+func (Proto) HelloWorld(ctx context.Context, a int, b string, c, d bool) error {
 	logr.FromContextOrDiscard(ctx).Info("hello world", "a", a, "b", b, "c", c, "d", d)
 	return nil
 }
