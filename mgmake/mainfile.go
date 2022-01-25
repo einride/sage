@@ -9,12 +9,10 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-func generateMainFile(pkg *doc.Package, g *codegen.File) error {
+func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 	g.P("func main() {")
-	g.P("args := ", g.Import("os"), ".Args[1:]")
 	g.P("ctx := ", g.Import("context"), ".Background()")
-	g.P("_ = ctx")
-	g.P("if len(args) == 0 {")
+	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function, namespace), `")`)
@@ -22,9 +20,7 @@ func generateMainFile(pkg *doc.Package, g *codegen.File) error {
 	})
 	g.P("return")
 	g.P("}")
-	g.P("for x := 0; x < len(args); {")
-	g.P("target := args[x]")
-	g.P("x++")
+	g.P("target, args := ", g.Import("os"), ".Args[1], ", g.Import("os"), ".Args[2:]")
 	g.P("switch target {")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		g.P(`case "`, getTargetFunctionName(function, namespace), `":`)
@@ -39,41 +35,42 @@ func generateMainFile(pkg *doc.Package, g *codegen.File) error {
 		)
 		g.P("logger := logr.FromContextOrDiscard(ctx)")
 		if len(function.Decl.Type.Params.List) > 1 {
-			g.P("expected := x + 0")
-			g.P("if expected > len(args) {")
-			g.P("logger.Info(")
+			expected := len(function.Decl.Type.Params.List)
+			g.P("if len(args) != ", expected, " {")
 			g.P(
-				`"not enough arguments for target \"`,
+				"logger.Info(",
+				`"wrong number of arguments",`,
+				`"target", `,
 				getTargetFunctionName(function, namespace),
-				`\" expected %v, got %s\n",`,
+				",",
+				`"expected",`,
+				expected,
+				`, "got", len(args))`,
 			)
-			g.P("expected-1,")
-			g.P("len(args)-1,")
-			g.P(")")
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
 			var args []string
-			// TODO: Can we make this better, probably add some safety checks :) ?
-			for i, customParam := range function.Decl.Type.Params.List[1:] {
-				args = append(args, fmt.Sprintf("arg%v", i))
-				switch fmt.Sprint(customParam.Type) {
-				case "string":
-					g.P("arg", i, " := args[x]")
-					g.P("x++")
-				case "int":
-					g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[x])")
-					g.P("if err != nil {")
-					g.P(`logger.Error(err, "can't convert argument %q to int\n", args[x])`)
-					g.P(g.Import("os"), ".Exit(1)")
-					g.P("}")
-					g.P("x++")
-				case "bool":
-					g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[x])")
-					g.P("if err != nil {")
-					g.P(`logger.Error(err, "can't convert argument %q to bool\n", args[x])`)
-					g.P(g.Import("os"), ".Exit(1)")
-					g.P("}")
-					g.P("x++")
+			var i int
+			for _, customParam := range function.Decl.Type.Params.List[1:] {
+				for range customParam.Names {
+					args = append(args, fmt.Sprintf("arg%v", i))
+					switch fmt.Sprint(customParam.Type) {
+					case "string":
+						g.P("arg", i, " := args[", i, "]")
+					case "int":
+						g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[", i, "])")
+						g.P("if err != nil {")
+						g.P(`logger.Error(err, "can't convert argument %q to int\n", args[`, i, `])`)
+						g.P(g.Import("os"), ".Exit(1)")
+						g.P("}")
+					case "bool":
+						g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
+						g.P("if err != nil {")
+						g.P(`logger.Error(err, "can't convert argument %q to bool\n", args[`, i, `])`)
+						g.P(g.Import("os"), ".Exit(1)")
+						g.P("}")
+					}
+					i++
 				}
 			}
 			g.P(
@@ -105,7 +102,6 @@ func generateMainFile(pkg *doc.Package, g *codegen.File) error {
 	g.P("logger := logr.FromContextOrDiscard(ctx)")
 	g.P(`logger.Info("Unknown target specified: %q\n", target)`)
 	g.P(g.Import("os"), ".Exit(1)")
-	g.P("}")
 	g.P("}")
 	g.P("}")
 	return nil

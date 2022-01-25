@@ -59,4 +59,7 @@ endif
 ifndef c
 	$(error missing argument c="...")
 endif
-	@$(magefile) HelloWorld $(a) $(b) $(c)
+ifndef d
+	$(error missing argument d="...")
+endif
+	@$(magefile) HelloWorld $(a) $(b) $(c) $(d)

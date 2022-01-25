@@ -70,6 +70,10 @@ func (f *File) Write(p []byte) (int, error) {
 	return n, err // nolint: wrapcheck // false positive
 }
 
+func (f *File) Bytes() []byte {
+	return f.buf.Bytes()
+}
+
 // Content returns the formatted Go source of the file.
 func (f *File) Content() (_ []byte, err error) {
 	if f.err != nil {

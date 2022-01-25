@@ -73,7 +73,7 @@ func GitVerifyNoDiff(ctx context.Context) error {
 	return mggit.VerifyNoDiff(ctx)
 }
 
-func HelloWorld(ctx context.Context, a int, b string, c bool) error {
-	logr.FromContextOrDiscard(ctx).Info("hello world", "a", a, "b", b, "c", c)
+func HelloWorld(ctx context.Context, a int, b string, c, d bool) error {
+	logr.FromContextOrDiscard(ctx).Info("hello world", "a", a, "b", b, "c", c, "d", d)
 	return nil
 }

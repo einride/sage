@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/mage-tools/mglogr"
 )
 
-// Deps runs the given functions as dependencies of the calling function.
+// Deps runs the given functions as dependencies of the calling function in parallel.
 //
 // Dependencies must only be of type func(context.Context) error.
 // Or a similar method on a mg.Namespace type.
@@ -52,6 +52,13 @@ func Deps(ctx context.Context, fns ...interface{}) {
 			mglogr.New(name).Error(err, err.Error())
 		}
 		os.Exit(1)
+	}
+}
+
+// SerialDeps works like Deps except running all dependencies serially instead of in parallel.
+func SerialDeps(ctx context.Context, fns ...interface{}) {
+	for _, fn := range fns {
+		Deps(ctx, fn)
 	}
 }
 
