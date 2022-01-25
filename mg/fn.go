@@ -2,7 +2,6 @@ package mg
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -14,11 +13,6 @@ type Fn interface {
 	// Name should return the fully qualified name of the function. Usually
 	// it's best to use runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name().
 	Name() string
-
-	// ID should be an additional uniqueness qualifier in case the name is insufficiently unique.
-	// This can be the case for functions that take arguments (mg.F json-encodes an array of the
-	// args).
-	ID() string
 
 	// Run should run the function.
 	Run(ctx context.Context) error
@@ -34,13 +28,8 @@ func F(target interface{}, args ...interface{}) Fn {
 	if err != nil {
 		panic(err)
 	}
-	id, err := json.Marshal(args)
-	if err != nil {
-		panic(fmt.Errorf("can't convert args into a mage-compatible id for mg.Deps: %s", err))
-	}
 	return fn{
 		name: funcName(target),
-		id:   string(id),
 		f: func(ctx context.Context) error {
 			v := reflect.ValueOf(target)
 			count := len(args)
@@ -78,18 +67,12 @@ func F(target interface{}, args ...interface{}) Fn {
 
 type fn struct {
 	name string
-	id   string
 	f    func(ctx context.Context) error
 }
 
 // Name returns the fully qualified name of the function.
 func (f fn) Name() string {
 	return f.name
-}
-
-// ID returns a hash of the argument values passed in.
-func (f fn) ID() string {
-	return f.id
 }
 
 // Run runs the function.

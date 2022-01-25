@@ -25,11 +25,10 @@ import (
 // goroutines. Each function is given the context provided if the function
 // prototype allows for it.
 func Deps(ctx context.Context, fns ...interface{}) {
-	funcs := checkFns(fns)
 	var mu sync.Mutex
 	errs := make(map[string]error)
 	var wg sync.WaitGroup
-	for _, f := range funcs {
+	for _, f := range checkFns(fns) {
 		fn := onces.LoadOrStore(f)
 		wg.Add(1)
 		go func() {
@@ -59,22 +58,13 @@ func Deps(ctx context.Context, fns ...interface{}) {
 
 type onceMap struct {
 	mu sync.Mutex
-	m  map[onceKey]*onceFun
-}
-
-type onceKey struct {
-	Name string
-	ID   string
+	m  map[string]*onceFun
 }
 
 func (o *onceMap) LoadOrStore(f Fn) *onceFun {
 	defer o.mu.Unlock()
 	o.mu.Lock()
-	key := onceKey{
-		Name: f.Name(),
-		ID:   f.ID(),
-	}
-	existing, ok := o.m[key]
+	existing, ok := o.m[f.Name()]
 	if ok {
 		return existing
 	}
@@ -82,13 +72,13 @@ func (o *onceMap) LoadOrStore(f Fn) *onceFun {
 		fn:          f,
 		displayName: displayName(f.Name()),
 	}
-	o.m[key] = one
+	o.m[f.Name()] = one
 	return one
 }
 
 // nolint: gochecknoglobals
 var onces = &onceMap{
-	m: map[onceKey]*onceFun{},
+	m: map[string]*onceFun{},
 }
 
 func checkFns(fns []interface{}) []Fn {
