@@ -3,7 +3,10 @@ package mg
 import (
 	"context"
 	"fmt"
+	"go/ast"
 	"go/doc"
+	"go/parser"
+	"go/token"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -89,19 +92,18 @@ func GenMakefiles(ctx context.Context) {
 	}); err != nil {
 		panic(err)
 	}
-	targets, err := Package(mageDir)
+	pkg, err := parsePackage(mageDir)
 	if err != nil {
 		panic(err)
 	}
-	sort.Sort(targets.Funcs)
 	// compile binary
 	mainFilename := FromMageDir("generating_magefile.go")
 	mainFile := codegen.NewFile(codegen.FileConfig{
 		Filename:    mainFilename,
-		Package:     targets.DocPkg.Name,
+		Package:     pkg.Name,
 		GeneratedBy: "go.einride.tech/mage-tools",
 	})
-	if err := generateMainFile(mainFile, targets.DocPkg); err != nil {
+	if err := generateMainFile(mainFile, pkg); err != nil {
 		panic(err)
 	}
 	mainFileContent, err := mainFile.Content()
@@ -120,7 +122,7 @@ func GenMakefiles(ctx context.Context) {
 	); err != nil {
 		panic(err)
 	}
-	buffers, err := generateMakeTargets(targets.DocPkg)
+	buffers, err := generateMakeTargets(pkg)
 	if err != nil {
 		panic(err)
 	}
@@ -177,4 +179,30 @@ func generateMakeTargets(targets *doc.Package) (map[string][]byte, error) {
 		buffers[k] = mk.Bytes()
 	}
 	return buffers, nil
+}
+
+func parsePackage(path string) (*doc.Package, error) {
+	fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, path, func(info fs.FileInfo) bool {
+		return info.Name() != MakeGenGo
+	}, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse directory: %v", err)
+	}
+	var pkg *ast.Package
+	switch len(pkgs) {
+	case 1:
+		for _, p := range pkgs {
+			pkg = p
+		}
+	case 0:
+		return nil, fmt.Errorf("no importable packages found in %s", path)
+	default:
+		var names []string
+		for name := range pkgs {
+			names = append(names, name)
+		}
+		return nil, fmt.Errorf("multiple packages found in %s: %v", path, strings.Join(names, ", "))
+	}
+	return doc.New(pkg, "./", 0), nil
 }
