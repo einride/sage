@@ -32,6 +32,7 @@ func Deps(ctx context.Context, fns ...interface{}) {
 			ctx = logr.NewContext(ctx, NewLogger(fn.fn.Name()))
 			defer func() {
 				if v := recover(); v != nil {
+					mu.Lock()
 					errs[fn.fn.Name()] = fmt.Errorf(fmt.Sprint(v))
 					mu.Unlock()
 				}
