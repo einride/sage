@@ -18,7 +18,7 @@ const (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.ClangFormat)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, mg.FromBinDir(toolName), args...)
 }
 
@@ -27,9 +27,7 @@ func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 	return Command(ctx, append([]string{"-i", protoStyle}, args...)...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) ClangFormat(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	var osArch string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":

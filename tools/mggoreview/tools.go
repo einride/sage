@@ -17,14 +17,12 @@ const version = "0.18.0"
 // nolint: gochecknoglobals
 var commandPath string
 
-type Prepare mgtool.Prepare
-
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Goreview)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-func (Prepare) Goreview(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const toolName = "goreview"
 	toolDir := mg.FromToolsDir(toolName)
 	binDir := filepath.Join(toolDir, version, "bin")

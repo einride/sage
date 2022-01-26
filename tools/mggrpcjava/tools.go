@@ -19,13 +19,11 @@ const version = "1.33.0"
 var commandPath string
 
 func Command(ctx context.Context) *exec.Cmd {
-	mg.Deps(ctx, Prepare.ProtocGenGrpcJava)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) ProtocGenGrpcJava(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
 	binDir := mg.FromToolsDir("grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)

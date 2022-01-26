@@ -17,7 +17,7 @@ import (
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.GoSemanticRelease)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -36,9 +36,7 @@ func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *ex
 	return Command(ctx, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) GoSemanticRelease(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const (
 		binaryName = "gosemantic-release"
 		version    = "2.18.0"

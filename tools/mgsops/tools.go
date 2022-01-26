@@ -17,13 +17,11 @@ const version = "3.7.1"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Sops)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Sops(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "sops"
 	binDir := mg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)

@@ -23,7 +23,7 @@ var commandPath string
 var defaultConfig string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.GolangciLint)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -40,9 +40,7 @@ func RunCommand(ctx context.Context) *exec.Cmd {
 	return cmd
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) GolangciLint(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "golangci-lint"
 	toolDir := mg.FromToolsDir(binaryName)
 	binDir := filepath.Join(toolDir, version, "bin")

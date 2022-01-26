@@ -19,13 +19,11 @@ const version = "0.3.7"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Convco)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Convco(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const toolName = "convco"
 	binDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName)

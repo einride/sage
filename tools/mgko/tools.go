@@ -17,13 +17,11 @@ const version = "0.9.3"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Ko)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Ko(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "ko"
 	hostOS := runtime.GOOS
 	binDir := mg.FromToolsDir(binaryName, version, "bin")

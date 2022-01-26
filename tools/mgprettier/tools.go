@@ -29,7 +29,7 @@ var (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Prettier)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -55,9 +55,7 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 	return Command(ctx, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Prettier(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	toolDir := mg.FromToolsDir("prettier")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
 	packageJSON := filepath.Join(toolDir, "package.json")

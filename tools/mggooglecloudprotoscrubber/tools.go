@@ -17,14 +17,12 @@ const version = "1.1.0"
 // nolint: gochecknoglobals
 var commandPath string
 
-type Prepare mgtool.Prepare
-
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.GoogleCloudProtoScrubber)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-func (Prepare) GoogleCloudProtoScrubber(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "google-cloud-proto-scrubber"
 	binDir := mg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)

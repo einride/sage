@@ -15,7 +15,7 @@ import (
 const packageJSONContent = `{
     "devDependencies": {
         "semantic-release": "^17.3.7",
-        "@semantic-release/github": "^7.2.0",
+        "@semantic-releas.Protoce/github": "^7.2.0",
         "@semantic-release/release-notes-generator": "^9.0.1",
         "conventional-changelog-conventionalcommits": "^4.5.0"
     }
@@ -25,7 +25,7 @@ const packageJSONContent = `{
 var commandPath string
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
-	mg.Deps(ctx, mg.F(Prepare.SemanticRelease, branch))
+	mg.Deps(ctx, mg.F(PrepareCommand, branch))
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -41,9 +41,7 @@ func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
 	return Command(ctx, branch, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) SemanticRelease(ctx context.Context, branch string) error {
+func PrepareCommand(ctx context.Context, branch string) error {
 	toolDir := mg.FromToolsDir("semantic-release")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")

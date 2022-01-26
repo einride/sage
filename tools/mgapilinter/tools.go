@@ -17,13 +17,11 @@ const version = "1.29.3"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.APILinter)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) APILinter(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const binaryName = "api-linter"
 	hostOS := runtime.GOOS
 	binDir := mg.FromToolsDir(binaryName, version, "bin")

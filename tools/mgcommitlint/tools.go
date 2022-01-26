@@ -33,7 +33,7 @@ var (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, mg.F(Prepare.Commitlint, commitlintrc))
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -52,9 +52,7 @@ func LintCommand(ctx context.Context, branch string) *exec.Cmd {
 	return Command(ctx, args...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Commitlint(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	toolDir := mg.FromToolsDir("commitlint")
 	binary := filepath.Join(toolDir, "node_modules", ".bin", "commitlint")
 	packageJSON := filepath.Join(toolDir, "package.json")

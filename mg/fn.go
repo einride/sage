@@ -7,15 +7,12 @@ import (
 	"runtime"
 )
 
-// Function represents a function that can be run with mg.Deps. Package, Name, and ID must combine to
-// uniquely identify a function, while ensuring the "same" function has identical values. These are
-// used as a map key to find and run (or not run) the function.
+// Function represents a function that can be run with mg.Deps.
 type Function interface {
-	// Name should return the fully qualified name of the function. Usually
-	// it's best to use runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name().
+	// Name is a unique identifier and display name for the function.
 	Name() string
 
-	// Run should run the function.
+	// Run the function.
 	Run(ctx context.Context) error
 }
 

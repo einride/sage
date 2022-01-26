@@ -22,7 +22,7 @@ const version = "2.8.0"
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
-	mg.Deps(ctx, Prepare.Hadolint)
+	mg.Deps(ctx, PrepareCommand)
 	return mg.Command(ctx, commandPath, args...)
 }
 
@@ -42,9 +42,7 @@ func RunCommand(ctx context.Context) *exec.Cmd {
 	return Command(ctx, dockerfiles...)
 }
 
-type Prepare mgtool.Prepare
-
-func (Prepare) Hadolint(ctx context.Context) error {
+func PrepareCommand(ctx context.Context) error {
 	const toolName = "hadolint"
 	binDir := mg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName)
