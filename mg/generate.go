@@ -15,11 +15,9 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/go-logr/logr"
 	"go.einride.tech/mage-tools/internal/codegen"
 )
-
-// nolint: gochecknoglobals
-var makefiles []Makefile
 
 type Makefile struct {
 	Namespace     interface{}
@@ -52,12 +50,8 @@ func (m Makefile) defaultTargetName() string {
 
 // GenerateMakefiles define which makefiles should be created by go.einride.tech/cmd/build.
 func GenerateMakefiles(mks ...Makefile) {
-	for _, i := range mks {
-		if i.Path == "" {
-			panic("Path needs to be defined")
-		}
-		makefiles = append(makefiles, i)
-	}
+	ctx := logr.NewContext(context.Background(), NewLogger("mage-tools-build"))
+	genMakefiles(ctx, mks...)
 }
 
 // compile uses the go tool to compile the files into an executable at path.
@@ -74,9 +68,8 @@ func compile(ctx context.Context, files []string) error {
 	return nil
 }
 
-// GenMakefiles should only be used by go.einride.tech/cmd/build.
-func GenMakefiles(ctx context.Context) {
-	if len(makefiles) == 0 {
+func genMakefiles(ctx context.Context, mks ...Makefile) {
+	if len(mks) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/mage-tools#readme for more info")
 	}
 	mageDir := FromGitRoot(MageDir)
@@ -123,12 +116,15 @@ func GenMakefiles(ctx context.Context) {
 		panic(err)
 	}
 	// Generate makefiles
-	for _, v := range makefiles {
+	for _, v := range mks {
+		if v.Path == "" {
+			panic("Path needs to be defined")
+		}
 		mk := codegen.NewMakefile(codegen.FileConfig{
 			GeneratedBy: "go.einride.tech/mage-tools",
 		})
 
-		if err := generateMakefile(mk, pkg, v); err != nil {
+		if err := generateMakefile(mk, pkg, v, mks...); err != nil {
 			panic(err)
 		}
 		// Remove trailing whitespace with len

@@ -13,7 +13,7 @@ import (
 	"go.einride.tech/mage-tools/internal/codegen"
 )
 
-func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile) error {
+func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromGitRoot(MageDir))
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile) error {
 	})
 	// Add additional makefiles to default makefile
 	if mk.namespaceName() == "" {
-		for _, i := range makefiles {
+		for _, i := range mks {
 			if i.namespaceName() == "" {
 				continue
 			}

@@ -2,14 +2,4 @@
 
 package main
 
-import (
-	"context"
-	"go.einride.tech/mage-tools/mg"
-
-	"github.com/go-logr/logr"
-)
-
-func main() {
-	ctx := logr.NewContext(context.Background(), mg.NewLogger("mage-tools-build"))
-	mg.GenMakefiles(ctx)
-}
+func main() {}
