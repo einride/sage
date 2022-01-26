@@ -7,9 +7,7 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"io/fs"
 	"os"
-	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -51,16 +49,13 @@ func (m Makefile) defaultTargetName() string {
 // GenerateMakefiles define which makefiles should be created by go.einride.tech/cmd/build.
 func GenerateMakefiles(mks ...Makefile) {
 	ctx := logr.NewContext(context.Background(), NewLogger("mage-tools-build"))
+	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
 	genMakefiles(ctx, mks...)
 }
 
 // compile uses the go tool to compile the files into an executable at path.
-func compile(ctx context.Context, files []string) error {
-	for file := range files {
-		files[file] = filepath.Base(files[file])
-	}
-	cmd := Command(ctx, "go", "build", "-o", FromToolsDir(MagefileBinary))
-	cmd.Args = append(cmd.Args, files...)
+func compile(ctx context.Context) error {
+	cmd := Command(ctx, "go", "build", "-o", FromToolsDir(MagefileBinary), ".")
 	cmd.Dir = FromMageDir()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error compiling magefiles: %w", err)
@@ -72,19 +67,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 	if len(mks) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/mage-tools#readme for more info")
 	}
-	mageDir := FromGitRoot(MageDir)
-	var mageFiles []string
-	if err := filepath.WalkDir(mageDir, func(path string, d fs.DirEntry, err error) error {
-		if filepath.Ext(path) == ".go" {
-			if filepath.Base(path) != MakeGenGo {
-				mageFiles = append(mageFiles, path)
-			}
-		}
-		return nil
-	}); err != nil {
-		panic(err)
-	}
-	pkg, err := parsePackage(mageDir)
+	pkg, err := parsePackage(FromGitRoot(MageDir))
 	if err != nil {
 		panic(err)
 	}
@@ -109,10 +92,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 		_ = os.Remove(mainFilename)
 	}()
 	// Compile binary
-	if err := compile(
-		ctx,
-		append(mageFiles, mainFilename),
-	); err != nil {
+	if err := compile(ctx); err != nil {
 		panic(err)
 	}
 	// Generate makefiles
@@ -136,9 +116,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 
 func parsePackage(path string) (*doc.Package, error) {
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, path, func(info fs.FileInfo) bool {
-		return info.Name() != MakeGenGo
-	}, parser.ParseComments)
+	pkgs, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse directory: %v", err)
 	}

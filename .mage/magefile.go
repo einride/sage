@@ -14,7 +14,7 @@ import (
 	"go.einride.tech/mage-tools/tools/mgyamlfmt"
 )
 
-func init() {
+func main() {
 	mg.GenerateMakefiles(
 		mg.Makefile{
 			Path:          mg.FromGitRoot("Makefile"),

@@ -16,7 +16,7 @@ const (
 )
 
 func generateMainFile(g *codegen.File, pkg *doc.Package) error {
-	g.P("func main() {")
+	g.P("func init() {")
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
@@ -24,7 +24,7 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function), `")`)
 		return true
 	})
-	g.P("return")
+	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
 	g.P("target, args := ", g.Import("os"), ".Args[1], ", g.Import("os"), ".Args[2:]")
 	g.P("_ = args")
@@ -113,6 +113,7 @@ func generateMainFile(g *codegen.File, pkg *doc.Package) error {
 	g.P(`logger.Info("Unknown target specified: %q\n", target)`)
 	g.P(g.Import("os"), ".Exit(1)")
 	g.P("}")
+	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
 	return nil
 }
