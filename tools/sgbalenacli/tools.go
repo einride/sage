@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const (
@@ -63,13 +63,13 @@ func PrepareCommand(ctx context.Context) error {
 		version,
 		balena,
 	)
-	if err := mgtool.FromRemote(
+	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
-		mgtool.WithDestinationDir(binDir),
-		mgtool.WithUnzip(),
-		mgtool.WithSkipIfFileExists(binary),
-		mgtool.WithSymlink(binary),
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithUnzip(),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}

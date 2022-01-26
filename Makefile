@@ -47,7 +47,3 @@ go-test: $(sagefile)
 .PHONY: golangci-lint
 golangci-lint: $(sagefile)
 	@$(sagefile) GolangciLint
-
-.PHONY: proto
-proto:
-	make -C proto -f Makefile

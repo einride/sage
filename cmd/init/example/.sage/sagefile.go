@@ -14,7 +14,7 @@ import (
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
-func init() {
+func main() {
 	sg.GenerateMakefiles(
 		sg.Makefile{
 			Path:          sg.FromGitRoot("Makefile"),

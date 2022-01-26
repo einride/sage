@@ -1,4 +1,4 @@
-package mgtool
+package sgtool
 
 import (
 	"bytes"

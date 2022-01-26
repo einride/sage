@@ -1,7 +1,7 @@
-sage
+Sage
 ====
 
-sage is an opinionated set of [mage](https://github.com/sagefile/mage) targets to help with build automation of different projects
+Sage is a Make-like build tool inspired by [Mage](https://magefile.org/) that provides a curated and maintained set of build [tools](./tools) for Go projects.
 
 [![Release](https://github.com/einride/sage/actions/workflows/release.yml/badge.svg)](https://github.com/einride/sage/actions/workflows/release.yml)
 
@@ -14,22 +14,22 @@ Requirements
 Getting started
 ---------------
 
-To initilize sage in a repository, just run:
+To initilize Sage in a repository, just run:
 
 ```bash
 go run go.einride.tech/sage/cmd/init@latest
 ```
 
-Run `make`
+Run `make`.
 
 Usage
 -----
 
-Mage imports, and targets within the sagefiles, can be written to Makefiles, you can generate as many Makefiles as you want, see more at [Makefiles / Mage namespaces](https://github.com/einride/sage#makefiles--mage-namespaces).
+Sage imports, and targets within the Sagefiles, can be written to Makefiles, you can generate as many Makefiles as you want, see more at [Makefiles / Sage namespaces](https://github.com/einride/sage#makefiles--sage-namespaces).
 
-### Magefiles
+### Sagefiles
 
-You can have as many sagefiles as you want in the `.sage` folder.
+You can have as many Sagefiles as you want in the `.sage` folder.
 
 #### Targets
 
@@ -37,76 +37,76 @@ Any public function in the main package will be exported. Functions can have no 
 
 ```golang
 func All() {
-  mg.Deps(
+  sg.Deps(
 	  FormatYaml,
-	  mg.F(ConvcoCheck, "origin/main..HEAD"),
+	  sg.Fn(ConvcoCheck, "origin/main..HEAD"),
   )
 }
 
 func FormatYaml() error {
-	return mgyamlfmt.FormatYAML()
+	return sgyamlfmt.FormatYAML()
 }
 
 func ConvcoCheck(ctx context.Context, rev string) error {
-	mglog.Logger("convco-check").Info("checking...")
-	return mgconvco.Command(ctx, "check", rev).Run()
+	logr.FromContextOrDiscard(ctx).Info("checking...")
+	return sgconvco.Command(ctx, "check", rev).Run()
 }
 ```
 
-#### Makefiles / Mage namespaces
+#### Makefiles / Sage namespaces
 
-To generate makefiles, an `init` method needs to exist in one of the sagefiles where we call the `mgmake.GenerateMakefiles` method.
+To generate Makefiles, a `main` method needs to exist in one of the Sagefiles where we call the `sg.GenerateMakefiles` method.
 
 ```golang
-func init() {
-	mgmake.GenerateMakefiles(
-		mgmake.Makefile{
-			Path:          mgpath.FromGitRoot("Makefile"),
+func main() {
+	sg.GenerateMakefiles(
+		sg.Makefile{
+			Path:          sg.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
 	)
 }
 ```
 
-If another makefile is desired, lets say one that only includes Terraform targets, we utilize the `mg.Namespace` type and just add another `Makefile` to the `GenerateMakefiles` method and specify the namespace, path and default target.
+If another makefile is desired, lets say one that only includes Terraform targets, we utilize the `sg.Namespace` type and just add another `Makefile` to the `GenerateMakefiles` method and specify the namespace, path and default target.
 
 ```golang
 
 func init() {
-	mgmake.GenerateMakefiles(
-		mgmake.Makefile{
-			Path:          mgpath.FromGitRoot("Makefile"),
+	sg.GenerateMakefiles(
+		sg.Makefile{
+			Path:          sg.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
-		mgmake.Makefile{
-			Path:      mgpath.FromGitRoot("terraform/Makefile"),
+		sg.Makefile{
+			Path:      sg.FromGitRoot("terraform/Makefile"),
 			Namespace: Terraform{},
 		},
 	)
 }
 
-type Terraform mg.Namespace
+type Terraform sg.Namespace
 
 func (Terraform) TerraformInitDev() {
-	mg.SerialDeps(
-		Terraform.devConfig,
-		mgterraform.Init,
+	sg.SerialDeps(
+		Terraform.DevConfig,
+		Terraform.Init,
 	)
 }
 ```
 
 #### Dependencies
 
-Dependencies can be defined just by specificing the function, or with `mg.F` if the function takes arguments. `Deps` runs in parallel while `Serial` runs serially
+Dependencies can be defined just by specificing the function, or with `sg.Fn` if the function takes arguments. `Deps` runs in parallel while `SerialDeps` runs serially.
 
 ```golang
-mg.Deps(
-	mg.F(mgcommitlint.Commitlint, "main"),
-	mggolangcilint.GolangciLint,
-	mggoreview.Goreview,
+sg.Deps(
+	sg.Fn(ConvcoCheck, "origin/main..HEAD"),
+	GolangciLint,
+	GoReview,
 )
-mg.SerialDeps(
-	mggo.GoModTidy,
-	mggitverifynodiff.GitVerifyNoDiff,
+sg.SerialDeps(
+	GoModTidy,
+	GitVerifyNoDiff,
 )
 ```

@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"strings"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 // version can be found here: https://github.com/hadolint/hadolint
@@ -48,8 +48,8 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, toolName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == mgtool.AMD64 {
-		hostArch = mgtool.X8664
+	if hostArch == sgtool.AMD64 {
+		hostArch = sgtool.X8664
 	}
 	hadolint := fmt.Sprintf("hadolint-%s-%s", strings.ToTitle(hostOS), hostArch)
 	binURL := fmt.Sprintf(
@@ -57,13 +57,13 @@ func PrepareCommand(ctx context.Context) error {
 		version,
 		hadolint,
 	)
-	if err := mgtool.FromRemote(
+	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
-		mgtool.WithDestinationDir(binDir),
-		mgtool.WithRenameFile(fmt.Sprintf("%s/hadolint", hadolint), toolName),
-		mgtool.WithSkipIfFileExists(binary),
-		mgtool.WithSymlink(binary),
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithRenameFile(fmt.Sprintf("%s/hadolint", hadolint), toolName),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}

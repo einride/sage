@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/go-logr/logr"
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const packageJSONContent = `{
@@ -82,7 +82,7 @@ func PrepareCommand(ctx context.Context, branch string) error {
 	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o600); err != nil {
 		return err
 	}
-	symlink, err := mgtool.CreateSymlink(binary)
+	symlink, err := sgtool.CreateSymlink(binary)
 	if err != nil {
 		return err
 	}

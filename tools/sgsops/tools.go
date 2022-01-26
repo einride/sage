@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const version = "3.7.1"
@@ -32,13 +32,13 @@ func PrepareCommand(ctx context.Context) error {
 		version,
 		hostOS,
 	)
-	if err := mgtool.FromRemote(
+	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
-		mgtool.WithDestinationDir(binDir),
-		mgtool.WithRenameFile("", binaryName),
-		mgtool.WithSkipIfFileExists(binary),
-		mgtool.WithSymlink(binary),
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithRenameFile("", binaryName),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
