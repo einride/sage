@@ -17,7 +17,6 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/google/uuid"
 	"go.einride.tech/mage-tools/mg"
 )
 
@@ -101,15 +100,8 @@ func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
 }
 
 func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
-	// If no destination path is set we create one with a random uuid
 	if s.dstPath == "" {
-		// Set a default destination on a temporary path and output filename has
-		path, err := os.MkdirTemp("", uuid.NewString())
-		if err != nil {
-			return fmt.Errorf("unable to creatre temporary directory: %w", err)
-		}
-		defer os.RemoveAll(path)
-		s.dstPath = path
+		return fmt.Errorf("destination directory is missing")
 	}
 
 	f, err := os.Open(s.dstPath)
