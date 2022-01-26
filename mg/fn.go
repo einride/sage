@@ -16,15 +16,64 @@ type Function interface {
 	Run(ctx context.Context) error
 }
 
-// F takes a function that is compatible as a mage target, and any args that need to be passed to
-// it, and wraps it in an mg.Function that mg.Deps can run. Args must be passed in the same order as they
-// are declared by the function. Note that you do not need to and should not pass a context.Context
-// to F, even if the target takes a context. Compatible args are int, bool, string, and
-// time.Duration.
-func F(target interface{}, args ...interface{}) Function {
-	hasNamespace, err := checkF(target, args)
+// Fn creates a Function from a compatible target function and args.
+func Fn(target interface{}, args ...interface{}) Function {
+	result, err := newFn(target, args...)
 	if err != nil {
 		panic(err)
+	}
+	return result
+}
+
+func newFn(target interface{}, args ...interface{}) (Function, error) {
+	t := reflect.TypeOf(target)
+	if t == nil || t.Kind() != reflect.Func {
+		return nil, fmt.Errorf("non-function passed to mg.Fn: %T", target)
+	}
+	if t.NumOut() > 1 {
+		return nil, fmt.Errorf("target has too many return values, must be zero or just an error: %T", target)
+	}
+	if t.NumOut() == 1 && t.Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
+		return nil, fmt.Errorf("target's return value is not an error")
+	}
+	// more inputs than slots is always an error
+	if len(args) > t.NumIn() {
+		return nil, fmt.Errorf("too many arguments for target, got %d for %T", len(args), target)
+	}
+	var hasNamespace bool
+	x := 0
+	inputs := t.NumIn()
+	if t.In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
+		hasNamespace = true
+		x++
+		// callers must leave off the namespace value
+		inputs--
+	}
+	if t.NumIn() > x && t.In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
+		// callers must leave off the context
+		inputs--
+		// skip checking the first argument in the below loop if it's a context, since first arg is
+		// special.
+		x++
+	} else {
+		return nil, fmt.Errorf("invalid function, must have context.Context as first argument")
+	}
+	if len(args) != inputs {
+		return nil, fmt.Errorf("wrong number of arguments for target, got %d for %T", len(args), target)
+	}
+	for _, arg := range args {
+		argT := t.In(x)
+		switch argT {
+		case reflect.TypeOf(0), reflect.TypeOf(""), reflect.TypeOf(false):
+			// ok
+		default:
+			return nil, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
+		}
+		passedT := reflect.TypeOf(arg)
+		if argT != passedT {
+			return nil, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, passedT)
+		}
+		x++
 	}
 	return fn{
 		name: runtime.FuncForPC(reflect.ValueOf(target).Pointer()).Name(),
@@ -46,16 +95,12 @@ func F(target interface{}, args ...interface{}) Function {
 				vargs[x+y] = reflect.ValueOf(args[y])
 			}
 			ret := v.Call(vargs)
-			if len(ret) > 0 {
-				// we only allow functions with a single error return, so this should be safe.
-				if ret[0].IsNil() {
-					return nil
-				}
-				return ret[0].Interface().(error)
+			if ret[0].IsNil() {
+				return nil
 			}
-			return nil
+			return ret[0].Interface().(error)
 		},
-	}
+	}, nil
 }
 
 type fn struct {
@@ -63,67 +108,12 @@ type fn struct {
 	f    func(ctx context.Context) error
 }
 
-// Name returns the fully qualified name of the function.
+// Name implements Function.
 func (f fn) Name() string {
 	return f.name
 }
 
-// Run runs the function.
+// Run implements Function.
 func (f fn) Run(ctx context.Context) error {
 	return f.f(ctx)
-}
-
-func checkF(target interface{}, args []interface{}) (hasNamespace bool, _ error) {
-	t := reflect.TypeOf(target)
-	if t == nil || t.Kind() != reflect.Func {
-		return false, fmt.Errorf("non-function passed to mg.F: %T", target)
-	}
-	if t.NumOut() > 1 {
-		return false, fmt.Errorf("target has too many return values, must be zero or just an error: %T", target)
-	}
-	if t.NumOut() == 1 && t.Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
-		return false, fmt.Errorf("target's return value is not an error")
-	}
-	// more inputs than slots is always an error
-	if len(args) > t.NumIn() {
-		return false, fmt.Errorf("too many arguments for target, got %d for %T", len(args), target)
-	}
-	if t.NumIn() == 0 {
-		return false, nil
-	}
-	x := 0
-	inputs := t.NumIn()
-	if t.In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
-		hasNamespace = true
-		x++
-		// callers must leave off the namespace value
-		inputs--
-	}
-	if t.NumIn() > x && t.In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
-		// callers must leave off the context
-		inputs--
-		// skip checking the first argument in the below loop if it's a context, since first arg is
-		// special.
-		x++
-	} else {
-		return false, fmt.Errorf("invalid function, must have context.Context as first argument")
-	}
-	if len(args) != inputs {
-		return false, fmt.Errorf("wrong number of arguments for target, got %d for %T", len(args), target)
-	}
-	for _, arg := range args {
-		argT := t.In(x)
-		switch argT {
-		case reflect.TypeOf(0), reflect.TypeOf(""), reflect.TypeOf(false):
-			// ok
-		default:
-			return false, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
-		}
-		passedT := reflect.TypeOf(arg)
-		if argT != passedT {
-			return false, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, passedT)
-		}
-		x++
-	}
-	return hasNamespace, nil
 }

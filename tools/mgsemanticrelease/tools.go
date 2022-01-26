@@ -25,7 +25,7 @@ const packageJSONContent = `{
 var commandPath string
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
-	mg.Deps(ctx, mg.F(PrepareCommand, branch))
+	mg.Deps(ctx, mg.Fn(PrepareCommand, branch))
 	return mg.Command(ctx, commandPath, args...)
 }
 

@@ -64,7 +64,7 @@ func checkFunctions(functions ...interface{}) []Function {
 		if t == nil || t.Kind() != reflect.Func {
 			panic(fmt.Errorf("non-function used as a target dependency: %T", f))
 		}
-		result = append(result, F(f))
+		result = append(result, Fn(f))
 	}
 	return result
 }
