@@ -1,19 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	_ "embed"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg"
-	"go.einride.tech/sage/tools/sgyamlfmt"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -22,7 +20,7 @@ var (
 	//go:embed example/.sage/sagefile.go
 	sagefile []byte
 	//go:embed example/.github/dependabot.yml
-	dependabotYaml []byte
+	exampleDependabotYML []byte
 )
 
 func main() {
@@ -76,64 +74,44 @@ and look at https://github.com/einride/sage#readme to learn more
 `)
 }
 
-type dependabot struct {
-	PackageEcosystem string `yaml:"package-ecosystem"`
-	Directory        string `yaml:"directory"`
-	Schedule         struct {
-		Interval string `yaml:"interval"`
-	} `yaml:"schedule"`
+func hasSageDependabotConfig(dependabotYML []byte) bool {
+	sc := bufio.NewScanner(bytes.NewReader(dependabotYML))
+	sc.Split(bufio.ScanLines)
+	for sc.Scan() {
+		if bytes.Contains(sc.Bytes(), []byte("directory:")) && bytes.Contains(sc.Bytes(), []byte(sg.FromSageDir())) {
+			return true
+		}
+	}
+	return false
+}
+
+func appendSageDependabotConfig(dependabotYML []byte) []byte {
+	relativeSageDir, err := filepath.Rel(sg.FromGitRoot(), sg.FromSageDir())
+	if err != nil {
+		panic(err)
+	}
+	dependabotConfig := fmt.Sprintf(
+		`
+  - package-ecosystem: gomod
+    directory: %s
+    schedule:
+      interval: weekly`,
+		relativeSageDir,
+	)
+	return append(dependabotYML, []byte(dependabotConfig)...)
 }
 
 func addToDependabot() error {
-	dependabotYamlPath := sg.FromGitRoot(".github", "dependabot.yml")
-	currentConfig, err := ioutil.ReadFile(dependabotYamlPath)
+	dependabotYMLPath := sg.FromGitRoot(".github", "dependabot.yml")
+	dependabotYML, err := os.ReadFile(dependabotYMLPath)
 	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(filepath.Dir(dependabotYamlPath), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dependabotYMLPath), 0o755); err != nil {
 			return err
 		}
-		err = os.WriteFile(dependabotYamlPath, dependabotYaml, 0o600)
-		if err != nil {
-			return err
-		}
+		return os.WriteFile(dependabotYMLPath, exampleDependabotYML, 0o600)
+	}
+	if hasSageDependabotConfig(dependabotYML) {
 		return nil
 	}
-	dependabotSageConfig := dependabot{
-		PackageEcosystem: "gomod",
-		Directory:        ".sage",
-		Schedule: struct {
-			Interval string `yaml:"interval"`
-		}{Interval: "daily"},
-	}
-	marshalDependabot, err := yaml.Marshal(&dependabotSageConfig)
-	if err != nil {
-		return err
-	}
-	var sageNode yaml.Node
-	currentConfig = sgyamlfmt.PreserveEmptyLines(currentConfig)
-	if err := yaml.Unmarshal(marshalDependabot, &sageNode); err != nil {
-		return err
-	}
-	var dependabotNode yaml.Node
-	if err := yaml.Unmarshal(currentConfig, &dependabotNode); err != nil {
-		return err
-	}
-	var updatesIdx int
-	for i, k := range dependabotNode.Content[0].Content {
-		if k.Value == "updates" {
-			updatesIdx = i + 1
-			break
-		}
-	}
-	if updatesIdx == 0 {
-		return fmt.Errorf("could not find updates key in dependabot.yml")
-	}
-	dependabotNode.Content[0].Content[updatesIdx].Content =
-		append(dependabotNode.Content[0].Content[updatesIdx].Content, sageNode.Content[0])
-	var b bytes.Buffer
-	encoder := yaml.NewEncoder(&b)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(&dependabotNode); err != nil {
-		return err
-	}
-	return os.WriteFile(dependabotYamlPath, sgyamlfmt.CleanupPreserveEmptyLines(b.Bytes()), 0o600)
+	return os.WriteFile(dependabotYMLPath, appendSageDependabotConfig(dependabotYML), 0o600)
 }
