@@ -7,10 +7,10 @@ import (
 	"runtime"
 )
 
-// Fn represents a function that can be run with mg.Deps. Package, Name, and ID must combine to
+// Function represents a function that can be run with mg.Deps. Package, Name, and ID must combine to
 // uniquely identify a function, while ensuring the "same" function has identical values. These are
 // used as a map key to find and run (or not run) the function.
-type Fn interface {
+type Function interface {
 	// Name should return the fully qualified name of the function. Usually
 	// it's best to use runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name().
 	Name() string
@@ -20,11 +20,11 @@ type Fn interface {
 }
 
 // F takes a function that is compatible as a mage target, and any args that need to be passed to
-// it, and wraps it in an mg.Fn that mg.Deps can run. Args must be passed in the same order as they
+// it, and wraps it in an mg.Function that mg.Deps can run. Args must be passed in the same order as they
 // are declared by the function. Note that you do not need to and should not pass a context.Context
 // to F, even if the target takes a context. Compatible args are int, bool, string, and
 // time.Duration.
-func F(target interface{}, args ...interface{}) Fn {
+func F(target interface{}, args ...interface{}) Function {
 	hasContext, isNamespace, err := checkF(target, args)
 	if err != nil {
 		panic(err)

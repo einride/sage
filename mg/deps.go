@@ -8,111 +8,63 @@ import (
 	"sync"
 
 	"github.com/go-logr/logr"
+	"go.einride.tech/mage-tools/mg/internal/runner"
 )
 
-// Deps runs the given functions as dependencies of the calling function in parallel.
+// Deps runs each of the provided functions in parallel.
 //
-// Dependencies must only be of type func(context.Context) error.
-// Or a similar method on a mg.Namespace type.
-// Or an mg.Fn interface.
+// Dependencies must be of type func(context.Context) error or mg.Function.
 //
-// The function calling Deps is guaranteed that all dependent functions will be
-// run exactly once when Deps returns.  Dependent functions may in turn declare
-// their own dependencies using Deps. Each dependency is run in their own
-// goroutines. Each function is given the context provided if the function
-// prototype allows for it.
-func Deps(ctx context.Context, fns ...interface{}) {
-	var mu sync.Mutex
-	errs := make(map[string]error)
+// Each function will be run exactly once, even across multiple calls to Deps.
+func Deps(ctx context.Context, functions ...interface{}) {
+	errs := make([]error, len(functions))
+	checkedFunctions := checkFunctions(functions...)
 	var wg sync.WaitGroup
-	for _, f := range checkFns(fns) {
-		fn := onces.LoadOrStore(f)
+	for i, f := range checkedFunctions {
+		i, f := i, f
 		wg.Add(1)
 		go func() {
-			ctx = logr.NewContext(ctx, NewLogger(fn.fn.Name()))
 			defer func() {
 				if v := recover(); v != nil {
-					mu.Lock()
-					errs[fn.fn.Name()] = fmt.Errorf(fmt.Sprint(v))
-					mu.Unlock()
+					errs[i] = fmt.Errorf(fmt.Sprint(v))
 				}
 				wg.Done()
 			}()
-			if err := fn.run(ctx); err != nil {
-				mu.Lock()
-				errs[fn.fn.Name()] = err
-				mu.Unlock()
-			}
+			errs[i] = runner.RunOnce(logr.NewContext(ctx, NewLogger(f.Name())), f.Name(), f.Run)
 		}()
 	}
 	wg.Wait()
-	if len(errs) > 0 {
-		for name, err := range errs {
-			NewLogger(name).Error(err, err.Error())
+	var exitError bool
+	for i, err := range errs {
+		if err != nil {
+			NewLogger(checkedFunctions[i].Name()).Error(err, err.Error())
+			exitError = true
 		}
+	}
+	if exitError {
 		os.Exit(1)
 	}
 }
 
 // SerialDeps works like Deps except running all dependencies serially instead of in parallel.
-func SerialDeps(ctx context.Context, fns ...interface{}) {
-	for _, fn := range fns {
-		Deps(ctx, fn)
+func SerialDeps(ctx context.Context, targets ...interface{}) {
+	for _, target := range targets {
+		Deps(ctx, target)
 	}
 }
 
-type onceMap struct {
-	mu sync.Mutex
-	m  map[string]*onceFun
-}
-
-func (o *onceMap) LoadOrStore(f Fn) *onceFun {
-	defer o.mu.Unlock()
-	o.mu.Lock()
-	existing, ok := o.m[f.Name()]
-	if ok {
-		return existing
-	}
-	one := &onceFun{
-		fn: f,
-	}
-	o.m[f.Name()] = one
-	return one
-}
-
-// nolint: gochecknoglobals
-var onces = &onceMap{
-	m: map[string]*onceFun{},
-}
-
-func checkFns(fns []interface{}) []Fn {
-	funcs := make([]Fn, len(fns))
-	for i, f := range fns {
-		if fn, ok := f.(Fn); ok {
-			funcs[i] = fn
+func checkFunctions(functions ...interface{}) []Function {
+	result := make([]Function, 0, len(functions))
+	for _, f := range functions {
+		if checked, ok := f.(Function); ok {
+			result = append(result, checked)
 			continue
 		}
-		// Check if the target provided is a not function so we can give a clear warning
 		t := reflect.TypeOf(f)
 		if t == nil || t.Kind() != reflect.Func {
 			panic(fmt.Errorf("non-function used as a target dependency: %T", f))
 		}
-		funcs[i] = F(f)
+		result = append(result, F(f))
 	}
-	return funcs
-}
-
-type onceFun struct {
-	once sync.Once
-	fn   Fn
-	err  error
-}
-
-// run will run the function exactly once and capture the error output. Further runs simply return
-// the same error output.
-func (o *onceFun) run(ctx context.Context) error {
-	o.once.Do(func() {
-		o.err = o.fn.Run(ctx)
-	})
-	return o.err
+	return result
 }
