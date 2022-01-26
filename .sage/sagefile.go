@@ -20,11 +20,6 @@ func main() {
 			Path:          sg.FromGitRoot("Makefile"),
 			DefaultTarget: All,
 		},
-		sg.Makefile{
-			Path:          sg.FromGitRoot("proto", "Makefile"),
-			Namespace:     Proto{},
-			DefaultTarget: Proto.HelloWorld,
-		},
 	)
 }
 
@@ -72,11 +67,4 @@ func ConvcoCheck(ctx context.Context) error {
 func GitVerifyNoDiff(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("verifying that git has no diff...")
 	return sggit.VerifyNoDiff(ctx)
-}
-
-type Proto sg.Namespace
-
-func (Proto) HelloWorld(ctx context.Context, a int, b string, c, d bool) error {
-	logr.FromContextOrDiscard(ctx).Info("hello world", "a", a, "b", b, "c", c, "d", d)
-	return nil
 }

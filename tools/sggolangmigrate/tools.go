@@ -4,8 +4,8 @@ import (
 	"context"
 	"os/exec"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const version = "v4.15.1"
@@ -19,7 +19,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	binary, err := mgtool.GoInstall(ctx, "github.com/golang-migrate/migrate/v4/cmd/migrate", version)
+	binary, err := sgtool.GoInstall(ctx, "github.com/golang-migrate/migrate/v4/cmd/migrate", version)
 	if err != nil {
 		return err
 	}
