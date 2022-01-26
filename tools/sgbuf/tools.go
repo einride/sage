@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const version = "1.0.0-rc10"
@@ -27,8 +27,8 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == mgtool.AMD64 {
-		hostArch = mgtool.X8664
+	if hostArch == sgtool.AMD64 {
+		hostArch = sgtool.X8664
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-%s",
@@ -36,13 +36,13 @@ func PrepareCommand(ctx context.Context) error {
 		hostOS,
 		hostArch,
 	)
-	if err := mgtool.FromRemote(
+	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
-		mgtool.WithDestinationDir(binDir),
-		mgtool.WithRenameFile("", binaryName),
-		mgtool.WithSkipIfFileExists(binary),
-		mgtool.WithSymlink(binary),
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithRenameFile("", binaryName),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}

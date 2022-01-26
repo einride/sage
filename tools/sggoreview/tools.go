@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const version = "0.18.0"
@@ -29,8 +29,8 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, toolName)
 	hostOS := strings.Title(runtime.GOOS)
 	hostArch := runtime.GOARCH
-	if hostArch == mgtool.AMD64 {
-		hostArch = mgtool.X8664
+	if hostArch == sgtool.AMD64 {
+		hostArch = sgtool.X8664
 	}
 	fileName := fmt.Sprintf("goreview_%s_%s_%s", version, hostOS, hostArch)
 	binURL := fmt.Sprintf(
@@ -38,14 +38,14 @@ func PrepareCommand(ctx context.Context) error {
 		version,
 		fileName,
 	)
-	if err := mgtool.FromRemote(
+	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
-		mgtool.WithDestinationDir(binDir),
-		mgtool.WithUntarGz(),
-		mgtool.WithRenameFile(fmt.Sprintf("%s/goreview", fileName), toolName),
-		mgtool.WithSkipIfFileExists(binary),
-		mgtool.WithSymlink(binary),
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithUntarGz(),
+		sgtool.WithRenameFile(fmt.Sprintf("%s/goreview", fileName), toolName),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", toolName, err)
 	}

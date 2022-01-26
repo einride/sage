@@ -4,8 +4,8 @@ import (
 	"context"
 	"os/exec"
 
-	"go.einride.tech/sage/mgtool"
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/sgtool"
 )
 
 const version = "75134924a9fd3335f76a9709314c5f5cef4d6ddc"
@@ -19,7 +19,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	binary, err := mgtool.GoInstall(ctx, "github.com/shurcooL/markdownfmt", version)
+	binary, err := sgtool.GoInstall(ctx, "github.com/shurcooL/markdownfmt", version)
 	if err != nil {
 		return err
 	}
