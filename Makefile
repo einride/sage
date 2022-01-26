@@ -50,4 +50,4 @@ golangci-lint: $(magefile)
 
 .PHONY: proto
 proto:
-	make -C proto
+	make -C proto -f Makefile

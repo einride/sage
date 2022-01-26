@@ -78,7 +78,7 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 			g.P()
 			g.P(".PHONY: ", toMakeTarget(i.namespaceName()))
 			g.P(toMakeTarget(i.namespaceName()), ":")
-			g.P("\tmake -C ", mkPath)
+			g.P("\tmake -C ", mkPath, " -f ", filepath.Base(i.Path))
 			g.P()
 		}
 	}
