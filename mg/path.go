@@ -2,7 +2,6 @@ package mg
 
 import (
 	"bytes"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,8 +25,8 @@ func FromWorkDir(pathElems ...string) string {
 }
 
 func FromGitRoot(pathElems ...string) string {
-	// We use exec.command here because this command runs in a global,
-	// which is set up before mage has configured logging resulting in unwanted log prints
+	// We use exec.Command here because this command runs in a global,
+	// which is set up before logging is configured, resulting in unwanted log prints.
 	var output bytes.Buffer
 	c := exec.Command("git", []string{"rev-parse", "--show-toplevel"}...)
 	c.Env = os.Environ()
@@ -41,7 +40,7 @@ func FromGitRoot(pathElems ...string) string {
 	return filepath.Join(append([]string{gitRoot}, pathElems...)...)
 }
 
-// FromMageDir returns the path relative to the mage root.
+// FromMageDir returns the path relative to where the mage files are kept.
 func FromMageDir(pathElems ...string) string {
 	return FromGitRoot(append([]string{MageDir}, pathElems...)...)
 }
@@ -54,17 +53,4 @@ func FromToolsDir(pathElems ...string) string {
 // FromBinDir returns the path relative to where tool binaries are installed.
 func FromBinDir(pathElems ...string) string {
 	return FromToolsDir(append([]string{BinDir}, pathElems...)...)
-}
-
-func FindFilesWithExtension(path, ext string) []string {
-	var files []string
-	if err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
-		if filepath.Ext(path) == ext {
-			files = append(files, path)
-		}
-		return nil
-	}); err != nil {
-		panic(err)
-	}
-	return files
 }
