@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	//go:embed example/.gitignore
+	gitignore []byte
 	//go:embed example/.sage/sagefile.go
 	sagefile []byte
 	//go:embed example/.github/dependabot.yml
@@ -33,7 +35,10 @@ func main() {
 	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile(filepath.Join(sg.FromSageDir(), "sagefile.go"), sagefile, 0o600); err != nil {
+	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile(sg.FromSageDir(".gitignore"), gitignore, 0o600); err != nil {
 		panic(err)
 	}
 	_, err := os.Stat(sg.FromGitRoot("Makefile"))
@@ -52,18 +57,6 @@ func main() {
 	cmd = sg.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		panic(err)
-	}
-	gitIgnore, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
-	if err != nil {
-		panic(err)
-	}
-	defer gitIgnore.Close()
-	relToolsPath, err := filepath.Rel(sg.FromGitRoot("."), sg.FromToolsDir())
-	if err != nil {
-		panic(err)
-	}
-	if _, err := gitIgnore.WriteString(fmt.Sprintf("%s\n", relToolsPath)); err != nil {
 		panic(err)
 	}
 	if err := addToDependabot(); err != nil {
