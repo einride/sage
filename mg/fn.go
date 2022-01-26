@@ -25,76 +25,63 @@ func Fn(target interface{}, args ...interface{}) Function {
 	return result
 }
 
-func newFn(target interface{}, args ...interface{}) (Function, error) {
-	t := reflect.TypeOf(target)
-	if t == nil || t.Kind() != reflect.Func {
-		return nil, fmt.Errorf("non-function passed to mg.Fn: %T", target)
+func newFn(f interface{}, args ...interface{}) (Function, error) {
+	v := reflect.ValueOf(f)
+	if f == nil || v.Type().Kind() != reflect.Func {
+		return nil, fmt.Errorf("non-function passed to mg.Fn: %T", f)
 	}
-	if t.NumOut() > 1 {
-		return nil, fmt.Errorf("target has too many return values, must be zero or just an error: %T", target)
+	if v.Type().NumOut() != 1 || v.Type().Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
+		return nil, fmt.Errorf("function does not have an error return value: %T", f)
 	}
-	if t.NumOut() == 1 && t.Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
-		return nil, fmt.Errorf("target's return value is not an error")
-	}
-	// more inputs than slots is always an error
-	if len(args) > t.NumIn() {
-		return nil, fmt.Errorf("too many arguments for target, got %d for %T", len(args), target)
+	if len(args) > v.Type().NumIn() {
+		return nil, fmt.Errorf("too many arguments %d for function %T", len(args), f)
 	}
 	var hasNamespace bool
 	x := 0
-	inputs := t.NumIn()
-	if t.In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
+	inputs := v.Type().NumIn()
+	if v.Type().In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
 		hasNamespace = true
 		x++
-		// callers must leave off the namespace value
 		inputs--
 	}
-	if t.NumIn() > x && t.In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
-		// callers must leave off the context
+	if v.Type().NumIn() > x && v.Type().In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
 		inputs--
-		// skip checking the first argument in the below loop if it's a context, since first arg is
-		// special.
 		x++
 	} else {
 		return nil, fmt.Errorf("invalid function, must have context.Context as first argument")
 	}
 	if len(args) != inputs {
-		return nil, fmt.Errorf("wrong number of arguments for target, got %d for %T", len(args), target)
+		return nil, fmt.Errorf("wrong number of arguments for fn, got %d for %T", len(args), f)
 	}
 	for _, arg := range args {
-		argT := t.In(x)
+		argT := v.Type().In(x)
 		switch argT {
 		case reflect.TypeOf(0), reflect.TypeOf(""), reflect.TypeOf(false):
 			// ok
 		default:
 			return nil, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
 		}
-		passedT := reflect.TypeOf(arg)
-		if argT != passedT {
-			return nil, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, passedT)
+		if callArgT := reflect.TypeOf(arg); argT != callArgT {
+			return nil, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, callArgT)
 		}
 		x++
 	}
+	argCount := len(args) + 1 // +1 for context
+	if hasNamespace {
+		argCount++ // +1 for the namespace
+	}
 	return fn{
-		name: runtime.FuncForPC(reflect.ValueOf(target).Pointer()).Name(),
+		name: runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(),
 		f: func(ctx context.Context) error {
-			v := reflect.ValueOf(target)
-			count := len(args) + 1
+			callArgs := make([]reflect.Value, 0, argCount)
 			if hasNamespace {
-				count++
+				callArgs = append(callArgs, reflect.ValueOf(struct{}{}))
 			}
-			vargs := make([]reflect.Value, count)
-			x := 0
-			if hasNamespace {
-				vargs[0] = reflect.ValueOf(struct{}{})
-				x++
+			callArgs = append(callArgs, reflect.ValueOf(ctx))
+			for _, arg := range args {
+				callArgs = append(callArgs, reflect.ValueOf(arg))
 			}
-			vargs[x] = reflect.ValueOf(ctx)
-			x++
-			for y := range args {
-				vargs[x+y] = reflect.ValueOf(args[y])
-			}
-			ret := v.Call(vargs)
+			ret := v.Call(callArgs)
 			if ret[0].IsNil() {
 				return nil
 			}
