@@ -51,5 +51,5 @@ func FromToolsDir(pathElems ...string) string {
 
 // FromBinDir returns the path relative to where tool binaries are installed.
 func FromBinDir(pathElems ...string) string {
-	return FromToolsDir(append([]string{BinDir}, pathElems...)...)
+	return FromSageDir(append([]string{BinDir}, pathElems...)...)
 }
