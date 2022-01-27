@@ -14,7 +14,7 @@ func Command(_ context.Context, path string, args ...string) *exec.Cmd {
 	cmd := exec.Command(path)
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Dir = FromGitRoot(".")
-	cmd.Env = os.Environ()
+	cmd.Env = prependPath(os.Environ(), FromBinDir())
 	// TODO: Pipe stdout/stderr through the current context logger to get tagged output.
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -30,4 +30,15 @@ func Output(cmd *exec.Cmd) string {
 		panic(fmt.Sprintf("%s failed: %v", cmd.Path, err))
 	}
 	return strings.TrimSpace(string(output))
+}
+
+func prependPath(environ []string, paths ...string) []string {
+	for i, kv := range environ {
+		if !strings.HasPrefix(kv, "PATH=") {
+			continue
+		}
+		environ[i] = fmt.Sprintf("PATH=%s:%s", strings.Join(paths, ":"), strings.TrimPrefix(kv, "PATH="))
+		return environ
+	}
+	return append(environ, fmt.Sprintf("PATH=%s", strings.Join(paths, ":")))
 }
