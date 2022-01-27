@@ -46,7 +46,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 			expected := len(function.Decl.Type.Params.List)
 			g.P("if len(args) != ", expected, " {")
 			g.P(
-				"logger.Info(",
+				"logger.Error(nil,",
 				`"wrong number of arguments",`,
 				`"target", "`,
 				getTargetFunctionName(function),
@@ -74,7 +74,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 					case boolType:
 						g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
 						g.P("if err != nil {")
-						g.P(`logger.Error(err, "can't convert argument %q to bool\n", args[`, i, `])`)
+						g.P(`logger.Error(err, "can't convert argument to bool\n", args[`, i, `])`)
 						g.P(g.Import("os"), ".Exit(1)")
 						g.P("}")
 					}
@@ -110,7 +110,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 		`.NewLogger("sagefile"))`,
 	)
 	g.P("logger := logr.FromContextOrDiscard(ctx)")
-	g.P(`logger.Info("Unknown target specified: %q\n", target)`)
+	g.P(`logger.Error(nil, "Unknown target specified", "target", target)`)
 	g.P(g.Import("os"), ".Exit(1)")
 	g.P("}")
 	g.P(g.Import("os"), ".Exit(0)")

@@ -47,43 +47,52 @@ func initSage(ctx context.Context) {
 	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("initializing sage...")
 	if sg.FromWorkDir() != sg.FromGitRoot() {
-		panic("can only be generated in git root directory")
+		logger.Error(nil, "can only be generated in git root directory")
+		os.Exit(1)
 	}
 	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	if err := os.WriteFile(sg.FromSageDir(".gitignore"), gitignore, 0o600); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	_, err := os.Stat(sg.FromGitRoot("Makefile"))
 	if err == nil {
 		const mm = "Makefile.old"
 		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
 		if err := os.Rename(sg.FromGitRoot("Makefile"), sg.FromGitRoot(mm)); err != nil {
-			panic(err)
+			logger.Error(err, err.Error())
+			os.Exit(1)
 		}
 	}
 	cmd := sg.Command(ctx, "go", "mod", "init", "sage")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	cmd = sg.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	if err := addToDependabot(); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	// Generate make targets
 	cmd = sg.Command(ctx, "go", "run", "go.einride.tech/sage/cmd/build")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		logger.Error(err, err.Error())
+		os.Exit(1)
 	}
 	logger.Info(`
 sage has been successfully initialized!
