@@ -82,6 +82,7 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 			g.P()
 		}
 	}
+	g.P()
 	return nil
 }
 
