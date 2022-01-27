@@ -13,15 +13,33 @@ import (
 	"strings"
 )
 
+type cmdDirCtxKey string
+
+// nolint: gochecknoglobals
+var cmdDirKey cmdDirCtxKey = "cmdDir"
+
+// ContextFromDir returns a context which sets the directory used by Command().
+func FromDirContext(ctx context.Context, dirPath string) context.Context {
+	return context.WithValue(ctx, cmdDirKey, dirPath)
+}
+
 // Command should be used when returning exec.Cmd from tools to set opinionated standard fields.
 func Command(ctx context.Context, path string, args ...string) *exec.Cmd {
 	// TODO: use exec.CommandContext when we have determined there are no side-effects.
 	cmd := exec.Command(path)
 	cmd.Args = append(cmd.Args, args...)
-	cmd.Dir = FromGitRoot(".")
 	cmd.Env = prependPath(os.Environ(), FromBinDir())
 	cmd.Stderr = newLogWriter(ctx, os.Stderr)
 	cmd.Stdout = newLogWriter(ctx, os.Stdout)
+	if v := ctx.Value(cmdDirKey); v != nil {
+		path, ok := v.(string)
+		if ok {
+			cmd.Dir = path
+		}
+	}
+	if cmd.Dir == "" {
+		cmd.Dir = FromGitRoot(".")
+	}
 	return cmd
 }
 
