@@ -25,10 +25,10 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 		return err
 	}
 	dependencies := fmt.Sprintf("%s/go.mod %s/*.go", includePath, includePath)
-	genCommand := fmt.Sprintf("cd %s && go run go.einride.tech/sage/cmd/build", includePath)
+	genCommand := fmt.Sprintf("cd %s && go run go.einride.tech/sage run", includePath)
 	if strings.TrimSpace(b.String()) == "go.einride.tech/sage" {
 		dependencies = fmt.Sprintf("%s/go.mod $(shell find %s/.. -type f -name '*.go')", includePath, includePath)
-		genCommand = fmt.Sprintf("cd %s && go run ../cmd/build", includePath)
+		genCommand = fmt.Sprintf("cd %s && go run ../main.go run", includePath)
 	}
 
 	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")

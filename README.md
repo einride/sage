@@ -17,7 +17,7 @@ Getting started
 To initilize Sage in a repository, just run:
 
 ```bash
-go run go.einride.tech/sage/cmd/init@latest
+go run go.einride.tech/sage@latest init
 ```
 
 Run `make`.
