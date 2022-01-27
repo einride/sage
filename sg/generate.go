@@ -55,7 +55,7 @@ func GenerateMakefiles(mks ...Makefile) {
 
 // compile uses the go tool to compile the files into an executable at path.
 func compile(ctx context.Context) error {
-	cmd := Command(ctx, "go", "build", "-o", FromToolsDir(SageFileBinary), ".")
+	cmd := Command(ctx, "go", "build", "-o", FromBinDir(SageFileBinary), ".")
 	cmd.Dir = FromSageDir()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error compiling sagefiles: %w", err)

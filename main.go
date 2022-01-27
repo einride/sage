@@ -29,9 +29,7 @@ func main() {
 	usage := func() {
 		logger.Info(`Usage:
 	init
-		to initialize sage
-	run
-		to run sage`)
+		to initialize sage`)
 		os.Exit(0)
 	}
 	if len(os.Args) < 2 || len(os.Args) > 2 {
@@ -40,23 +38,8 @@ func main() {
 	switch os.Args[1] {
 	case "init":
 		initSage(ctx)
-	case "run":
-		runSage(ctx)
 	default:
 		usage()
-	}
-}
-
-func runSage(ctx context.Context) {
-	cmd := sg.Command(ctx, "go", "mod", "tidy")
-	cmd.Dir = sg.FromSageDir()
-	if err := cmd.Run(); err != nil {
-		panic(err)
-	}
-	cmd = sg.Command(ctx, "go", "run", ".")
-	cmd.Dir = sg.FromSageDir()
-	if err := cmd.Run(); err != nil {
-		panic(err)
 	}
 }
 
