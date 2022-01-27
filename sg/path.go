@@ -12,7 +12,7 @@ const (
 	SageDir        = ".sage"
 	ToolsDir       = "tools"
 	BinDir         = "bin"
-	SageFileBinary = "bin/sagefile"
+	SageFileBinary = "sagefile"
 )
 
 func FromWorkDir(pathElems ...string) string {

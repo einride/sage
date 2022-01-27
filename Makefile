@@ -3,10 +3,10 @@
 
 .DEFAULT_GOAL := all
 
-sagefile := .sage/tools/bin/sagefile
+sagefile := .sage/bin/sagefile
 
 $(sagefile): .sage/go.mod $(shell find .sage/.. -type f -name '*.go')
-	@cd .sage && go run ../main.go run
+	@cd .sage && go mod tidy && go run .
 
 .PHONY: clean-sage
 clean-sage:
