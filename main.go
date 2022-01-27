@@ -26,6 +26,42 @@ var (
 func main() {
 	ctx := logr.NewContext(context.Background(), sg.NewLogger("sage"))
 	logger := logr.FromContextOrDiscard(ctx)
+	usage := func() {
+		logger.Info(`Usage:
+	init
+		to initialize sage
+	run
+		to run sage`)
+		os.Exit(0)
+	}
+	if len(os.Args) < 2 || len(os.Args) > 2 {
+		usage()
+	}
+	switch os.Args[1] {
+	case "init":
+		initSage(ctx)
+	case "run":
+		runSage(ctx)
+	default:
+		usage()
+	}
+}
+
+func runSage(ctx context.Context) {
+	cmd := sg.Command(ctx, "go", "mod", "tidy")
+	cmd.Dir = sg.FromSageDir()
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+	cmd = sg.Command(ctx, "go", "run", ".")
+	cmd.Dir = sg.FromSageDir()
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+}
+
+func initSage(ctx context.Context) {
+	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("initializing sage...")
 	if sg.FromWorkDir() != sg.FromGitRoot() {
 		panic("can only be generated in git root directory")

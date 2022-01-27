@@ -6,7 +6,7 @@
 sagefile := .sage/tools/bin/sagefile
 
 $(sagefile): .sage/go.mod $(shell find .sage/.. -type f -name '*.go')
-	@cd .sage && go run ../cmd/build
+	@cd .sage && go run ../main.go run
 
 .PHONY: clean-sage
 clean-sage:
