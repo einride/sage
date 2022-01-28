@@ -51,7 +51,7 @@ func GoReview(ctx context.Context) error {
 
 func GolangciLint(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("linting Go files...")
-	return sggolangcilint.RunCommand(ctx).Run()
+	return sggolangcilint.Run(ctx)
 }
 
 func FormatMarkdown(ctx context.Context) error {

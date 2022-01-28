@@ -16,8 +16,8 @@ type imports struct {
 	usedPackageNames map[string]bool
 }
 
-// NewImports creates a new imports set.
-func NewImports() *imports {
+// newImports creates a new imports set.
+func newImports() *imports {
 	return &imports{
 		packageNames:     map[string]string{},
 		usedPackageNames: map[string]bool{},

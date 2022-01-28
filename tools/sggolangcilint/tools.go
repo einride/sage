@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,30 +15,57 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "1.43.0"
+const version = "1.44.0"
 
 // nolint: gochecknoglobals
 var commandPath string
 
 //go:embed golangci.yml
-var defaultConfig string
+var defaultConfig []byte
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, commandPath, args...)
 }
 
-func RunCommand(ctx context.Context) *exec.Cmd {
-	configPath := sg.FromWorkDir(".golangci.yml")
-	cmd := Command(ctx)
-	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath = sg.FromToolsDir("golangci-lint", ".golangci.yml")
-		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o600); err != nil {
-			panic(err)
+// Run GolangCI-Lint in every Go module from the root of the current git repo.
+func Run(ctx context.Context, args ...string) error {
+	defaultConfigPath := sg.FromToolsDir("golangci-lint", ".golangci.yml")
+	if err := os.MkdirAll(filepath.Dir(defaultConfigPath), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(defaultConfigPath, defaultConfig, 0o600); err != nil {
+		return err
+	}
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		configPath := filepath.Join(filepath.Dir(path), ".golangci.yml")
+		if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+			configPath = defaultConfigPath
+		}
+		pathPrefix, err := filepath.Rel(sg.FromGitRoot(), filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		cmd := Command(ctx, append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)...)
+		cmd.Dir = filepath.Dir(path)
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
 		}
 	}
-	cmd.Args = append(cmd.Args, "run", "-c", configPath, "--fix")
-	return cmd
+	return nil
 }
 
 func PrepareCommand(ctx context.Context) error {

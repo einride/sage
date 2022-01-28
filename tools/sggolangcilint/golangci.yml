@@ -1,7 +1,9 @@
 run:
   timeout: 10m
-  skip-dirs:
-    - gen
+  allow-parallel-runners: true
+
+issues:
+  fix: true
 
 linters:
   disable-all: true
@@ -258,3 +260,6 @@ linters-settings:
 
   goconst:
     ignore-tests: true
+
+  gomoddirectives:
+    replace-local: true
