@@ -46,7 +46,7 @@ func (m Makefile) defaultTargetName() string {
 	return result
 }
 
-// GenerateMakefiles define which makefiles should be created by go.einride.tech/cmd/build.
+// GenerateMakefiles defines which Makefiles should be generated.
 func GenerateMakefiles(mks ...Makefile) {
 	ctx := logr.NewContext(context.Background(), NewLogger("sage"))
 	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
