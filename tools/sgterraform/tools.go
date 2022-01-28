@@ -24,7 +24,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 func PrepareCommand(ctx context.Context) error {
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	binaryDir := sg.FromBinDir(binaryName)
+	binaryDir := sg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binaryDir, binaryName)
 	terraform := fmt.Sprintf("terraform_%s_%s_%s", version, hostOS, hostArch)
 	binURL := fmt.Sprintf(
