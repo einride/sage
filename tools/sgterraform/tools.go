@@ -9,6 +9,7 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
+	"go.einride.tech/sage/tools/sgghcomment"
 )
 
 const (
@@ -19,6 +20,30 @@ const (
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
+}
+
+func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, tfPlan string) *exec.Cmd {
+	comment := fmt.Sprintf(`
+<div>
+<img
+  align="right"
+  width="120"
+  src="https://upload.wikimedia.org/wikipedia/commons/0/04/Terraform_Logo.svg" />
+<h2>Terraform Plan (%s)</h2>
+</div>
+
+%s
+`, environment, fmt.Sprintf("```"+"hcl\n%s\n"+"```", tfPlan))
+
+	return sgghcomment.Command(
+		ctx,
+		"--pr",
+		prNumber,
+		"--signkey",
+		environment,
+		"--comment",
+		comment,
+	)
 }
 
 func PrepareCommand(ctx context.Context) error {
