@@ -13,7 +13,7 @@ import (
 	"go.einride.tech/sage/internal/strcase"
 )
 
-func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
+func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
 	if err != nil {
 		return err
@@ -28,7 +28,6 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 	if strings.TrimSpace(b.String()) == "go.einride.tech/sage" {
 		dependencies = fmt.Sprintf("%s/go.mod $(shell find %s/.. -type f -name '*.go')", includePath, includePath)
 	}
-
 	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")
 	g.P()
 	if len(mk.defaultTargetName()) != 0 {
