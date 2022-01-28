@@ -1,62 +1,52 @@
 package sgyamlfmt
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io/fs"
-	"io/ioutil"
+	"os"
+	"os/exec"
 	"path/filepath"
-	"regexp"
+	"runtime"
 
 	"go.einride.tech/sage/sg"
-	"gopkg.in/yaml.v3"
+	"go.einride.tech/sage/sgtool"
 )
 
-func FormatYAML(context.Context) error {
-	return filepath.WalkDir(sg.FromGitRoot("."), func(path string, d fs.DirEntry, err error) error {
-		if filepath.Ext(path) == ".yml" || filepath.Ext(path) == ".yaml" {
-			if err := formatFile(path); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+const (
+	version    = "0.2.7"
+	binaryName = "yamlfmt"
+)
+
+func Command(ctx context.Context, args ...string) *exec.Cmd {
+	sg.Deps(ctx, PrepareCommand)
+	return sg.Command(ctx, sg.FromBinDir("yamlfmt"), args...)
 }
 
-// PreserveEmptyLines adds a temporary #comment on each empty line in the provided byte array.
-// CleanupPreserveEmptyLines can be used to clean up the temporary comments.
-func PreserveEmptyLines(src []byte) []byte {
-	return bytes.ReplaceAll(src, []byte("\n\n"), []byte("\n#preserveEmptyLine\n"))
-}
-
-// CleanupPreserveEmptyLines cleans up the temporary #comment added by PreserveEmptyLines.
-func CleanupPreserveEmptyLines(src []byte) []byte {
-	// Remove temporary comment.
-	indentPreserveComment := regexp.MustCompile("\n\\s+#preserveEmptyLine\n")
-	src = indentPreserveComment.ReplaceAll(src, []byte("\n\n"))
-	src = bytes.ReplaceAll(src, []byte("\n#preserveEmptyLine\n"), []byte("\n\n"))
-	// Remove trailing empty lines
-	src = bytes.TrimSpace(src)
-	src = append(src, []byte("\n")...)
-	return src
-}
-
-func formatFile(path string) error {
-	node := yaml.Node{}
-	yamlFile, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
+func PrepareCommand(ctx context.Context) error {
+	binDir := sg.FromToolsDir(binaryName, version)
+	binary := filepath.Join(binDir, binaryName)
+	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
+	binURL := fmt.Sprintf(
+		"https://github.com/einride/yamlfmt"+
+			"/releases/download/v%s/yamlfmt_%s_%s_%s.tar.gz",
+		version,
+		version,
+		hostOS,
+		hostArch,
+	)
+	if err := sgtool.FromRemote(
+		ctx,
+		binURL,
+		sgtool.WithDestinationDir(binDir),
+		sgtool.WithUntarGz(),
+		sgtool.WithSkipIfFileExists(binary),
+		sgtool.WithSymlink(binary),
+	); err != nil {
+		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
-	yamlFile = PreserveEmptyLines(yamlFile)
-	if err := yaml.Unmarshal(yamlFile, &node); err != nil {
-		return fmt.Errorf("%s: %w", path, err)
+	if err := os.Chmod(binary, 0o755); err != nil {
+		return fmt.Errorf("unable to make %s command: %w", binaryName, err)
 	}
-	var b bytes.Buffer
-	encoder := yaml.NewEncoder(&b)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(&node); err != nil {
-		return fmt.Errorf("%s: %w", path, err)
-	}
-	return ioutil.WriteFile(path, CleanupPreserveEmptyLines(b.Bytes()), 0o600)
+	return nil
 }

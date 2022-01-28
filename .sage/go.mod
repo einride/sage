@@ -7,9 +7,6 @@ require (
 	go.einride.tech/sage v0.0.0-00010101000000-000000000000
 )
 
-require (
-	github.com/iancoleman/strcase v0.2.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-)
+require github.com/iancoleman/strcase v0.2.0 // indirect
 
 replace go.einride.tech/sage => ../
