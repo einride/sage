@@ -42,7 +42,7 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
-	g.P("\t@git clean -fdx ", filepath.Join(includePath, ToolsDir))
+	g.P("\t@git clean -fdx ", filepath.Join(includePath, ToolsDir), " ", filepath.Join(includePath, BinDir))
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		if function.Recv == mk.namespaceName() {
 			g.P()
