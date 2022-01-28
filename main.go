@@ -88,7 +88,7 @@ func initSage(ctx context.Context) {
 		os.Exit(1)
 	}
 	// Generate make targets
-	cmd = sg.Command(ctx, "go", "run", "go.einride.tech/sage/cmd/build")
+	cmd = sg.Command(ctx, "go", "run", ".")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		logger.Error(err, err.Error())
