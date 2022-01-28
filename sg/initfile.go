@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/doc"
+	"strconv"
 	"strings"
 
 	"go.einride.tech/sage/internal/codegen"
@@ -39,8 +40,8 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 			g.P("if len(args) != ", expected, " {")
 			g.P(
 				`logger.Fatal("wrong number of arguments to %s, got %v expected %v",`,
-				getTargetFunctionName(function),
-				expected,
+				strconv.Quote(getTargetFunctionName(function)), ",",
+				expected, ",",
 				`len(args))`,
 			)
 			g.P(g.Import("os"), ".Exit(1)")
