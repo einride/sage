@@ -17,6 +17,7 @@ const (
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
+	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
 }
 
