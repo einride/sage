@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -22,7 +23,19 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
 }
 
-func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, tfPlan string) *exec.Cmd {
+func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, planFilePath string) *exec.Cmd {
+	cmd := Command(
+		ctx,
+		"show",
+		"-no-color",
+		filepath.Base(planFilePath),
+	)
+	cmd.Dir = filepath.Dir(planFilePath)
+	cmd.Stdout = nil
+	out, err := cmd.Output()
+	if err != nil {
+		sg.Logger(ctx).Fatal(err)
+	}
 	comment := fmt.Sprintf(`
 <div>
 <img
@@ -33,7 +46,7 @@ func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, tf
 </div>
 
 %s
-`, environment, fmt.Sprintf("```"+"hcl\n%s\n"+"```", tfPlan))
+`, environment, fmt.Sprintf("```"+"hcl\n%s\n"+"```", strings.TrimSpace(string(out))))
 
 	return sgghcomment.Command(
 		ctx,
