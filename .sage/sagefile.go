@@ -31,7 +31,7 @@ func All(ctx context.Context) error {
 
 func FormatYAML(ctx context.Context) error {
 	logr.FromContextOrDiscard(ctx).Info("formatting YAML files...")
-	return sgyamlfmt.FormatYAML(ctx)
+	return sgyamlfmt.Command(ctx, "-d", sg.FromGitRoot(), "-r").Run()
 }
 
 func GoModTidy(ctx context.Context) error {
