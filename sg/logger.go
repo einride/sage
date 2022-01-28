@@ -29,8 +29,8 @@ func WithLogger(ctx context.Context, logger *log.Logger) context.Context {
 
 // Logger returns the log.Logger attached to ctx, or a default logger.
 func Logger(ctx context.Context) *log.Logger {
-	if logger := ctx.Value(loggerContextKey{}).(*log.Logger); logger != nil {
-		return logger
+	if value := ctx.Value(loggerContextKey{}); value != nil {
+		return value.(*log.Logger)
 	}
 	return NewLogger("sage")
 }

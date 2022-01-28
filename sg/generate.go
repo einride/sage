@@ -102,8 +102,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 		mk := codegen.NewMakefile(codegen.FileConfig{
 			GeneratedBy: "go.einride.tech/sage",
 		})
-
-		if err := generateMakefile(mk, pkg, v, mks...); err != nil {
+		if err := generateMakefile(ctx, mk, pkg, v, mks...); err != nil {
 			panic(err)
 		}
 		// Remove trailing whitespace with len
