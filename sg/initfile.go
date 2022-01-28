@@ -32,28 +32,16 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 	g.P("switch target {")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		g.P(`case "`, getTargetFunctionName(function), `":`)
-		g.P(
-			"ctx = ",
-			g.Import("github.com/go-logr/logr"),
-			".NewContext(ctx, ",
-			g.Import("go.einride.tech/sage/sg"),
-			`.NewLogger("`,
-			getTargetFunctionName(function),
-			`"))`,
-		)
-		g.P("logger := logr.FromContextOrDiscard(ctx)")
+		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", getTargetFunctionName(function), "\")")
+		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
 		if len(function.Decl.Type.Params.List) > 1 {
 			expected := len(function.Decl.Type.Params.List)
 			g.P("if len(args) != ", expected, " {")
 			g.P(
-				"logger.Error(nil,",
-				`"wrong number of arguments",`,
-				`"target", "`,
+				`logger.Fatal("wrong number of arguments to %s, got %v expected %v",`,
 				getTargetFunctionName(function),
-				`",`,
-				`"expected",`,
 				expected,
-				`, "got", len(args))`,
+				`len(args))`,
 			)
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
@@ -68,14 +56,12 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 					case intType:
 						g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[", i, "])")
 						g.P("if err != nil {")
-						g.P(`logger.Error(err, "can't convert argument %q to int\n", args[`, i, `])`)
-						g.P(g.Import("os"), ".Exit(1)")
+						g.P(`logger.Fatalf("can't convert argument %q to int", args[`, i, `])`)
 						g.P("}")
 					case boolType:
 						g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
 						g.P("if err != nil {")
-						g.P(`logger.Error(err, "can't convert argument to bool\n", args[`, i, `])`)
-						g.P(g.Import("os"), ".Exit(1)")
+						g.P(`logger.Fatalf("can't convert argument to bool", args[`, i, `])`)
 						g.P("}")
 					}
 					i++
@@ -89,29 +75,19 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 				")",
 			)
 			g.P("if err != nil {")
-			g.P("logger.Error(err, err.Error())")
-			g.P(g.Import("os"), ".Exit(1)")
+			g.P("logger.Fatal(err)")
 			g.P("}")
 		} else {
 			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", "{}."), "(ctx)")
 			g.P("if err != nil {")
-			g.P("logger.Error(err, err.Error())")
-			g.P(g.Import("os"), ".Exit(1)")
+			g.P("logger.Fatal(err)")
 			g.P("}")
 		}
 		return true
 	})
 	g.P("default:")
-	g.P(
-		"ctx = ",
-		g.Import("github.com/go-logr/logr"),
-		".NewContext(ctx, ",
-		g.Import("go.einride.tech/sage/sg"),
-		`.NewLogger("sagefile"))`,
-	)
-	g.P("logger := logr.FromContextOrDiscard(ctx)")
-	g.P(`logger.Error(nil, "Unknown target specified", "target", target)`)
-	g.P(g.Import("os"), ".Exit(1)")
+	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"sagefile\")")
+	g.P(`logger.Fatal("unknown target specified: %s", target)`)
 	g.P("}")
 	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")

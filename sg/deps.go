@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg/internal/runner"
 )
 
@@ -30,14 +29,14 @@ func Deps(ctx context.Context, functions ...interface{}) {
 				}
 				wg.Done()
 			}()
-			errs[i] = runner.RunOnce(logr.NewContext(ctx, NewLogger(f.Name())), f.Name(), f.Run)
+			errs[i] = runner.RunOnce(WithLogger(ctx, NewLogger(f.Name())), f.Name(), f.Run)
 		}()
 	}
 	wg.Wait()
 	var exitError bool
 	for i, err := range errs {
 		if err != nil {
-			NewLogger(checkedFunctions[i].Name()).Error(err, err.Error())
+			NewLogger(checkedFunctions[i].Name()).Println(err)
 			exitError = true
 		}
 	}

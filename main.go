@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg"
 )
 
@@ -24,10 +23,9 @@ var (
 )
 
 func main() {
-	ctx := logr.NewContext(context.Background(), sg.NewLogger("sage"))
-	logger := logr.FromContextOrDiscard(ctx)
+	ctx := sg.WithLogger(context.Background(), sg.NewLogger("sage"))
 	usage := func() {
-		logger.Info(`Usage:
+		sg.Logger(ctx).Println(`Usage:
 	init
 		to initialize sage`)
 		os.Exit(0)
@@ -44,62 +42,51 @@ func main() {
 }
 
 func initSage(ctx context.Context) {
-	logger := logr.FromContextOrDiscard(ctx)
-	logger.Info("initializing sage...")
+	sg.Logger(ctx).Println("initializing sage...")
 	if sg.FromWorkDir() != sg.FromGitRoot() {
-		logger.Error(nil, "can only be generated in git root directory")
-		os.Exit(1)
+		sg.Logger(ctx).Fatal("can only be generated in git root directory")
 	}
 	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	if err := os.WriteFile(sg.FromSageDir(".gitignore"), gitignore, 0o600); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	_, err := os.Stat(sg.FromGitRoot("Makefile"))
 	if err == nil {
 		const mm = "Makefile.old"
-		logger.Info(fmt.Sprintf("Makefile already exists, renaming  Makefile to %s", mm))
+		sg.Logger(ctx).Printf("Makefile already exists, renaming  Makefile to %s", mm)
 		if err := os.Rename(sg.FromGitRoot("Makefile"), sg.FromGitRoot(mm)); err != nil {
-			logger.Error(err, err.Error())
-			os.Exit(1)
+			sg.Logger(ctx).Fatal(err)
 		}
 	}
 	cmd := sg.Command(ctx, "go", "mod", "init", "sage")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	cmd = sg.Command(ctx, "go", "mod", "tidy")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	if err := addToDependabot(); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
 	// Generate make targets
 	cmd = sg.Command(ctx, "go", "run", ".")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
-		logger.Error(err, err.Error())
-		os.Exit(1)
+		sg.Logger(ctx).Fatal(err)
 	}
-	logger.Info(`
+	sg.Logger(ctx).Println(`
 sage has been successfully initialized!
 
 To get started, have a look at the sagefile.go in the .sage directory,
-and look at https://github.com/einride/sage#readme to learn more
-`)
+and look at https://github.com/einride/sage#readme to learn more`)
 }
 
 func hasSageDependabotConfig(dependabotYML []byte) bool {

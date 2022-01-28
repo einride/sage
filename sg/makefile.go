@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"go.einride.tech/sage/internal/codegen"
+	"go.einride.tech/sage/internal/strcase"
 )
 
 func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {

@@ -13,7 +13,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/internal/codegen"
 )
 
@@ -48,8 +47,8 @@ func (m Makefile) defaultTargetName() string {
 
 // GenerateMakefiles defines which Makefiles should be generated.
 func GenerateMakefiles(mks ...Makefile) {
-	ctx := logr.NewContext(context.Background(), NewLogger("sage"))
-	logr.FromContextOrDiscard(ctx).Info("building binary and generating Makefiles...")
+	ctx := WithLogger(context.Background(), NewLogger("sage"))
+	Logger(ctx).Println("building binary and generating Makefiles...")
 	genMakefiles(ctx, mks...)
 }
 

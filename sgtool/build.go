@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg"
 )
 
@@ -23,7 +22,7 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 		return symlink, nil
 	}
 	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
-	logr.FromContextOrDiscard(ctx).Info("building...", "pkg", pkgVersion)
+	sg.Logger(ctx).Printf("building %s...", pkgVersion)
 	cmd := sg.Command(ctx, "go", "install", pkgVersion)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
 	if err := cmd.Run(); err != nil {
@@ -59,7 +58,7 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 		}
 		return symlink, nil
 	}
-	logr.FromContextOrDiscard(ctx).Info("building", "pkg", pkg)
+	sg.Logger(ctx).Printf("building %s...", pkg)
 	cmd = sg.Command(ctx, "go", "install", pkg+"@"+version)
 	cmd.Dir = filepath.Dir(file)
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
