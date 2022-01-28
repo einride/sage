@@ -38,9 +38,11 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 			expected := len(function.Decl.Type.Params.List)
 			g.P("if len(args) != ", expected, " {")
 			g.P(
-				`logger.Fatal("wrong number of arguments to %s, got %v expected %v",`,
+				`logger.Fatal("wrong number of arguments to %s, got %v expected %v", "`,
 				getTargetFunctionName(function),
+				`",`,
 				expected,
+				",",
 				`len(args))`,
 			)
 			g.P(g.Import("os"), ".Exit(1)")
