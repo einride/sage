@@ -74,31 +74,6 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 	return s.handleFileStream(rStream, path.Base(addr))
 }
 
-func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
-	s := newFileState()
-	for _, o := range opts {
-		o(s)
-	}
-	if s.skipFile != "" {
-		// Check if binary already exist
-		if _, err := os.Stat(s.skipFile); err == nil {
-			if s.symlink != "" {
-				if _, err := CreateSymlink(s.symlink); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}
-	logr.FromContextOrDiscard(ctx).Info("opening", "path", filepath)
-	f, err := os.Open(filepath)
-	if err != nil {
-		return fmt.Errorf("unable to open local file: %w", err)
-	}
-	defer f.Close()
-	return s.handleFileStream(f, path.Base(f.Name()))
-}
-
 func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 	if s.dstPath == "" {
 		return fmt.Errorf("destination directory is missing")
@@ -339,13 +314,6 @@ func (s *fileState) extractTar(reader io.Reader) error {
 				header.Name,
 			)
 		}
-	}
-	return nil
-}
-
-func Exists(file string) error {
-	if _, err := os.Stat(file); err != nil {
-		return err
 	}
 	return nil
 }
