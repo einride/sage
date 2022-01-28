@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg"
 )
 
@@ -65,7 +64,7 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 			return nil
 		}
 	}
-	logr.FromContextOrDiscard(ctx).Info("fetching", "address", addr)
+	sg.Logger(ctx).Printf("fetching %s...", addr)
 	rStream, cleanup, err := downloadBinary(ctx, addr)
 	if err != nil {
 		return fmt.Errorf("unable to download file: %w", err)

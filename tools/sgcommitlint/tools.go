@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/go-logr/logr"
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 )
@@ -70,7 +69,7 @@ func PrepareCommand(ctx context.Context) error {
 		return err
 	}
 	commandPath = symlink
-	logr.FromContextOrDiscard(ctx).Info("installing packages...")
+	sg.Logger(ctx).Println("installing packages...")
 	return sg.Command(
 		ctx,
 		"npm",
