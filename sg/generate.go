@@ -80,7 +80,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 	if err := generateInitFile(initFile, pkg); err != nil {
 		panic(err)
 	}
-	initFileContent, err := initFile.Content()
+	initFileContent, err := initFile.GoContent()
 	if err != nil {
 		panic(err)
 	}
@@ -105,8 +105,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 		if err := generateMakefile(ctx, mk, pkg, v, mks...); err != nil {
 			panic(err)
 		}
-		// Remove trailing whitespace with len
-		if err := os.WriteFile(v.Path, mk.Bytes()[:len(mk.Bytes())-1], 0o600); err != nil {
+		if err := os.WriteFile(v.Path, mk.RawContent(), 0o600); err != nil {
 			panic(err)
 		}
 	}

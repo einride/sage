@@ -1,7 +1,6 @@
 package sg
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"go/ast"
@@ -18,22 +17,16 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	if err != nil {
 		return err
 	}
-	cmd := Command(context.Background(), "go", "list", "-m")
-	var b bytes.Buffer
-	cmd.Stdout = &b
-	if err := cmd.Run(); err != nil {
-		return err
-	}
 	dependencies := fmt.Sprintf("%s/go.mod %s/*.go", includePath, includePath)
-	if strings.TrimSpace(b.String()) == "go.einride.tech/sage" {
+	if strings.TrimSpace(Output(Command(ctx, "go", "list", "-m"))) == "go.einride.tech/sage" {
 		dependencies = fmt.Sprintf("%s/go.mod $(shell find %s/.. -type f -name '*.go')", includePath, includePath)
 	}
 	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")
-	g.P()
 	if len(mk.defaultTargetName()) != 0 {
-		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
 		g.P()
+		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
 	}
+	g.P()
 	g.P("sagefile := ", filepath.Join(includePath, BinDir, SageFileBinary))
 	g.P()
 	g.P("$(sagefile): ", dependencies)
@@ -76,10 +69,8 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 			g.P(".PHONY: ", toMakeTarget(i.namespaceName()))
 			g.P(toMakeTarget(i.namespaceName()), ":")
 			g.P("\t$(MAKE) -C ", mkPath, " -f ", filepath.Base(i.Path))
-			g.P()
 		}
 	}
-	g.P()
 	return nil
 }
 

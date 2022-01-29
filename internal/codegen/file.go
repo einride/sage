@@ -81,12 +81,13 @@ func (f *File) Write(p []byte) (int, error) {
 	return n, err // nolint: wrapcheck // false positive
 }
 
-func (f *File) Bytes() []byte {
-	return f.buf.Bytes()
+// RawContent returns the raw content of the file.
+func (f *File) RawContent() []byte {
+	return append(bytes.TrimSpace(f.buf.Bytes()), '\n')
 }
 
-// Content returns the formatted Go source of the file.
-func (f *File) Content() (_ []byte, err error) {
+// GoContent returns the formatted Go source of the file.
+func (f *File) GoContent() (_ []byte, err error) {
 	if f.err != nil {
 		return nil, fmt.Errorf("content of %s: %w", f.cfg.Filename, f.err)
 	}
