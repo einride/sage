@@ -14,7 +14,12 @@ type loggerContextKey struct{}
 
 // NewLogger returns a standard logger.
 func NewLogger(name string) *log.Logger {
-	return log.New(os.Stderr, fmt.Sprintf("[%s] ", strcase.ToKebab(strings.TrimPrefix(name, "main."))), 0)
+	prefix := name
+	prefix = strings.TrimPrefix(prefix, "main.")
+	prefix = strings.TrimPrefix(prefix, "go.einride.tech/sage/tools/")
+	prefix = strcase.ToKebab(prefix)
+	prefix = fmt.Sprintf("[%s] ", prefix)
+	return log.New(os.Stderr, prefix, 0)
 }
 
 // WithLogger attaches a log.Logger to the provided context.
