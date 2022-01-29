@@ -10,7 +10,7 @@ import (
 )
 
 func TestCommand(ctx context.Context) *exec.Cmd {
-	coverFile := sg.FromToolsDir("go", "coverage", "go-test.txt")
+	coverFile := sg.FromBuildDir("go", "coverage", "go-test.txt")
 	if err := os.MkdirAll(filepath.Dir(coverFile), 0o755); err != nil {
 		panic(err)
 	}

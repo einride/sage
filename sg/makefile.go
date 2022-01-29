@@ -27,14 +27,21 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
 	}
 	g.P()
-	g.P("sagefile := ", filepath.Join(includePath, BinDir, SageFileBinary))
+	g.P("sagefile := ", filepath.Join(includePath, binDir, sageFileBinary))
 	g.P()
 	g.P("$(sagefile): ", dependencies)
 	g.P("\t@cd ", includePath, " && go mod tidy && go run .")
 	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
-	g.P("\t@git clean -fdx ", filepath.Join(includePath, ToolsDir), " ", filepath.Join(includePath, BinDir))
+	g.P(
+		"\t@git clean -fdx ",
+		filepath.Join(includePath, toolsDir),
+		" ",
+		filepath.Join(includePath, binDir),
+		" ",
+		filepath.Join(includePath, buildDir),
+	)
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		if function.Recv == mk.namespaceName() {
 			g.P()

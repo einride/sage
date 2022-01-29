@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	SageDir        = ".sage"
-	ToolsDir       = "tools"
-	BinDir         = "bin"
-	SageFileBinary = "sagefile"
+	sageDir        = ".sage"
+	toolsDir       = "tools"
+	binDir         = "bin"
+	buildDir       = "build"
+	sageFileBinary = "sagefile"
 )
 
 func FromWorkDir(pathElems ...string) string {
@@ -41,15 +42,19 @@ func FromGitRoot(pathElems ...string) string {
 
 // FromSageDir returns the path relative to where the sage files are kept.
 func FromSageDir(pathElems ...string) string {
-	return FromGitRoot(append([]string{SageDir}, pathElems...)...)
+	return FromGitRoot(append([]string{sageDir}, pathElems...)...)
 }
 
 // FromToolsDir returns the path relative to where tools are downloaded and installed.
 func FromToolsDir(pathElems ...string) string {
-	return FromSageDir(append([]string{ToolsDir}, pathElems...)...)
+	return FromSageDir(append([]string{toolsDir}, pathElems...)...)
 }
 
 // FromBinDir returns the path relative to where tool binaries are installed.
 func FromBinDir(pathElems ...string) string {
-	return FromSageDir(append([]string{BinDir}, pathElems...)...)
+	return FromSageDir(append([]string{binDir}, pathElems...)...)
+}
+
+func FromBuildDir(pathElems ...string) string {
+	return FromSageDir(append([]string{buildDir}, pathElems...)...)
 }

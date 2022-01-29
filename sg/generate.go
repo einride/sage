@@ -54,7 +54,7 @@ func GenerateMakefiles(mks ...Makefile) {
 
 // compile uses the go tool to compile the files into an executable at path.
 func compile(ctx context.Context) error {
-	cmd := Command(ctx, "go", "build", "-o", FromBinDir(SageFileBinary), ".")
+	cmd := Command(ctx, "go", "build", "-o", FromBinDir(sageFileBinary), ".")
 	cmd.Dir = FromSageDir()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error compiling sagefiles: %w", err)
@@ -66,7 +66,7 @@ func genMakefiles(ctx context.Context, mks ...Makefile) {
 	if len(mks) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/sage#readme for more info")
 	}
-	pkg, err := parsePackage(FromGitRoot(SageDir))
+	pkg, err := parsePackage(FromGitRoot(sageDir))
 	if err != nil {
 		panic(err)
 	}
