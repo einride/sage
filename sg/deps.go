@@ -29,7 +29,7 @@ func Deps(ctx context.Context, functions ...interface{}) {
 				}
 				wg.Done()
 			}()
-			errs[i] = runner.RunOnce(WithLogger(ctx, NewLogger(f.Name())), f.Name(), f.Run)
+			errs[i] = runner.RunOnce(WithLogger(ctx, NewLogger(f.Name())), f.ID(), f.Run)
 		}()
 	}
 	wg.Wait()
