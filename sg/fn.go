@@ -2,6 +2,7 @@ package sg
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -9,8 +10,11 @@ import (
 
 // Function represents a function that can be run with Deps.
 type Function interface {
-	// Name is a unique identifier and display name for the function.
+	// Name is a non-unique display name for the function.
 	Name() string
+
+	// ID is a unique identifier for the function.
+	ID() string
 
 	// Run the function.
 	Run(ctx context.Context) error
@@ -70,8 +74,14 @@ func newFn(f interface{}, args ...interface{}) (Function, error) {
 	if hasNamespace {
 		argCount++ // +1 for the namespace
 	}
+	argsID, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate JSON name for args: %w", err)
+	}
+	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 	return fn{
-		name: runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(),
+		name: name,
+		id:   name + "(" + string(argsID) + ")",
 		f: func(ctx context.Context) error {
 			callArgs := make([]reflect.Value, 0, argCount)
 			if hasNamespace {
@@ -92,7 +102,13 @@ func newFn(f interface{}, args ...interface{}) (Function, error) {
 
 type fn struct {
 	name string
+	id   string
 	f    func(ctx context.Context) error
+}
+
+// ID implements Function.
+func (f fn) ID() string {
+	return f.id
 }
 
 // Name implements Function.
