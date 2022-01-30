@@ -14,8 +14,6 @@ import (
 )
 
 var (
-	//go:embed example/.gitignore
-	gitignore []byte
 	//go:embed example/.sage/sagefile.go
 	sagefile []byte
 	//go:embed example/.github/dependabot.yml
@@ -50,9 +48,6 @@ func initSage(ctx context.Context) {
 		sg.Logger(ctx).Fatal(err)
 	}
 	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
-		sg.Logger(ctx).Fatal(err)
-	}
-	if err := os.WriteFile(sg.FromSageDir(".gitignore"), gitignore, 0o600); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
 	_, err := os.Stat(sg.FromGitRoot("Makefile"))

@@ -6,11 +6,43 @@ import (
 	"go/ast"
 	"go/doc"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
+	"unicode"
 
 	"go.einride.tech/sage/internal/codegen"
 	"go.einride.tech/sage/internal/strcase"
 )
+
+type Makefile struct {
+	Namespace     interface{}
+	Path          string
+	DefaultTarget interface{}
+}
+
+func (m Makefile) namespaceName() string {
+	if m.Namespace == nil {
+		return ""
+	}
+	return reflect.TypeOf(m.Namespace).Name()
+}
+
+func (m Makefile) defaultTargetName() string {
+	if m.DefaultTarget == nil {
+		return ""
+	}
+	result := runtime.FuncForPC(reflect.ValueOf(m.DefaultTarget).Pointer()).Name()
+	result = strings.TrimPrefix(result, "main.")
+	result = strings.TrimPrefix(result, m.namespaceName()+".")
+	result = strings.Split(result, "-")[0]
+	for _, r := range result {
+		if !unicode.IsLetter(r) {
+			panic(fmt.Sprintf("Invalid default target %s", result))
+		}
+	}
+	return result
+}
 
 func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
