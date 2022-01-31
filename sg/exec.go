@@ -38,7 +38,8 @@ type logWriter struct {
 func (l *logWriter) Write(p []byte) (n int, err error) {
 	in := bufio.NewScanner(bytes.NewReader(p))
 	for in.Scan() {
-		line := in.Text()
+		// Trim space to ensure that file references start at the beginning of the line.
+		line := strings.TrimSpace(in.Text())
 		if !l.hasFileReferences {
 			l.hasFileReferences = hasFileReferences(line)
 		}
