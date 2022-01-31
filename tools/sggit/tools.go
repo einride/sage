@@ -26,7 +26,7 @@ func VerifyNoDiff(ctx context.Context) error {
 
 func Version(ctx context.Context) string {
 	revision := sg.Output(
-		sg.Command(ctx, "git", "rev-parse", "--verify", "HEAD"),
+		sg.Command(ctx, "git", "rev-parse", "--verify", "--short", "HEAD"),
 	)
 	diff := sg.Output(
 		sg.Command(ctx, "git", "status", "--porcelain"),
