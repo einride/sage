@@ -39,7 +39,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 			expected := len(function.Decl.Type.Params.List) - 1
 			g.P("if len(args) != ", expected, " {")
 			g.P(
-				`logger.Fatal("wrong number of arguments to %s, got %v expected %v",`,
+				`logger.Fatalf("wrong number of arguments to %s, got %v expected %v",`,
 				strconv.Quote(getTargetFunctionName(function)), ",",
 				expected, ",",
 				`len(args))`,
@@ -88,7 +88,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 	})
 	g.P("default:")
 	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"sagefile\")")
-	g.P(`logger.Fatal("unknown target specified: %s", target)`)
+	g.P(`logger.Fatalf("unknown target specified: %s", target)`)
 	g.P("}")
 	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
