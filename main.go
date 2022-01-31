@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"go.einride.tech/sage/sg"
@@ -72,7 +73,8 @@ func initSage(ctx context.Context) {
 		sg.Logger(ctx).Fatal(err)
 	}
 	// Generate make targets
-	cmd = sg.Command(ctx, "go", "run", ".")
+	// Use exec.CommandContext instead of sg.Command to avoid double log tags.
+	cmd = exec.CommandContext(ctx, "go", "run", ".")
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		sg.Logger(ctx).Fatal(err)
