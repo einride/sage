@@ -36,7 +36,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", getTargetFunctionName(function), "\")")
 		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
 		if len(function.Decl.Type.Params.List) > 1 {
-			expected := len(function.Decl.Type.Params.List)
+			expected := len(function.Decl.Type.Params.List) - 1
 			g.P("if len(args) != ", expected, " {")
 			g.P(
 				`logger.Fatal("wrong number of arguments to %s, got %v expected %v",`,
