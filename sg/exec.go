@@ -48,7 +48,7 @@ func (l *logWriter) Write(p []byte) (n int, err error) {
 			// Instead prefix on the line above, these lines can be multiline hence the conditional.
 			// This enables GitHub to autodetect the file references and print them in the PR review.
 			if hasFileReferences(line) {
-				_, _ = fmt.Fprintln(l.out, l.logger.Prefix(), "\n", line)
+				_, _ = fmt.Fprintf(l.out, "%s\n%s\n", l.logger.Prefix(), line)
 			} else {
 				_, _ = fmt.Fprintln(l.out, line)
 			}

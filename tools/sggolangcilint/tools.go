@@ -46,7 +46,7 @@ func Run(ctx context.Context, args ...string) error {
 			return nil
 		}
 		configPath := filepath.Join(filepath.Dir(path), ".golangci.yml")
-		if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
 			configPath = defaultConfigPath
 		}
 		pathPrefix, err := filepath.Rel(sg.FromGitRoot(), filepath.Dir(path))

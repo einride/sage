@@ -11,20 +11,19 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "1.0.0-rc10"
-
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	version = "1.0.0-rc12"
+	name    = "buf"
+)
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	const binaryName = "buf"
-	binDir := sg.FromToolsDir(binaryName, version, "bin")
-	binary := filepath.Join(binDir, binaryName)
+	binDir := sg.FromToolsDir(name, version, "bin")
+	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
@@ -40,12 +39,11 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithRenameFile("", binaryName),
+		sgtool.WithRenameFile("", name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	commandPath = binary
 	return nil
 }
