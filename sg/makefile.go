@@ -1,7 +1,6 @@
 package sg
 
 import (
-	"context"
 	"fmt"
 	"go/ast"
 	"go/doc"
@@ -44,14 +43,10 @@ func (m Makefile) defaultTargetName() string {
 	return result
 }
 
-func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
+func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
 	if err != nil {
 		return err
-	}
-	dependencies := fmt.Sprintf("%s/go.mod %s/*.go", includePath, includePath)
-	if strings.TrimSpace(Output(Command(ctx, "go", "list", "-m"))) == "go.einride.tech/sage" {
-		dependencies = fmt.Sprintf("%s/go.mod $(shell find %s/.. -type f -name '*.go')", includePath, includePath)
 	}
 	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")
 	if len(mk.defaultTargetName()) != 0 {
@@ -61,8 +56,12 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	g.P()
 	g.P("sagefile := ", filepath.Join(includePath, binDir, sageFileBinary))
 	g.P()
-	g.P("$(sagefile): ", dependencies)
+	g.P(".PHONY: $(sagefile)")
+	g.P("$(sagefile):")
 	g.P("\t@cd ", includePath, " && go mod tidy && go run .")
+	g.P()
+	g.P(".PHONY: sage")
+	g.P("sage: $(sagefile)")
 	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
