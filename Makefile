@@ -5,8 +5,12 @@
 
 sagefile := .sage/bin/sagefile
 
-$(sagefile): .sage/go.mod $(shell find .sage/.. -type f -name '*.go')
+.PHONY: $(sagefile)
+$(sagefile):
 	@cd .sage && go mod tidy && go run .
+
+.PHONY: sage
+sage: $(sagefile)
 
 .PHONY: clean-sage
 clean-sage:

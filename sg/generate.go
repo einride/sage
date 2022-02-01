@@ -68,7 +68,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		mk := codegen.NewMakefile(codegen.FileConfig{
 			GeneratedBy: "go.einride.tech/sage",
 		})
-		if err := generateMakefile(ctx, mk, pkg, v, mks...); err != nil {
+		if err := generateMakefile(mk, pkg, v, mks...); err != nil {
 			panic(err)
 		}
 		if err := os.WriteFile(v.Path, mk.RawContent(), 0o600); err != nil {
