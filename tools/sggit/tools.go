@@ -16,10 +16,10 @@ func VerifyNoDiff(ctx context.Context) error {
 		return err
 	}
 	if status.String() != "" {
-		if err := sg.Command(ctx, "git", "diff", "--patch").Run(); err != nil {
-			return err
+		output := sg.Output(sg.Command(ctx, "git", "diff", "--patch"))
+		if output != "" {
+			return fmt.Errorf("staging area is dirty, please add all files created by the build to .gitignore: %s", output)
 		}
-		return fmt.Errorf("staging area is dirty, please add all files created by the build to .gitignore")
 	}
 	return nil
 }
