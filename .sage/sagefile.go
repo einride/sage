@@ -7,6 +7,7 @@ import (
 	"go.einride.tech/sage/tools/sgconvco"
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sggo"
+	"go.einride.tech/sage/tools/sggofumpt"
 	"go.einride.tech/sage/tools/sggolangcilint"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmarkdownfmt"
@@ -23,9 +24,13 @@ func main() {
 }
 
 func All(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GolangciLint, GoReview, GoTest, FormatMarkdown, FormatYAML)
+	sg.Deps(ctx, ConvcoCheck, GolangciLint, GoReview, GoTest, FormatMarkdown, FormatYAML, GoFumpt)
 	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
+}
+
+func GoFumpt(ctx context.Context) error {
+	return sggofumpt.Command(ctx, "-l", "-w", ".").Run()
 }
 
 func FormatYAML(ctx context.Context) error {

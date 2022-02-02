@@ -36,6 +36,10 @@ format-yaml: $(sagefile)
 git-verify-no-diff: $(sagefile)
 	@$(sagefile) GitVerifyNoDiff
 
+.PHONY: go-fumpt
+go-fumpt: $(sagefile)
+	@$(sagefile) GoFumpt
+
 .PHONY: go-mod-tidy
 go-mod-tidy: $(sagefile)
 	@$(sagefile) GoModTidy
