@@ -33,7 +33,12 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 	g.P("switch target {")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
 		g.P(`case "`, getTargetFunctionName(function), `":`)
-		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", getTargetFunctionName(function), "\")")
+		loggerName := getTargetFunctionName(function)
+		// Remove namespace from loggerName
+		if strings.Contains(loggerName, ":") {
+			loggerName = strings.Split(loggerName, ":")[1]
+		}
+		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", loggerName, "\")")
 		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
 		if len(function.Decl.Type.Params.List) > 1 {
 			expected := countParams(function.Decl.Type.Params.List) - 1
