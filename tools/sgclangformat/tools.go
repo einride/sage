@@ -3,6 +3,7 @@ package sgclangformat
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -25,6 +26,23 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 	const protoStyle = "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"
 	return Command(ctx, append([]string{"-i", protoStyle}, args...)...)
+}
+
+// FormatProto formats all proto files under the current working directory.
+func FormatProto(ctx context.Context, args ...string) error {
+	var protoFiles []string
+	if err := filepath.WalkDir(sg.FromWorkDir(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && filepath.Ext(path) == ".proto" {
+			protoFiles = append(protoFiles, path)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return FormatProtoCommand(ctx, protoFiles...).Run()
 }
 
 func PrepareCommand(ctx context.Context) error {
