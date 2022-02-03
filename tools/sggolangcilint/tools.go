@@ -53,7 +53,12 @@ func Run(ctx context.Context, args ...string) error {
 		if err != nil {
 			return err
 		}
-		cmd := Command(ctx, append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)...)
+		var excludeArg []string
+		if filepath.Dir(path) == sg.FromSageDir() {
+			excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
+		}
+		cmdArgs := append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)
+		cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
 		return cmd.Start()
