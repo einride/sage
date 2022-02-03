@@ -8,20 +8,20 @@ import (
 	"runtime"
 )
 
-// Function represents a function that can be run with Deps.
-type Function interface {
-	// Name is a non-unique display name for the function.
+// Target represents a target function that can be run with Deps.
+type Target interface {
+	// Name is a non-unique display name for the Target.
 	Name() string
 
-	// ID is a unique identifier for the function.
+	// ID is a unique identifier for the Target.
 	ID() string
 
-	// Run the function.
+	// Run the Target.
 	Run(ctx context.Context) error
 }
 
-// Fn creates a Function from a compatible target function and args.
-func Fn(target interface{}, args ...interface{}) Function {
+// Fn creates a Target from a compatible function and args.
+func Fn(target interface{}, args ...interface{}) Target {
 	result, err := newFn(target, args...)
 	if err != nil {
 		panic(err)
@@ -29,7 +29,7 @@ func Fn(target interface{}, args ...interface{}) Function {
 	return result
 }
 
-func newFn(f interface{}, args ...interface{}) (Function, error) {
+func newFn(f interface{}, args ...interface{}) (Target, error) {
 	v := reflect.ValueOf(f)
 	if f == nil || v.Type().Kind() != reflect.Func {
 		return nil, fmt.Errorf("non-function passed to sg.Fn: %T", f)
@@ -106,17 +106,17 @@ type fn struct {
 	f    func(ctx context.Context) error
 }
 
-// ID implements Function.
+// ID implements Target.
 func (f fn) ID() string {
 	return f.id
 }
 
-// Name implements Function.
+// Name implements Target.
 func (f fn) Name() string {
 	return f.name
 }
 
-// Run implements Function.
+// Run implements Target.
 func (f fn) Run(ctx context.Context) error {
 	return f.f(ctx)
 }

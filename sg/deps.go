@@ -12,7 +12,7 @@ import (
 
 // Deps runs each of the provided functions in parallel.
 //
-// Dependencies must be of type func(context.Context) error or Function.
+// Dependencies must be of type func(context.Context) error or Target.
 //
 // Each function will be run exactly once, even across multiple calls to Deps.
 func Deps(ctx context.Context, functions ...interface{}) {
@@ -52,10 +52,10 @@ func SerialDeps(ctx context.Context, targets ...interface{}) {
 	}
 }
 
-func checkFunctions(functions ...interface{}) []Function {
-	result := make([]Function, 0, len(functions))
+func checkFunctions(functions ...interface{}) []Target {
+	result := make([]Target, 0, len(functions))
 	for _, f := range functions {
-		if checked, ok := f.(Function); ok {
+		if checked, ok := f.(Target); ok {
 			result = append(result, checked)
 			continue
 		}
