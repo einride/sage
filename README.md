@@ -22,6 +22,8 @@ go run go.einride.tech/sage@latest init
 
 Run `make`.
 
+Two changes should now have happened. If the project had a previous `Makefile` it should have been renamed to `Makefile.old` and a new should have been created. If the project have a dependabot config, a sage config should have been added.
+
 Usage
 -----
 
