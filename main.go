@@ -79,8 +79,7 @@ func initSage(ctx context.Context) {
 	if err := cmd.Run(); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
-	sg.Logger(ctx).Println(`
-sage has been successfully initialized!
+	sg.Logger(ctx).Println(`successfully initialized!
 
 To get started, have a look at the sagefile.go in the .sage directory,
 and look at https://github.com/einride/sage#readme to learn more`)
