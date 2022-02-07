@@ -63,6 +63,10 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 	g.P(".PHONY: sage")
 	g.P("sage: $(sagefile)")
 	g.P()
+	g.P(".PHONY: update-sage")
+	g.P("update-sage:")
+	g.P("\t@cd ", includePath, " && go get -d go.einride.tech/sage@latest && go mod tidy && go run .")
+	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
 	g.P(
