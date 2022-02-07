@@ -285,7 +285,7 @@ func (s *fileState) extractTar(reader io.Reader) error {
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := os.MkdirAll(path, 0o755); err != nil {
-				return fmt.Errorf("extractTar: Mkdir() failed: %w", err)
+				return fmt.Errorf("extractTar: MkdirAll() failed: %w", err)
 			}
 		case tar.TypeReg:
 			// Not all directories in the tar file are TypeDir so we have to make
