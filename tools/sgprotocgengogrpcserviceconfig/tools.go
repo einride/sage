@@ -1,4 +1,4 @@
-package sgprotocgengogrpc
+package sgprotocgengogrpcserviceconfig
 
 import (
 	"context"
