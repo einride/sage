@@ -26,7 +26,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, commandPath, args...)
 }
 
-func RunCommand(ctx context.Context) *exec.Cmd {
+func Run(ctx context.Context) error {
 	cmd := sg.Command(ctx, "git", "ls-files", "--exclude-standard", "--cached", "--others", "--", "*Dockerfile*")
 	var b bytes.Buffer
 	cmd.Stdout = &b
@@ -39,7 +39,7 @@ func RunCommand(ctx context.Context) *exec.Cmd {
 	}
 	spaceless := strings.TrimSpace(b.String())
 	dockerfiles := strings.Split(spaceless, "\n")
-	return Command(ctx, dockerfiles...)
+	return Command(ctx, dockerfiles...).Run()
 }
 
 func PrepareCommand(ctx context.Context) error {
