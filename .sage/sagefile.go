@@ -60,7 +60,7 @@ func FormatMarkdown(ctx context.Context) error {
 
 func ConvcoCheck(ctx context.Context) error {
 	sg.Logger(ctx).Println("checking git commits...")
-	return sgconvco.Command(ctx, "check", "origin/main..HEAD").Run()
+	return sgconvco.Command(ctx, "check", "origin/master..HEAD").Run()
 }
 
 func GitVerifyNoDiff(ctx context.Context) error {
