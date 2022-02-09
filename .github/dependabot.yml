@@ -1,11 +1,17 @@
 version: 2
 
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: ".sage/"
+      interval: weekly
+
+  - package-ecosystem: gomod
+    directory: /
     schedule:
-      interval: "daily"
+      interval: weekly
+
+  - package-ecosystem: gomod
+    directory: .sage
+    schedule:
+      interval: weekly
