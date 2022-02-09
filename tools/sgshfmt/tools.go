@@ -3,6 +3,7 @@ package sgshfmt
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -19,6 +20,27 @@ const (
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
+}
+
+// Run shfmt on all files ending with .sh and .bash in the repo.
+func Run(ctx context.Context) error {
+	var inputFiles []string
+	if err := filepath.WalkDir(sg.FromWorkDir(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		switch filepath.Ext(d.Name()) {
+		case ".sh", ".bash":
+			inputFiles = append(inputFiles, path)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return Command(ctx, append([]string{"-w", "-s"}, inputFiles...)...).Run()
 }
 
 func PrepareCommand(ctx context.Context) error {
