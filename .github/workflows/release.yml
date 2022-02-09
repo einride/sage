@@ -14,10 +14,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v2.1.5
+      - name: Setup Go toolchain
+        uses: ./actions/setup-go
         with:
-          go-version: ^1.17
+          cacheKey: release
 
       - name: Make
         run: make
