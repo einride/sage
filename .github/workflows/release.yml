@@ -10,14 +10,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
 
-      - name: Setup Go toolchain
-        uses: ./actions/setup-go
-        with:
-          cacheKey: release
+      - name: Setup Sage
+        uses: ./actions/setup
 
       - name: Make
         run: make
