@@ -20,16 +20,17 @@ const packageJSONContent = `{
     }
 }`
 
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	name = "semantic-release"
+)
 
 func Command(ctx context.Context, branch string, args ...string) *exec.Cmd {
 	sg.Deps(ctx, sg.Fn(PrepareCommand, branch))
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
-	releaserc := sg.FromToolsDir("semantic-release", ".releaserc.json")
+	releaserc := sg.FromToolsDir(name, ".releaserc.json")
 	args := []string{
 		"--extends",
 		releaserc,
@@ -41,8 +42,8 @@ func ReleaseCommand(ctx context.Context, branch string, ci bool) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context, branch string) error {
-	toolDir := sg.FromToolsDir("semantic-release")
-	binary := filepath.Join(toolDir, "node_modules", ".bin", "semantic-release")
+	toolDir := sg.FromToolsDir(name)
+	binary := filepath.Join(toolDir, "node_modules", ".bin", name)
 	releasercJSON := filepath.Join(toolDir, ".releaserc.json")
 	packageJSON := filepath.Join(toolDir, "package.json")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
@@ -81,13 +82,8 @@ func PrepareCommand(ctx context.Context, branch string) error {
 	if err := os.WriteFile(releasercJSON, []byte(releasercFileContent), 0o600); err != nil {
 		return err
 	}
-	symlink, err := sgtool.CreateSymlink(binary)
-	if err != nil {
-		return err
-	}
-	commandPath = symlink
 	sg.Logger(ctx).Println("installing packages...")
-	return sg.Command(
+	if err := sg.Command(
 		ctx,
 		"npm",
 		"--silent",
@@ -97,5 +93,11 @@ func PrepareCommand(ctx context.Context, branch string) error {
 		"--no-save",
 		"--no-audit",
 		"--ignore-script",
-	).Run()
+	).Run(); err != nil {
+		return err
+	}
+	if _, err := sgtool.CreateSymlink(binary); err != nil {
+		return err
+	}
+	return nil
 }

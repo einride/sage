@@ -21,15 +21,14 @@ const prettierConfigContent = `module.exports = {
 	...require("@einride/prettier-config"),
 }`
 
+const name = "prettier"
+
 // nolint: gochecknoglobals
-var (
-	commandPath string
-	prettierrc  = sg.FromToolsDir("prettier", ".prettierrc.js")
-)
+var prettierrc = sg.FromToolsDir("prettier", ".prettierrc.js")
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
@@ -55,8 +54,8 @@ func FormatYAML(ctx context.Context) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	toolDir := sg.FromToolsDir("prettier")
-	binary := filepath.Join(toolDir, "node_modules", ".bin", "prettier")
+	toolDir := sg.FromToolsDir(name)
+	binary := filepath.Join(toolDir, "node_modules", ".bin", name)
 	packageJSON := filepath.Join(toolDir, "package.json")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
@@ -67,13 +66,8 @@ func PrepareCommand(ctx context.Context) error {
 	if err := os.WriteFile(packageJSON, []byte(packageJSONContent), 0o600); err != nil {
 		return err
 	}
-	symlink, err := sgtool.CreateSymlink(binary)
-	if err != nil {
-		return err
-	}
-	commandPath = symlink
 	sg.Logger(ctx).Println("installing packages...")
-	return sg.Command(
+	if err := sg.Command(
 		ctx,
 		"npm",
 		"--silent",
@@ -83,5 +77,11 @@ func PrepareCommand(ctx context.Context) error {
 		"--no-save",
 		"--no-audit",
 		"--ignore-script",
-	).Run()
+	).Run(); err != nil {
+		return err
+	}
+	if _, err := sgtool.CreateSymlink(binary); err != nil {
+		return err
+	}
+	return nil
 }
