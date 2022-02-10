@@ -40,6 +40,10 @@ format-yaml: $(sagefile)
 git-verify-no-diff: $(sagefile)
 	@$(sagefile) GitVerifyNoDiff
 
+.PHONY: go-lint
+go-lint: $(sagefile)
+	@$(sagefile) GoLint
+
 .PHONY: go-mod-tidy
 go-mod-tidy: $(sagefile)
 	@$(sagefile) GoModTidy
@@ -51,7 +55,3 @@ go-review: $(sagefile)
 .PHONY: go-test
 go-test: $(sagefile)
 	@$(sagefile) GoTest
-
-.PHONY: golangci-lint
-golangci-lint: $(sagefile)
-	@$(sagefile) GolangciLint
