@@ -40,11 +40,13 @@ type fileState struct {
 	archiveFiles map[string]string
 	skipFile     string
 	symlink      string
+	httpHeader   http.Header
 }
 
 func newFileState() *fileState {
 	return &fileState{
 		archiveFiles: make(map[string]string),
+		httpHeader:   make(http.Header),
 	}
 }
 
@@ -65,7 +67,7 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 		}
 	}
 	sg.Logger(ctx).Printf("fetching %s...", addr)
-	rStream, cleanup, err := downloadBinary(ctx, addr)
+	rStream, cleanup, err := s.downloadBinary(ctx, addr)
 	if err != nil {
 		return fmt.Errorf("unable to download file: %w", err)
 	}
@@ -189,11 +191,19 @@ func WithSkipIfFileExists(filepath string) Opt {
 	}
 }
 
-func downloadBinary(ctx context.Context, url string) (io.ReadCloser, func(), error) {
+func WithHTTPHeader(key, value string) Opt {
+	return func(f *fileState) {
+		f.httpHeader.Add(key, value)
+	}
+}
+
+func (s *fileState) downloadBinary(ctx context.Context, url string) (io.ReadCloser, func(), error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
 	}
+
+	req.Header = s.httpHeader
 	// nolint: bodyclose // false positive due to cleanup function
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
