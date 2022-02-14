@@ -27,6 +27,9 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, "bin", binaryName)
 	hostOS := runtime.GOOS
+	if hostOS == "darwin" {
+		hostOS = "osx"
+	}
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
