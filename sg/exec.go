@@ -38,20 +38,20 @@ type logWriter struct {
 func (l *logWriter) Write(p []byte) (n int, err error) {
 	in := bufio.NewScanner(bytes.NewReader(p))
 	for in.Scan() {
-		// Trim space to ensure that file references start at the beginning of the line.
-		line := strings.TrimSpace(in.Text())
+		line := in.Text()
 		if !l.hasFileReferences {
 			l.hasFileReferences = hasFileReferences(line)
+			if l.hasFileReferences {
+				// If line has file reference (e.g. lint errors), print empty line with logger prefix.
+				// This enables GitHub to autodetect the file references and print them in the PR review.
+				l.logger.Println()
+			}
 		}
 		if l.hasFileReferences {
-			// Don't prefix output from processes that print file references (e.g. lint errors).
-			// Instead prefix on the line above, these lines can be multiline hence the conditional.
-			// This enables GitHub to autodetect the file references and print them in the PR review.
-			if hasFileReferences(line) {
-				_, _ = fmt.Fprintf(l.out, "%s\n%s\n", l.logger.Prefix(), line)
-			} else {
-				_, _ = fmt.Fprintln(l.out, line)
-			}
+			// Prints line without logger prefix.
+			// Trim space to ensure that file references start at the beginning of the line.
+			line = strings.TrimSpace(line)
+			_, _ = fmt.Fprintln(l.out, line)
 		} else {
 			l.logger.Print(line)
 		}
@@ -63,6 +63,7 @@ func (l *logWriter) Write(p []byte) (n int, err error) {
 }
 
 func hasFileReferences(line string) bool {
+	line = strings.TrimSpace(line)
 	if i := strings.IndexByte(line, ':'); i > 0 {
 		if _, err := os.Lstat(line[:i]); err == nil {
 			return true
