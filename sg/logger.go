@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"unicode"
 
 	"go.einride.tech/sage/internal/strcase"
 )
@@ -17,6 +18,12 @@ func NewLogger(name string) *log.Logger {
 	prefix := name
 	prefix = strings.TrimPrefix(prefix, "main.")
 	prefix = strings.TrimPrefix(prefix, "go.einride.tech/sage/tools/")
+	// Strip namespace from name.
+	if len(strings.Split(prefix, ".")) > 1 {
+		if unicode.IsUpper([]rune(strings.Split(prefix, ".")[0])[0]) {
+			prefix = strings.Join(strings.Split(prefix, ".")[1:], "")
+		}
+	}
 	prefix = strcase.ToKebab(prefix)
 	prefix = fmt.Sprintf("[%s] ", prefix)
 	return log.New(os.Stderr, prefix, 0)
