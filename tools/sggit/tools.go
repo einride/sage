@@ -4,19 +4,24 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os/exec"
 
 	"go.einride.tech/sage/sg"
 )
 
+func Command(ctx context.Context, args ...string) *exec.Cmd {
+	return sg.Command(ctx, "git", args...)
+}
+
 func VerifyNoDiff(ctx context.Context) error {
-	cmd := sg.Command(ctx, "git", "status", "--porcelain")
+	cmd := Command(ctx, "status", "--porcelain")
 	var status bytes.Buffer
 	cmd.Stdout = &status
 	if err := cmd.Run(); err != nil {
 		return err
 	}
 	if status.String() != "" {
-		output := sg.Output(sg.Command(ctx, "git", "diff", "--patch"))
+		output := sg.Output(Command(ctx, "diff", "--patch"))
 		if output != "" {
 			return fmt.Errorf("staging area is dirty, please add all files created by the build to .gitignore: %s", output)
 		}
@@ -26,7 +31,7 @@ func VerifyNoDiff(ctx context.Context) error {
 
 func SHA(ctx context.Context) string {
 	revision := sg.Output(
-		sg.Command(ctx, "git", "rev-parse", "--verify", "HEAD"),
+		Command(ctx, "rev-parse", "--verify", "HEAD"),
 	)
 	if diff(ctx) != "" {
 		revision += "-dirty"
@@ -36,7 +41,7 @@ func SHA(ctx context.Context) string {
 
 func ShortSHA(ctx context.Context) string {
 	revision := sg.Output(
-		sg.Command(ctx, "git", "rev-parse", "--verify", "--short", "HEAD"),
+		Command(ctx, "rev-parse", "--verify", "--short", "HEAD"),
 	)
 	if diff(ctx) != "" {
 		revision += "-dirty"
@@ -46,6 +51,6 @@ func ShortSHA(ctx context.Context) string {
 
 func diff(ctx context.Context) string {
 	return sg.Output(
-		sg.Command(ctx, "git", "status", "--porcelain"),
+		Command(ctx, "status", "--porcelain"),
 	)
 }
