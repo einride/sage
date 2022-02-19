@@ -6,31 +6,36 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"unicode"
+	"unicode/utf8"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "0.9.3"
-
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	name    = "ko"
+	version = "0.10.0"
+)
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	const binaryName = "ko"
-	hostOS := runtime.GOOS
-	binDir := sg.FromToolsDir(binaryName, version, "bin")
-	binary := filepath.Join(binDir, binaryName)
+	binDir := sg.FromToolsDir(name, version, "bin")
+	binary := filepath.Join(binDir, name)
+	arch := runtime.GOARCH
+	if arch == sgtool.AMD64 {
+		arch = sgtool.X8664
+	}
 	binURL := fmt.Sprintf(
-		"https://github.com/google/ko/releases/download/v%s/ko_%s_%s_x86_64.tar.gz",
+		"https://github.com/google/ko/releases/download/v%s/ko_%s_%s_%s.tar.gz",
 		version,
 		version,
-		hostOS,
+		toInitialCamel(runtime.GOOS),
+		arch,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
@@ -40,8 +45,15 @@ func PrepareCommand(ctx context.Context) error {
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	commandPath = binary
 	return nil
+}
+
+func toInitialCamel(s string) string {
+	r, n := utf8.DecodeRuneInString(s)
+	if r == utf8.RuneError {
+		return s
+	}
+	return string(unicode.ToUpper(r)) + s[n:]
 }
