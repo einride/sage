@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "1.0.0-rc12"
+	version = "1.0.0"
 	name    = "buf"
 )
 
