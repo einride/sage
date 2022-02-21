@@ -15,17 +15,17 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "1.44.0"
-
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	name    = "golangci-lint"
+	version = "1.44.2"
+)
 
 //go:embed golangci.yml
 var defaultConfig []byte
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
@@ -74,10 +74,9 @@ func Run(ctx context.Context, args ...string) error {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	const binaryName = "golangci-lint"
-	toolDir := sg.FromToolsDir(binaryName)
+	toolDir := sg.FromToolsDir(name)
 	binDir := filepath.Join(toolDir, version, "bin")
-	binary := filepath.Join(binDir, binaryName)
+	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", version, hostOS, hostArch)
@@ -91,12 +90,11 @@ func PrepareCommand(ctx context.Context) error {
 		binURL,
 		sgtool.WithDestinationDir(binDir),
 		sgtool.WithUntarGz(),
-		sgtool.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), binaryName),
+		sgtool.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	commandPath = binary
 	return nil
 }
