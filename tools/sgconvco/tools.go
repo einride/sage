@@ -13,20 +13,19 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "0.3.7"
-
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	name    = "convco"
+	version = "0.3.8"
+)
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	const toolName = "convco"
-	binDir := sg.FromToolsDir(toolName, version)
-	binary := filepath.Join(binDir, toolName)
+	binDir := sg.FromToolsDir(name, version)
+	binary := filepath.Join(binDir, name)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
@@ -49,8 +48,7 @@ func PrepareCommand(ctx context.Context) error {
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", toolName, err)
+		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	commandPath = binary
 	return os.Chmod(binary, 0o755)
 }
