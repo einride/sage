@@ -10,6 +10,7 @@ $(sagefile):
 	@cd .sage && go mod tidy && go run .
 
 .PHONY: sage
+sage: $(shell git clean -fxq $(sagefile))
 sage: $(sagefile)
 
 .PHONY: update-sage
