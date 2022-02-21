@@ -1,6 +1,7 @@
 package sg
 
 import (
+	"context"
 	"fmt"
 	"go/ast"
 	"go/doc"
@@ -43,7 +44,7 @@ func (m Makefile) defaultTargetName() string {
 	return result
 }
 
-func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
+func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
 	if err != nil {
 		return err
@@ -56,11 +57,17 @@ func generateMakefile(g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Mak
 	g.P()
 	g.P("sagefile := ", filepath.Join(includePath, binDir, sageFileBinary))
 	g.P()
-	g.P(".PHONY: $(sagefile)")
-	g.P("$(sagefile):")
+
+	dependencies := fmt.Sprintf(" %s/go.mod %s/*.go", includePath, includePath)
+	if strings.TrimSpace(Output(Command(ctx, "go", "list", "-m"))) == "go.einride.tech/sage" {
+		g.P(".PHONY: $(sagefile)")
+		dependencies = ""
+	}
+	g.P("$(sagefile):", dependencies)
 	g.P("\t@cd ", includePath, " && go mod tidy && go run .")
 	g.P()
 	g.P(".PHONY: sage")
+	g.P("sage: $(shell git clean -fxq $(sagefile))")
 	g.P("sage: $(sagefile)")
 	g.P()
 	g.P(".PHONY: update-sage")

@@ -14,6 +14,7 @@ import (
 // GenerateMakefiles defines which Makefiles should be generated.
 func GenerateMakefiles(mks ...Makefile) {
 	ctx := WithLogger(context.Background(), NewLogger("sage"))
+	Logger(ctx).Println("building binary and generating Makefiles...")
 	if len(mks) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/sage#readme for more info")
 	}
@@ -67,7 +68,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		mk := codegen.NewMakefile(codegen.FileConfig{
 			GeneratedBy: "go.einride.tech/sage",
 		})
-		if err := generateMakefile(mk, pkg, v, mks...); err != nil {
+		if err := generateMakefile(ctx, mk, pkg, v, mks...); err != nil {
 			panic(err)
 		}
 		if err := os.WriteFile(v.Path, mk.RawContent(), 0o600); err != nil {
