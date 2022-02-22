@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -40,7 +41,7 @@ func (l *logWriter) Write(p []byte) (n int, err error) {
 	for in.Scan() {
 		line := in.Text()
 		if !l.hasFileReferences {
-			l.hasFileReferences = hasFileReferences(line)
+			l.hasFileReferences, line = hasFileReferenceAndEnsurePathRelativeToGitRoot(line)
 			if l.hasFileReferences {
 				// If line has file reference (e.g. lint errors), print empty line with logger prefix.
 				// This enables GitHub to autodetect the file references and print them in the PR review.
@@ -49,8 +50,6 @@ func (l *logWriter) Write(p []byte) (n int, err error) {
 		}
 		if l.hasFileReferences {
 			// Prints line without logger prefix.
-			// Trim space to ensure that file references start at the beginning of the line.
-			line = strings.TrimSpace(line)
 			_, _ = fmt.Fprintln(l.out, line)
 		} else {
 			l.logger.Print(line)
@@ -62,14 +61,30 @@ func (l *logWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func hasFileReferences(line string) bool {
-	line = strings.TrimSpace(line)
-	if i := strings.IndexByte(line, ':'); i > 0 {
-		if _, err := os.Lstat(line[:i]); err == nil {
-			return true
+func hasFileReferenceAndEnsurePathRelativeToGitRoot(line string) (bool, string) {
+	trimmedLine := strings.TrimSpace(line)
+	if i := strings.IndexByte(trimmedLine, ':'); i > 0 {
+		filePath, ok := ensurePathIsRelativeFromGitRoot(trimmedLine[:i])
+		if !ok {
+			return false, line
+		}
+		if _, err := os.Lstat(FromGitRoot(filePath)); err == nil {
+			return true, filePath
 		}
 	}
-	return false
+	return false, line
+}
+
+func ensurePathIsRelativeFromGitRoot(path string) (string, bool) {
+	subdir, err := filepath.Rel(FromGitRoot(), FromWorkDir())
+	if err != nil {
+		return path, false
+	}
+	if strings.HasPrefix(path, subdir+"/") {
+		return path, true
+	}
+	// Prefix path with subdir to get path relative from git root
+	return filepath.Join(subdir, path), true
 }
 
 // Output runs the given command, and returns all output from stdout in a neatly, trimmed manner,
