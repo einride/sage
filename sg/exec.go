@@ -13,13 +13,30 @@ import (
 	"strings"
 )
 
+type cmdEnvCtxKey string
+
+// nolint: gochecknoglobals
+var cmdEnvKey cmdEnvCtxKey = "cmdEnv"
+
+// ContextWithEnv returns a context with environment variables which are appended to Command.
+func ContextWithEnv(ctx context.Context, env ...string) context.Context {
+	return context.WithValue(ctx, cmdEnvKey, env)
+}
+
 // Command should be used when returning exec.Cmd from tools to set opinionated standard fields.
 func Command(ctx context.Context, path string, args ...string) *exec.Cmd {
 	// TODO: use exec.CommandContext when we have determined there are no side-effects.
 	cmd := exec.Command(path)
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Dir = FromGitRoot(".")
-	cmd.Env = prependPath(os.Environ(), FromBinDir())
+	cmd.Env = os.Environ()
+	if v := ctx.Value(cmdEnvKey); v != nil {
+		env, ok := v.([]string)
+		if ok {
+			cmd.Env = append(cmd.Env, env...)
+		}
+	}
+	cmd.Env = prependPath(cmd.Env, FromBinDir())
 	cmd.Stderr = newLogWriter(ctx, os.Stderr)
 	cmd.Stdout = newLogWriter(ctx, os.Stdout)
 	return cmd
