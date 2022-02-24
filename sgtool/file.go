@@ -24,6 +24,7 @@ type archiveType int
 const (
 	None archiveType = iota
 	Zip
+	Tar
 	TarGz
 )
 
@@ -111,6 +112,10 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 		if err != nil {
 			return fmt.Errorf("unable to download remote file: %w", err)
 		}
+	case Tar:
+		if err := s.extractTar(inFile); err != nil {
+			return fmt.Errorf("unable to untar the file: %w", err)
+		}
 	case TarGz:
 		gzipStream, err := gzip.NewReader(inFile)
 		if err != nil {
@@ -149,6 +154,12 @@ func (s *fileState) handleFileStream(inFile io.Reader, filename string) error {
 func WithUnzip() Opt {
 	return func(f *fileState) {
 		f.archiveType = Zip
+	}
+}
+
+func WithUntar() Opt {
+	return func(f *fileState) {
+		f.archiveType = Tar
 	}
 }
 
