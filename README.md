@@ -97,6 +97,38 @@ func (Terraform) TerraformInitDev() {
 }
 ```
 
+It is also possible to embedded a Namespace in order to add metadata to it and potentially reuse it for different Makefiles
+
+```golang
+
+func main() {
+	sg.GenerateMakefiles(
+		sg.Makefile{
+			Path:          sg.FromGitRoot("Makefile"),
+			DefaultTarget: All,
+		},
+		sg.Makefile{
+			Path:          sg.FromGitRoot("names/name1/Makefile"),
+			Namespace:     MyNamespace{Name: "name1"},
+		},
+		sg.Makefile{
+			Path:          sg.FromGitRoot("names/name2/Makefile"),
+			Namespace:     MyNamespace{Name: "name2"},
+        },
+	)
+}
+
+
+type MyNamespace struct {
+	sg.Namespace
+	Name string
+}
+
+func (n MyNamespace) PrintName(ctx context.Context) error {
+	fmt.Println(n.Name)
+}
+```
+
 #### Dependencies
 
 Dependencies can be defined just by specificing the function, or with `sg.Fn` if the function takes arguments. `Deps` runs in parallel while `SerialDeps` runs serially.

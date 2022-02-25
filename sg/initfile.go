@@ -189,13 +189,29 @@ func isNamespace(t *doc.Type) bool {
 	if !ok {
 		return false
 	}
-	selectorExpr, ok := typeSpec.Type.(*ast.SelectorExpr)
+
+	// Is it embedded in a struct?
+	structType, ok := typeSpec.Type.(*ast.StructType)
+	if ok {
+		for _, f := range structType.Fields.List {
+			// Is it an embedded namespace
+			if f.Names == nil && isSelectorNamespaceType(f.Type) {
+				return true
+			}
+		}
+	}
+
+	return isSelectorNamespaceType(typeSpec.Type)
+}
+
+func isSelectorNamespaceType(expr ast.Expr) bool {
+	selector, ok := expr.(*ast.SelectorExpr)
 	if !ok {
 		return false
 	}
-	ident, ok := selectorExpr.X.(*ast.Ident)
+	ident, ok := selector.X.(*ast.Ident)
 	if !ok {
 		return false
 	}
-	return ident.Name == "sg" && selectorExpr.Sel.Name == "Namespace"
+	return ident.Name == "sg" && selector.Sel.Name == "Namespace"
 }
