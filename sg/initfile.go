@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/doc"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -16,7 +17,7 @@ const (
 	boolType   = "bool"
 )
 
-func generateInitFile(g *codegen.File, pkg *doc.Package) error {
+func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("func init() {")
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
@@ -73,9 +74,15 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 					i++
 				}
 			}
+			ns := "{}."
+			for _, mk := range mks {
+				if mk.namespaceName() != "" && mk.namespaceName() == function.Recv {
+					ns = getNamespaceMetadata(mk)
+				}
+			}
 			g.P(
 				"err = ",
-				strings.ReplaceAll(getTargetFunctionName(function), ":", "{}."),
+				strings.ReplaceAll(getTargetFunctionName(function), ":", ns),
 				"(ctx,",
 				strings.Join(args, ","),
 				")",
@@ -84,7 +91,13 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 			g.P("logger.Fatal(err)")
 			g.P("}")
 		} else {
-			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", "{}."), "(ctx)")
+			ns := "{}."
+			for _, mk := range mks {
+				if mk.namespaceName() != "" && mk.namespaceName() == function.Recv {
+					ns = getNamespaceMetadata(mk)
+				}
+			}
+			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", ns), "(ctx)")
 			g.P("if err != nil {")
 			g.P("logger.Fatal(err)")
 			g.P("}")
@@ -98,6 +111,25 @@ func generateInitFile(g *codegen.File, pkg *doc.Package) error {
 	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
 	return nil
+}
+
+func getNamespaceMetadata(mk Makefile) string {
+	val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
+	ns := "{"
+	for i := 1; i < val.NumField(); i++ {
+		ns = fmt.Sprintf("%s\n%s:", ns, val.Type().Field(i).Name)
+		fieldValue := reflect.ValueOf(val.Field(i).Interface())
+		switch val.Field(i).Kind() {
+		case reflect.String:
+			ns = fmt.Sprintf(`%s "%v",`, ns, fieldValue)
+		case reflect.Bool, reflect.Int:
+			ns = fmt.Sprintf("%s %v,", ns, fieldValue)
+		default:
+			panic("unsupported type for namespace field")
+		}
+	}
+	ns += "}."
+	return ns
 }
 
 func countParams(fields []*ast.Field) int {

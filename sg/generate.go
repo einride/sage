@@ -41,7 +41,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		Package:     pkg.Name,
 		GeneratedBy: "go.einride.tech/sage",
 	})
-	if err := generateInitFile(initFile, pkg); err != nil {
+	if err := generateInitFile(initFile, pkg, mks); err != nil {
 		panic(err)
 	}
 	initFileContent, err := initFile.GoContent()
