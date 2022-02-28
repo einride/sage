@@ -97,7 +97,7 @@ func (Terraform) TerraformInitDev() {
 }
 ```
 
-It is also possible to embedded a Namespace in order to add metadata to it and potentially reuse it for different Makefiles
+It is also possible to embed a Namespace in order to add metadata to it and potentially reuse it for different Makefiles, the supported fields for an embedded Namespace are exported String, Int & Boolean.
 
 ```golang
 
