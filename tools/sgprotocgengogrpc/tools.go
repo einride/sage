@@ -27,7 +27,7 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostOS == "darwin" {
+	if hostOS == sgtool.Darwin {
 		hostArch = sgtool.AMD64
 	}
 	binURL := fmt.Sprintf(

@@ -30,7 +30,7 @@ func PrepareCommand(ctx context.Context) error {
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
 		hostOS = "ubuntu"
-	case "darwin":
+	case sgtool.Darwin:
 		hostOS = "macos"
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
