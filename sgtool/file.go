@@ -29,6 +29,10 @@ const (
 )
 
 const (
+	Darwin = "darwin"
+)
+
+const (
 	AMD64 = "amd64"
 	X8664 = "x86_64"
 )

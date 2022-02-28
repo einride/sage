@@ -50,7 +50,7 @@ func PrepareCommand(ctx context.Context) error {
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
 		osArch = "linux_x64"
-	case "darwin":
+	case sgtool.Darwin:
 		osArch = "darwin_x64"
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)

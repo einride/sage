@@ -37,7 +37,7 @@ func PrepareCommand(ctx context.Context) error {
 		return fmt.Errorf("pom.xml is out of sync with gRPC Java version - expecting %s", version)
 	}
 	hostOS := runtime.GOOS
-	if hostOS == "darwin" {
+	if hostOS == sgtool.Darwin {
 		hostOS = "osx"
 	}
 	hostArch := runtime.GOARCH
