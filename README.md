@@ -129,6 +129,17 @@ func (n MyNamespace) PrintName(ctx context.Context) error {
 }
 ```
 
+NOTE: The `sg.GenerateMakefiles` function is evaluated when the sage binary is built so doing something like this
+
+```golang
+sg.Makefile{
+	Path:          sg.FromGitRoot("names/name1/Makefile"),
+	Namespace:     MyNamespace{Name: os.Getenv("Name")},
+},
+```
+
+will cause whatever value the environment variable `Name` has at the time to be hardcoded in the built sage binary.
+
 #### Dependencies
 
 Dependencies can be defined just by specificing the function, or with `sg.Fn` if the function takes arguments. `Deps` runs in parallel while `SerialDeps` runs serially.
