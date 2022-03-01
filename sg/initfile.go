@@ -23,6 +23,10 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
+		// If function namespace is not part of the to be generated Makefiles, skip it.
+		if skipFunction, _ := shouldBeGenerated(mks, function.Recv); !skipFunction {
+			return false
+		}
 		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function), `")`)
 		return true
 	})
@@ -33,6 +37,11 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("var err error")
 	g.P("switch target {")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
+		// If function namespace is not part of the to be generated Makefiles, skip it.
+		skipFunction, nsStruct := shouldBeGenerated(mks, function.Recv)
+		if !skipFunction {
+			return false
+		}
 		g.P(`case "`, getTargetFunctionName(function), `":`)
 		loggerName := getTargetFunctionName(function)
 		// Remove namespace from loggerName
@@ -74,15 +83,9 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 					i++
 				}
 			}
-			ns := "{}."
-			for _, mk := range mks {
-				if mk.namespaceName() != "" && mk.namespaceName() == function.Recv {
-					ns = getNamespaceMetadata(mk)
-				}
-			}
 			g.P(
 				"err = ",
-				strings.ReplaceAll(getTargetFunctionName(function), ":", ns),
+				strings.ReplaceAll(getTargetFunctionName(function), ":", nsStruct),
 				"(ctx,",
 				strings.Join(args, ","),
 				")",
@@ -91,13 +94,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 			g.P("logger.Fatal(err)")
 			g.P("}")
 		} else {
-			ns := "{}."
-			for _, mk := range mks {
-				if mk.namespaceName() != "" && mk.namespaceName() == function.Recv {
-					ns = getNamespaceMetadata(mk)
-				}
-			}
-			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", ns), "(ctx)")
+			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", nsStruct), "(ctx)")
 			g.P("if err != nil {")
 			g.P("logger.Fatal(err)")
 			g.P("}")
@@ -113,23 +110,33 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	return nil
 }
 
-func getNamespaceMetadata(mk Makefile) string {
-	val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
-	ns := "{"
-	for i := 1; i < val.NumField(); i++ {
-		ns = fmt.Sprintf("%s\n%s:", ns, val.Type().Field(i).Name)
-		fieldValue := reflect.ValueOf(val.Field(i).Interface())
-		switch val.Field(i).Kind() {
-		case reflect.String:
-			ns = fmt.Sprintf(`%s "%v",`, ns, fieldValue)
-		case reflect.Bool, reflect.Int:
-			ns = fmt.Sprintf("%s %v,", ns, fieldValue)
-		default:
-			panic("unsupported type for namespace field")
+// shouldBeGenerated returns true if the namespace equals any of the namespaces in the to be generated Makefiles and
+// returns any metadata the namespace might have.
+func shouldBeGenerated(mks []Makefile, namespace string) (bool, string) {
+	var partOfMakefile bool
+	namespaceStruct := "{"
+	for _, mk := range mks {
+		if mk.namespaceName() == namespace {
+			partOfMakefile = true
+		}
+		if mk.namespaceName() != "" && partOfMakefile {
+			val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
+			for i := 1; i < val.NumField(); i++ {
+				namespaceStruct = fmt.Sprintf("%s\n%s:", namespaceStruct, val.Type().Field(i).Name)
+				fieldValue := reflect.ValueOf(val.Field(i).Interface())
+				switch val.Field(i).Kind() {
+				case reflect.String:
+					namespaceStruct = fmt.Sprintf(`%s "%v",`, namespaceStruct, fieldValue)
+				case reflect.Bool, reflect.Int:
+					namespaceStruct = fmt.Sprintf("%s %v,", namespaceStruct, fieldValue)
+				default:
+					panic("unsupported type for namespace field")
+				}
+			}
 		}
 	}
-	ns += "}."
-	return ns
+	namespaceStruct += "}."
+	return partOfMakefile, namespaceStruct
 }
 
 func countParams(fields []*ast.Field) int {
