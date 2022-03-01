@@ -71,7 +71,7 @@ func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 			return nil
 		}
 	}
-	sg.Logger(ctx).Printf("fetching %s...", addr)
+	sg.Logger(ctx).Printf("fetching %s ...", addr)
 	rStream, cleanup, err := s.downloadBinary(ctx, addr)
 	if err != nil {
 		return fmt.Errorf("unable to download file: %w", err)
