@@ -118,9 +118,10 @@ func shouldBeGenerated(mks []Makefile, namespace string) (bool, string) {
 	for _, mk := range mks {
 		if mk.namespaceName() == namespace {
 			partOfMakefile = true
-		}
-		if mk.namespaceName() != "" && partOfMakefile {
 			val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
+			if !reflect.Value.IsValid(val) {
+				continue
+			}
 			for i := 1; i < val.NumField(); i++ {
 				namespaceStruct = fmt.Sprintf("%s\n%s:", namespaceStruct, val.Type().Field(i).Name)
 				fieldValue := reflect.ValueOf(val.Field(i).Interface())
