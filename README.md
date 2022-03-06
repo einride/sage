@@ -1,5 +1,5 @@
-Sage
-====
+:herb: Sage
+===========
 
 Sage is a Make-like build tool inspired by [Mage](https://magefile.org/) that provides a curated and maintained set of build [tools](./tools) for Go projects.
 
