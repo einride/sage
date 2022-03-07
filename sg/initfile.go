@@ -22,13 +22,12 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
+	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
 		// If function namespace is not part of the to be generated Makefiles, skip it.
 		if skipFunction, _ := shouldBeGenerated(mks, function.Recv); !skipFunction {
-			return false
+			return
 		}
 		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function), `")`)
-		return true
 	})
 	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
@@ -36,11 +35,11 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("_ = args")
 	g.P("var err error")
 	g.P("switch target {")
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
+	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
 		// If function namespace is not part of the to be generated Makefiles, skip it.
 		skipFunction, nsStruct := shouldBeGenerated(mks, function.Recv)
 		if !skipFunction {
-			return false
+			return
 		}
 		g.P(`case "`, getTargetFunctionName(function), `":`)
 		loggerName := getTargetFunctionName(function)
@@ -99,7 +98,6 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 			g.P("logger.Fatal(err)")
 			g.P("}")
 		}
-		return true
 	})
 	g.P("default:")
 	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"sagefile\")")
@@ -158,16 +156,14 @@ func getTargetFunctionName(function *doc.Func) string {
 	return result.String()
 }
 
-func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespace *doc.Type) bool) {
+func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespace *doc.Type)) {
 	for _, function := range pkg.Funcs {
 		if function.Recv != "" ||
 			!ast.IsExported(function.Name) ||
 			!isSupportedTargetFunctionParams(function.Decl.Type.Params.List) {
 			continue
 		}
-		if !fn(function, nil) {
-			return
-		}
+		fn(function, nil)
 	}
 	for _, namespace := range pkg.Types {
 		if !ast.IsExported(namespace.Name) || !isNamespace(namespace) {
@@ -178,9 +174,7 @@ func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespa
 				!isSupportedTargetFunctionParams(function.Decl.Type.Params.List) {
 				continue
 			}
-			if !fn(function, nil) {
-				return
-			}
+			fn(function, nil)
 		}
 	}
 }

@@ -85,7 +85,7 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 		" ",
 		filepath.Join(includePath, buildDir),
 	)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) bool {
+	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
 		if function.Recv == mk.namespaceName() {
 			g.P()
 			g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(function)))
@@ -103,7 +103,6 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 				toSageFunction(getTargetFunctionName(function), args),
 			)
 		}
-		return true
 	})
 	// Add additional makefiles to default makefile
 	if mk.namespaceName() == "" {
