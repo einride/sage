@@ -28,10 +28,10 @@ func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 	return Command(ctx, append([]string{"-i", protoStyle}, args...)...)
 }
 
-// FormatProto formats all proto files under the current working directory.
+// FormatProto formats all proto files in the repo.
 func FormatProto(ctx context.Context, args ...string) error {
 	var protoFiles []string
-	if err := filepath.WalkDir(sg.FromWorkDir(), func(path string, d fs.DirEntry, err error) error {
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
