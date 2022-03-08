@@ -44,7 +44,7 @@ func Run(ctx context.Context, args ...string) error {
 		return err
 	}
 	var hasProblem bool
-	if err := filepath.WalkDir(sg.FromWorkDir(), func(path string, d fs.DirEntry, err error) error {
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		switch {
 		case err != nil:
 			return err
