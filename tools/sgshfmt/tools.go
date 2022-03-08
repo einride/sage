@@ -25,7 +25,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 // Run shfmt on all files ending with .sh and .bash in the repo.
 func Run(ctx context.Context) error {
 	var inputFiles []string
-	if err := filepath.WalkDir(sg.FromWorkDir(), func(path string, d fs.DirEntry, err error) error {
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
