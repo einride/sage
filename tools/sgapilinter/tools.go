@@ -33,7 +33,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
-// Run the API Linter on all the Buf modules starting from the current working directory.
+// Run the API Linter on all the Buf modules in the repo.
 func Run(ctx context.Context, args ...string) error {
 	// Write default config.
 	defaultConfigPath := sg.FromToolsDir("api-linter", "api-linter.yaml")
