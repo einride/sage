@@ -137,7 +137,7 @@ func toMakeVars(args []*ast.Field) []string {
 // toSageFunction converts input to a sage Target name with the provided args.
 func toSageFunction(target string, args []string) string {
 	for _, arg := range args {
-		arg = fmt.Sprintf("$(%s)", arg)
+		arg = fmt.Sprintf("\"$(%s)\"", arg)
 		target += fmt.Sprintf(" %s", arg)
 	}
 	return target
