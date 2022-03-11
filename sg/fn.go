@@ -63,7 +63,9 @@ func newFn(f interface{}, args ...interface{}) (Target, error) {
 		case reflect.TypeOf(0), reflect.TypeOf(""), reflect.TypeOf(false):
 			// ok
 		default:
-			return nil, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
+			if argT.Kind() != reflect.Struct {
+				return nil, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
+			}
 		}
 		if callArgT := reflect.TypeOf(arg); argT != callArgT {
 			return nil, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, callArgT)
