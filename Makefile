@@ -12,7 +12,7 @@ $(sagefile):
 .PHONY: sage
 sage:
 	@git clean -fxq $(sagefile)
-	@make $(sagefile)
+	@$(MAKE) $(sagefile)
 
 .PHONY: update-sage
 update-sage:

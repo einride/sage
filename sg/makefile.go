@@ -69,7 +69,7 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	g.P(".PHONY: sage")
 	g.P("sage:")
 	g.P("\t@git clean -fxq $(sagefile)")
-	g.P("\t@make $(sagefile)")
+	g.P("\t@$(MAKE) $(sagefile)")
 	g.P()
 	g.P(".PHONY: update-sage")
 	g.P("update-sage:")
