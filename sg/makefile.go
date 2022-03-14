@@ -85,25 +85,26 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 		" ",
 		filepath.Join(includePath, buildDir),
 	)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
-		if function.Recv == mk.namespaceName() {
-			g.P()
-			g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(function)))
-			g.P(toMakeTarget(getTargetFunctionName(function)), ": $(sagefile)")
-			args := toMakeVars(function.Decl.Type.Params.List[1:])
-			if len(args) > 0 {
-				for _, arg := range args {
-					g.P("ifndef ", arg)
-					g.P("\t $(error missing argument ", arg, `="...")`)
-					g.P("endif")
-				}
+	targets := namespaceTargets(pkg, mk)
+	for _, target := range targets {
+		g.P()
+		g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(target)))
+		g.P(toMakeTarget(getTargetFunctionName(target)), ": $(sagefile)")
+		args := toMakeVars(target.Decl.Type.Params.List[1:])
+		if len(args) > 0 {
+			for _, arg := range args {
+				g.P("ifndef ", arg)
+				g.P("\t $(error missing argument ", arg, `="...")`)
+				g.P("endif")
 			}
-			g.P(
-				"\t@$(sagefile) ",
-				toSageFunction(getTargetFunctionName(function), args),
-			)
 		}
-	})
+		g.P(
+			"\t@$(sagefile) \"",
+			toSageFunction(getNamespaceFunctionName(mk, target), args),
+			`"`,
+		)
+	}
+
 	// Add additional makefiles to default makefile
 	if mk.namespaceName() == "" {
 		for _, i := range mks {
@@ -115,8 +116,8 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 				panic(err)
 			}
 			g.P()
-			g.P(".PHONY: ", toMakeTarget(i.namespaceName()))
-			g.P(toMakeTarget(i.namespaceName()), ":")
+			g.P(".PHONY: ", mkPath)
+			g.P(mkPath, ":")
 			g.P("\t$(MAKE) -C ", mkPath, " -f ", filepath.Base(i.Path))
 		}
 	}
