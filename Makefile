@@ -43,32 +43,32 @@ clean-sage:
 
 .PHONY: all
 all: $(sagefile)
-	@$(sagefile) All
+	@$(sagefile) "Target2901124887:All"
 
 .PHONY: convco-check
 convco-check: $(sagefile)
-	@$(sagefile) ConvcoCheck
+	@$(sagefile) "Target2901124887:ConvcoCheck"
 
 .PHONY: format-markdown
 format-markdown: $(sagefile)
-	@$(sagefile) FormatMarkdown
+	@$(sagefile) "Target2901124887:FormatMarkdown"
 
 .PHONY: git-verify-no-diff
 git-verify-no-diff: $(sagefile)
-	@$(sagefile) GitVerifyNoDiff
+	@$(sagefile) "Target2901124887:GitVerifyNoDiff"
 
 .PHONY: go-lint
 go-lint: $(sagefile)
-	@$(sagefile) GoLint
+	@$(sagefile) "Target2901124887:GoLint"
 
 .PHONY: go-mod-tidy
 go-mod-tidy: $(sagefile)
-	@$(sagefile) GoModTidy
+	@$(sagefile) "Target2901124887:GoModTidy"
 
 .PHONY: go-review
 go-review: $(sagefile)
-	@$(sagefile) GoReview
+	@$(sagefile) "Target2901124887:GoReview"
 
 .PHONY: go-test
 go-test: $(sagefile)
-	@$(sagefile) GoTest
+	@$(sagefile) "Target2901124887:GoTest"

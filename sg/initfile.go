@@ -21,121 +21,149 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("func init() {")
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
-	g.P(g.Import("fmt"), `.Println("Targets:")`)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
-		// If function namespace is not part of the to be generated Makefiles, skip it.
-		if skipFunction, _ := shouldBeGenerated(mks, function.Recv); !skipFunction {
-			return
-		}
-		g.P(g.Import("fmt"), `.Println("\t`, getTargetFunctionName(function), `")`)
-	})
-	g.P(g.Import("os"), ".Exit(0)")
+	g.P(`panic("incorrect number of arguments")`)
 	g.P("}")
-	g.P("target, args := ", g.Import("os"), ".Args[1], ", g.Import("os"), ".Args[2:]")
-	g.P("_ = args")
-	g.P("var err error")
-	g.P("switch target {")
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
-		// If function namespace is not part of the to be generated Makefiles, skip it.
-		skipFunction, nsStruct := shouldBeGenerated(mks, function.Recv)
-		if !skipFunction {
-			return
-		}
-		g.P(`case "`, getTargetFunctionName(function), `":`)
-		loggerName := getTargetFunctionName(function)
-		// Remove namespace from loggerName
-		if strings.Contains(loggerName, ":") {
-			loggerName = strings.Split(loggerName, ":")[1]
-		}
-		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", loggerName, "\")")
-		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
-		if len(function.Decl.Type.Params.List) > 1 {
-			expected := countParams(function.Decl.Type.Params.List) - 1
-			g.P("if len(args) != ", expected, " {")
-			g.P(
-				`logger.Fatalf("wrong number of arguments to %s, got %v expected %v",`,
-				strconv.Quote(getTargetFunctionName(function)), ",",
-				expected, ",",
-				`len(args))`,
-			)
-			g.P(g.Import("os"), ".Exit(1)")
-			g.P("}")
-			var args []string
-			var i int
-			for _, customParam := range function.Decl.Type.Params.List[1:] {
-				for range customParam.Names {
-					args = append(args, fmt.Sprintf("arg%v", i))
-					switch fmt.Sprint(customParam.Type) {
-					case stringType:
-						g.P("arg", i, " := args[", i, "]")
-					case intType:
-						g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[", i, "])")
-						g.P("if err != nil {")
-						g.P(`logger.Fatalf("can't convert argument %q to int", args[`, i, `])`)
-						g.P("}")
-					case boolType:
-						g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
-						g.P("if err != nil {")
-						g.P(`logger.Fatalf("can't convert argument to bool", args[`, i, `])`)
-						g.P("}")
-					}
-					i++
-				}
-			}
-			g.P(
-				"err = ",
-				strings.ReplaceAll(getTargetFunctionName(function), ":", nsStruct),
-				"(ctx,",
-				strings.Join(args, ","),
-				")",
-			)
-			g.P("if err != nil {")
-			g.P("logger.Fatal(err)")
-			g.P("}")
-		} else {
-			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", nsStruct), "(ctx)")
-			g.P("if err != nil {")
-			g.P("logger.Fatal(err)")
-			g.P("}")
-		}
-	})
-	g.P("default:")
-	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"sagefile\")")
-	g.P(`logger.Fatalf("unknown target specified: %s", target)`)
+	g.P("target, args := ", g.Import("os"), ".Args[1] ,", g.Import("os"), ".Args[2:]")
+	g.P("parts := ", g.Import("strings"), `.SplitN(target, ":", 2)`)
+	g.P("if len(parts) < 2 {")
+	g.P(`panic("invalid Makefile structure. This can happen if sage has been recently upgraded and the internal structure of the ` +
+		`generated go file has changed. Try running again. If this persists please report it as a bug.")`)
+	g.P("}")
+	g.P("switch parts[0] {")
+	for _, mk := range mks {
+		g.P(`case "`, makefileNSPrefix(mk), `":`)
+		g.P("if err := ", makefileNSPrefix(mk), "(ctx, parts[1],args); err != nil {")
+		g.P("panic(err)")
+		g.P("}")
+	}
 	g.P("}")
 	g.P(g.Import("os"), ".Exit(0)")
 	g.P("}")
+	for _, mk := range mks {
+		targets := namespaceTargets(pkg, mk)
+		g.P("func ", makefileNSPrefix(mk), "(ctx ", g.Import("context"), ".Context, target string, args []string) error {")
+		g.P("if len(target) == 0 {")
+		g.P(g.Import("fmt"), `.Println("Targets:")`)
+		for _, target := range targets {
+			g.P(g.Import("fmt"), `.Println("`, getTargetFunctionName(target), `")`)
+		}
+		g.P("return nil")
+		g.P("}")
+		g.P("var err error")
+		g.P("switch target {")
+		for _, target := range targets {
+			g.P(`case "`, getTargetFunctionName(target), `":`)
+			generateTargetCase(g, mk, target)
+		}
+		g.P("}")
+		g.P("return err")
+		g.P("}")
+	}
 	return nil
 }
 
-// shouldBeGenerated returns true if the namespace equals any of the namespaces in the to be generated Makefiles and
-// returns any metadata the namespace might have.
-func shouldBeGenerated(mks []Makefile, namespace string) (bool, string) {
-	var partOfMakefile bool
-	namespaceStruct := "{"
-	for _, mk := range mks {
-		if mk.namespaceName() == namespace {
-			partOfMakefile = true
-			val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
-			if !reflect.Value.IsValid(val) {
-				continue
-			}
-			for i := 1; i < val.NumField(); i++ {
-				namespaceStruct = fmt.Sprintf("%s\n%s:", namespaceStruct, val.Type().Field(i).Name)
-				fieldValue := reflect.ValueOf(val.Field(i).Interface())
-				switch val.Field(i).Kind() {
-				case reflect.String:
-					namespaceStruct = fmt.Sprintf(`%s "%v",`, namespaceStruct, fieldValue)
-				case reflect.Bool, reflect.Int:
-					namespaceStruct = fmt.Sprintf("%s %v,", namespaceStruct, fieldValue)
-				default:
-					panic("unsupported type for namespace field")
+func generateTargetCase(g *codegen.File, mk Makefile, target *doc.Func) {
+	loggerName := getTargetFunctionName(target)
+	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", loggerName, "\")")
+	g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
+	if len(target.Decl.Type.Params.List) > 1 {
+		expected := countParams(target.Decl.Type.Params.List) - 1
+		g.P("if len(args) != ", expected, " {")
+		g.P(
+			`logger.Fatalf("wrong number of arguments to %s, got %v expected %v",`,
+			strconv.Quote(target.Name), ",",
+			expected, ",",
+			`len(args))`,
+		)
+		g.P("}")
+		var args []string
+		var i int
+		for _, customParam := range target.Decl.Type.Params.List[1:] {
+			for range customParam.Names {
+				args = append(args, fmt.Sprintf("arg%v", i))
+				switch fmt.Sprint(customParam.Type) {
+				case stringType:
+					g.P("arg", i, " := args[", i, "]")
+				case intType:
+					g.P("arg", i, ", err :=", g.Import("strconv"), ".Atoi(args[", i, "])")
+					g.P("if err != nil {")
+					g.P(`logger.Fatalf("can't convert argument %q to int", args[`, i, `])`)
+					g.P("}")
+				case boolType:
+					g.P("arg", i, ", err :=", g.Import("strconv"), ".ParseBool(args[", i, "])")
+					g.P("if err != nil {")
+					g.P(`logger.Fatalf("can't convert argument to bool", args[`, i, `])`)
+					g.P("}")
 				}
+				i++
 			}
 		}
+		g.P(
+			"err = ",
+			generateNSTarget(mk, target),
+			"(ctx,",
+			strings.Join(args, ","),
+			")",
+		)
+		g.P("if err != nil {")
+		g.P("logger.Fatal(err)")
+		g.P("}")
+	} else {
+		g.P("err = ", generateNSTarget(mk, target), "(ctx)")
+		g.P("if err != nil {")
+		g.P("logger.Fatal(err)")
+		g.P("}")
 	}
-	namespaceStruct += "}."
-	return partOfMakefile, namespaceStruct
+}
+
+// generateNSTarget generates a target call in the form of <namespace>.<method>
+// for Makefile with namespace and <method> otherwise.
+func generateNSTarget(mk Makefile, target *doc.Func) string {
+	var builder strings.Builder
+	writeString := func(s string) {
+		_, err := builder.WriteString(s)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if mk.Namespace == nil {
+		return target.Name
+	}
+
+	if target.Recv != "" {
+		writeString(target.Recv)
+		writeString("{")
+	}
+	val := reflect.Indirect(reflect.ValueOf(mk.Namespace))
+	if !reflect.Value.IsValid(val) {
+		panic(fmt.Errorf("invalid namespace: %+v", val))
+	}
+
+	for i := 0; i < val.NumField(); i++ {
+		// If we find an embedded field we skip it
+		if val.Field(i).Kind() == reflect.Struct && reflect.TypeOf(mk.Namespace).Field(i).Anonymous {
+			continue
+		}
+
+		writeString(fmt.Sprintf("%s: ", val.Type().Field(i).Name))
+		fieldValue := reflect.ValueOf(val.Field(i).Interface())
+		switch val.Field(i).Kind() {
+		case reflect.String:
+			writeString(fmt.Sprintf(`"%v"`, fieldValue))
+		case reflect.Bool, reflect.Int:
+			writeString(fmt.Sprintf("%v", fieldValue))
+		default:
+			panic("unsupported type for namespace field")
+		}
+
+		if i < val.NumField()-1 {
+			writeString(",")
+		}
+	}
+	writeString("}.")
+	writeString(target.Name)
+	return builder.String()
 }
 
 func countParams(fields []*ast.Field) int {
@@ -156,27 +184,9 @@ func getTargetFunctionName(function *doc.Func) string {
 	return result.String()
 }
 
-func forEachTargetFunction(pkg *doc.Package, fn func(function *doc.Func, namespace *doc.Type)) {
-	for _, function := range pkg.Funcs {
-		if function.Recv != "" ||
-			!ast.IsExported(function.Name) ||
-			!isSupportedTargetFunctionParams(function.Decl.Type.Params.List) {
-			continue
-		}
-		fn(function, nil)
-	}
-	for _, namespace := range pkg.Types {
-		if !ast.IsExported(namespace.Name) || !isNamespace(namespace) {
-			continue
-		}
-		for _, function := range namespace.Methods {
-			if !ast.IsExported(function.Name) ||
-				!isSupportedTargetFunctionParams(function.Decl.Type.Params.List) {
-				continue
-			}
-			fn(function, nil)
-		}
-	}
+func getNamespaceFunctionName(mk Makefile, function *doc.Func) string {
+	prefix := makefileNSPrefix(mk)
+	return prefix + ":" + getTargetFunctionName(function)
 }
 
 func isSupportedTargetFunctionParams(params []*ast.Field) bool {
@@ -213,39 +223,4 @@ func isContextParam(param *ast.Field) bool {
 		return false
 	}
 	return ident.Name == "context" && selectorExpr.Sel.Name == "Context"
-}
-
-func isNamespace(t *doc.Type) bool {
-	if len(t.Decl.Specs) != 1 {
-		return false
-	}
-	typeSpec, ok := t.Decl.Specs[0].(*ast.TypeSpec)
-	if !ok {
-		return false
-	}
-
-	// Is it embedded in a struct?
-	structType, ok := typeSpec.Type.(*ast.StructType)
-	if ok {
-		for _, f := range structType.Fields.List {
-			// Is it an embedded namespace
-			if f.Names == nil && isSelectorNamespaceType(f.Type) {
-				return true
-			}
-		}
-	}
-
-	return isSelectorNamespaceType(typeSpec.Type)
-}
-
-func isSelectorNamespaceType(expr ast.Expr) bool {
-	selector, ok := expr.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-	ident, ok := selector.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	return ident.Name == "sg" && selector.Sel.Name == "Namespace"
 }

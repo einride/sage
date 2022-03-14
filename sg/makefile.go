@@ -101,25 +101,25 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 		" ",
 		filepath.Join(includePath, buildDir),
 	)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
-		if function.Recv == mk.namespaceName() {
-			g.P()
-			g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(function)))
-			g.P(toMakeTarget(getTargetFunctionName(function)), ": $(sagefile)")
-			args := toMakeVars(function.Decl.Type.Params.List[1:])
-			if len(args) > 0 {
-				for _, arg := range args {
-					g.P("ifndef ", arg)
-					g.P("\t $(error missing argument ", arg, `="...")`)
-					g.P("endif")
-				}
+	targets := namespaceTargets(pkg, mk)
+	for _, target := range targets {
+		g.P()
+		g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(target)))
+		g.P(toMakeTarget(getTargetFunctionName(target)), ": $(sagefile)")
+		args := toMakeVars(target.Decl.Type.Params.List[1:])
+		if len(args) > 0 {
+			for _, arg := range args {
+				g.P("ifndef ", arg)
+				g.P("\t $(error missing argument ", arg, `="...")`)
+				g.P("endif")
 			}
-			g.P(
-				"\t@$(sagefile) ",
-				toSageFunction(getTargetFunctionName(function), args),
-			)
 		}
-	})
+		g.P(
+			"\t@$(sagefile) ",
+			toSageFunction(getNamespaceFunctionName(mk, target), args),
+		)
+	}
+
 	// Add additional makefiles to default makefile
 	if mk.namespaceName() == "" {
 		for _, i := range mks {
@@ -131,8 +131,8 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 				panic(err)
 			}
 			g.P()
-			g.P(".PHONY: ", toMakeTarget(i.namespaceName()))
-			g.P(toMakeTarget(i.namespaceName()), ":")
+			g.P(".PHONY: ", mkPath)
+			g.P(mkPath, ":")
 			g.P("\t$(MAKE) -C ", mkPath, " -f ", filepath.Base(i.Path))
 		}
 	}
@@ -152,11 +152,16 @@ func toMakeVars(args []*ast.Field) []string {
 
 // toSageFunction converts input to a sage Target name with the provided args.
 func toSageFunction(target string, args []string) string {
+	var builder strings.Builder
+	builder.WriteByte('"')
+	builder.WriteString(target)
+	builder.WriteByte('"')
 	for _, arg := range args {
-		arg = fmt.Sprintf("\"$(%s)\"", arg)
-		target += fmt.Sprintf(" %s", arg)
+		builder.WriteString(` "$(`)
+		builder.WriteString(arg)
+		builder.WriteString(`)"`)
 	}
-	return target
+	return builder.String()
 }
 
 // toMakeTarget converts input to make target format.
