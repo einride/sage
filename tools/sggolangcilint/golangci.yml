@@ -1,6 +1,7 @@
 run:
   timeout: 10m
   allow-parallel-runners: true
+  go: 1.18
 
 issues:
   fix: true

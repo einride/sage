@@ -219,7 +219,6 @@ func (s *fileState) downloadBinary(ctx context.Context, url string) (io.ReadClos
 	}
 
 	req.Header = s.httpHeader
-	// nolint: bodyclose // false positive due to cleanup function
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
