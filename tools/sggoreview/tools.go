@@ -6,13 +6,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
+	"unicode"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "0.18.0"
+const version = "0.20.0"
 
 // nolint: gochecknoglobals
 var commandPath string
@@ -27,7 +27,8 @@ func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(toolName)
 	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, toolName)
-	hostOS := strings.Title(runtime.GOOS)
+	goos := []rune(runtime.GOOS)
+	hostOS := string(append([]rune{unicode.ToUpper(goos[0])}, goos[1:]...)) // capitalizes the first letter.
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
