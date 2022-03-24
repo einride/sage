@@ -32,7 +32,7 @@ runs:
         go-version: ${{ inputs.go-version }}
 
     - name: Cache Go modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cache/go-build
@@ -42,7 +42,7 @@ runs:
           ${{ runner.os }}-go-${{ inputs.cacheKey }}-
 
     - name: Cache sage folders
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ./.sage/tools
