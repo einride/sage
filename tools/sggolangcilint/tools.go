@@ -21,7 +21,7 @@ const (
 )
 
 //go:embed golangci.yml
-var defaultConfig []byte
+var DefaultConfig []byte
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
@@ -34,7 +34,7 @@ func Run(ctx context.Context, args ...string) error {
 	if err := os.MkdirAll(filepath.Dir(defaultConfigPath), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(defaultConfigPath, defaultConfig, 0o600); err != nil {
+	if err := os.WriteFile(defaultConfigPath, DefaultConfig, 0o600); err != nil {
 		return err
 	}
 	var commands []*exec.Cmd
