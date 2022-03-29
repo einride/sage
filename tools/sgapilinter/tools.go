@@ -79,9 +79,12 @@ func Run(ctx context.Context, args ...string) error {
 		if err := os.MkdirAll(filepath.Dir(descriptorFile), 0o755); err != nil {
 			return err
 		}
-		bufBuildCmd := sgbuf.Command(ctx, "build", "-o", descriptorFile)
-		bufBuildCmd.Dir = moduleDir
-		if err := bufBuildCmd.Run(); err != nil {
+		// TODO: Investigate why this call sometimes fails with context timeout.
+		if err := retryMaxTimes(3, func() error {
+			bufBuildCmd := sgbuf.Command(ctx, "build", "-o", descriptorFile)
+			bufBuildCmd.Dir = moduleDir
+			return bufBuildCmd.Run()
+		}); err != nil {
 			return err
 		}
 		cmd := Command(
@@ -174,4 +177,15 @@ type result struct {
 		RuleID     string `json:"rule_id"`
 		RuleDocURI string `json:"rule_doc_uri"`
 	} `json:"problems"`
+}
+
+func retryMaxTimes(n int, fn func() error) error {
+	var err error
+	for i := 0; i < n; i++ {
+		err = fn()
+		if err == nil {
+			break
+		}
+	}
+	return err
 }
