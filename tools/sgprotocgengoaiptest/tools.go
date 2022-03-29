@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.4.4"
+	version = "0.7.2"
 	name    = "protoc-gen-go-aip-test"
 )
 
@@ -25,18 +25,13 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
-	hostOS := runtime.GOOS
-	hostArch := runtime.GOARCH
-	if hostArch == sgtool.AMD64 {
-		hostArch = sgtool.X8664
-	}
 	binURL := fmt.Sprintf(
 		"https://github.com/einride/protoc-gen-go-aip-test"+
 			"/releases/download/v%s/protoc-gen-go-aip-test_%s_%s_%s.tar.gz",
 		version,
 		version,
-		hostOS,
-		hostArch,
+		runtime.GOOS,
+		runtime.GOARCH,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
