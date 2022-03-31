@@ -7,6 +7,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,13 +52,18 @@ func initSage(ctx context.Context) {
 	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
-	_, err := os.Stat(sg.FromGitRoot("Makefile"))
-	if err == nil {
-		const mm = "Makefile.old"
-		sg.Logger(ctx).Printf("Makefile already exists, renaming  Makefile to %s", mm)
-		if err := os.Rename(sg.FromGitRoot("Makefile"), sg.FromGitRoot(mm)); err != nil {
-			sg.Logger(ctx).Fatal(err)
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, dir fs.DirEntry, err error) error {
+		if dir.Name() != "Makefile" {
+			return nil
 		}
+		backupFile := path + ".old"
+		sg.Logger(ctx).Printf("Makefile already exists, renaming  Makefile to %s", backupFile)
+		if err := os.Rename(path, backupFile); err != nil {
+			return fmt.Errorf("unable to rename Makefile: %v", err)
+		}
+		return nil
+	}); err != nil {
+		sg.Logger(ctx).Fatal(err)
 	}
 	cmd := sg.Command(ctx, "go", "mod", "init", "sage")
 	cmd.Dir = sg.FromSageDir()
