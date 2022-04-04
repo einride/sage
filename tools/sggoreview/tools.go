@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "0.21.0"
+const version = "0.22.1"
 
 // nolint: gochecknoglobals
 var commandPath string
@@ -30,9 +30,6 @@ func PrepareCommand(ctx context.Context) error {
 	goos := []rune(runtime.GOOS)
 	hostOS := string(append([]rune{unicode.ToUpper(goos[0])}, goos[1:]...)) // capitalizes the first letter.
 	hostArch := runtime.GOARCH
-	if hostArch == sgtool.AMD64 {
-		hostArch = sgtool.X8664
-	}
 	fileName := fmt.Sprintf("goreview_%s_%s_%s", version, hostOS, hostArch)
 	binURL := fmt.Sprintf(
 		"https://github.com/einride/goreview/releases/download/v%s/%s.tar.gz",
