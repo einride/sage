@@ -3,11 +3,9 @@ package sggrpcjava
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -27,15 +25,6 @@ func PrepareCommand(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
 	binDir := sg.FromToolsDir("grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
-	// read the whole pom at once
-	b, err := os.ReadFile("pom.xml")
-	if err != nil {
-		panic(err)
-	}
-	s := string(b)
-	if !strings.Contains(s, fmt.Sprintf("<grpc.version>%s", version)) {
-		return fmt.Errorf("pom.xml is out of sync with gRPC Java version - expecting %s", version)
-	}
 	hostOS := runtime.GOOS
 	if hostOS == sgtool.Darwin {
 		hostOS = "osx"
