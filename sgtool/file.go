@@ -55,6 +55,33 @@ func newFileState() *fileState {
 	}
 }
 
+// FromLocal can be used to work with local archive files.
+// HTTP related Options, such as WithHTTPHeader don't do anything here.
+func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
+	s := newFileState()
+	for _, o := range opts {
+		o(s)
+	}
+	if s.skipFile != "" {
+		// Check if binary already exist
+		if _, err := os.Stat(s.skipFile); err == nil {
+			if s.symlink != "" {
+				if _, err := CreateSymlink(s.symlink); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}
+
+	f, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("unable to open local file: %w", err)
+	}
+	defer f.Close()
+	return s.handleFileStream(f, path.Base(f.Name()))
+}
+
 func FromRemote(ctx context.Context, addr string, opts ...Opt) error {
 	s := newFileState()
 	for _, o := range opts {
