@@ -3,7 +3,6 @@ package sgprotoc
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -12,7 +11,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "3.15.7"
+const version = "3.20.1"
 
 // nolint: gochecknoglobals
 var commandPath string
@@ -53,9 +52,6 @@ func PrepareCommand(ctx context.Context) error {
 		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
-	}
-	if err := os.RemoveAll(filepath.Join(binDir, "include")); err != nil {
-		return err
 	}
 	commandPath = binary
 	return nil
