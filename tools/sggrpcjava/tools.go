@@ -33,7 +33,7 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	if hostOS == "osx" && hostArch == "arm64" {
+	if hostOS == "osx" && hostArch == sgtool.ARM64 {
 		hostArch = sgtool.X8664
 	}
 	binURL := fmt.Sprintf(

@@ -35,6 +35,7 @@ const (
 const (
 	AMD64 = "amd64"
 	X8664 = "x86_64"
+	ARM64 = "arm64"
 )
 
 type Opt func(f *fileState)
