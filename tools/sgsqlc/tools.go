@@ -25,7 +25,11 @@ func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(toolDir, name)
 	arch := runtime.GOARCH
+	hostOS := runtime.GOOS
 	if arch == sgtool.X8664 {
+		arch = sgtool.AMD64
+	}
+	if hostOS == sgtool.Darwin && arch == sgtool.ARM64 {
 		arch = sgtool.AMD64
 	}
 	binURL := fmt.Sprintf(
