@@ -19,6 +19,8 @@ var (
 	sagefile []byte
 	//go:embed example/.github/dependabot.yml
 	exampleDependabotYML []byte
+	//go:embed example/.github/settings.yml
+	exampleSettingsYML []byte
 )
 
 func main() {
@@ -72,6 +74,9 @@ func initSage(ctx context.Context) {
 	if err := addToDependabot(); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
+	if err := addToSettings(); err != nil {
+		sg.Logger(ctx).Fatal(err)
+	}
 	// Generate make targets
 	// Use exec.CommandContext instead of sg.Command to avoid double log tags.
 	cmd = exec.CommandContext(ctx, "go", "run", ".")
@@ -87,6 +92,17 @@ and look at https://github.com/einride/sage#readme to learn more`)
 
 func hasSageDependabotConfig(dependabotYML []byte) bool {
 	sc := bufio.NewScanner(bytes.NewReader(dependabotYML))
+	sc.Split(bufio.ScanLines)
+	for sc.Scan() {
+		if bytes.Contains(sc.Bytes(), []byte("directory:")) && bytes.Contains(sc.Bytes(), []byte(sg.FromSageDir())) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasSageSettingsConfig(settingsYML []byte) bool {
+	sc := bufio.NewScanner(bytes.NewReader(settingsYML))
 	sc.Split(bufio.ScanLines)
 	for sc.Scan() {
 		if bytes.Contains(sc.Bytes(), []byte("directory:")) && bytes.Contains(sc.Bytes(), []byte(sg.FromSageDir())) {
@@ -125,4 +141,19 @@ func addToDependabot() error {
 		return nil
 	}
 	return os.WriteFile(dependabotYMLPath, appendSageDependabotConfig(dependabotYML), 0o600)
+}
+
+func addToSettings() error {
+	settingsYMLPath := sg.FromGitRoot(".github", "settings.yml")
+	settingsYML, err := os.ReadFile(settingsYMLPath)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(filepath.Dir(settingsYMLPath), 0o755); err != nil {
+			return err
+		}
+		return os.WriteFile(settingsYMLPath, exampleSettingsYML, 0o600)
+	}
+	if hasSageSettingsConfig(settingsYML) {
+		return nil
+	}
+	return os.WriteFile(settingsYMLPath, settingsYML, 0o600)
 }
