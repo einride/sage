@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.2.2"
+	version = "0.3.0"
 	name    = "protoc-gen-go-grpc-service-config"
 )
 
