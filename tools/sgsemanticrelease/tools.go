@@ -13,10 +13,8 @@ import (
 
 const packageJSONContent = `{
     "devDependencies": {
-        "semantic-release": "^17.3.7",
-        "@semantic-releas.Protoce/github": "^7.2.0",
-        "@semantic-release/release-notes-generator": "^9.0.1",
-        "conventional-changelog-conventionalcommits": "^4.5.0"
+        "semantic-release": "19.0.3",
+        "conventional-changelog-conventionalcommits": "5.0.0"
     }
 }`
 
