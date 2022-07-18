@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sgdocker"
 	"go.einride.tech/sage/tools/sggcloud"
 )
 
@@ -93,7 +94,7 @@ func DockerImage(ctx context.Context, serviceName, gcpProject, gcpRegion string)
 	if err := os.WriteFile(filepath.Join(dir, "Dockerfile"), dockerfile, 0o600); err != nil {
 		panic(err)
 	}
-	cmd := sg.Command(ctx, "docker", "build", "-t", tag, ".")
+	cmd := sgdocker.Command(ctx, "build", "-t", tag, ".")
 	cmd.Dir = dir
 	if err := cmd.Run(); err != nil {
 		panic(err)
