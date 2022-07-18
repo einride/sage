@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sgdocker"
 )
 
 // RunEmulator runs the Cloud Spanner emulator in Docker.
@@ -26,23 +27,20 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 		sg.Logger(ctx).Printf("a Cloud Spanner emulator is already running on %s", emulatorHost)
 		return func() {}, nil
 	}
-	if !hasDocker() {
-		return nil, fmt.Errorf("no Docker client available for running the Cloud Spanner emulator container")
-	}
-	if !isDockerDaemonRunning() {
+	if !isDockerDaemonRunning(ctx) {
 		return nil, fmt.Errorf("the Docker daemon does not seem to be running")
 	}
 	const image = "gcr.io/cloud-spanner-emulator/emulator:latest"
-	cmd := sg.Command(ctx, "docker", "pull", image)
+	cmd := sgdocker.Command(ctx, "pull", image)
 	cmd.Stdout, cmd.Stderr = nil, nil
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
 	var dockerRunCmd *exec.Cmd
 	if isRunningOnCloudBuild(ctx) {
-		dockerRunCmd = sg.Command(ctx, "docker", "run", "-d", "--network", "cloudbuild", "--publish-all", image)
+		dockerRunCmd = sgdocker.Command(ctx, "run", "-d", "--network", "cloudbuild", "--publish-all", image)
 	} else {
-		dockerRunCmd = sg.Command(ctx, "docker", "run", "-d", "--publish-all", image)
+		dockerRunCmd = sgdocker.Command(ctx, "run", "-d", "--publish-all", image)
 	}
 	var dockerRunStdout strings.Builder
 	dockerRunCmd.Stdout = &dockerRunStdout
@@ -52,12 +50,12 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	containerID := strings.TrimSpace(dockerRunStdout.String())
 	cleanup := func() {
 		sg.Logger(ctx).Println("stopping down Cloud Spanner emulator...")
-		cmd := sg.Command(ctx, "docker", "kill", containerID)
+		cmd := sgdocker.Command(ctx, "kill", containerID)
 		cmd.Stdout, cmd.Stderr = nil, nil
 		if err := cmd.Run(); err != nil {
 			sg.Logger(ctx).Printf("failed to kill emulator container: %v", err)
 		}
-		cmd = sg.Command(ctx, "docker", "rm", "-v", containerID)
+		cmd = sgdocker.Command(ctx, "rm", "-v", containerID)
 		cmd.Stdout, cmd.Stderr = nil, nil
 		if err := cmd.Run(); err != nil {
 			sg.Logger(ctx).Printf("failed to remove emulator container: %v", err)
@@ -83,18 +81,15 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	return cleanup, nil
 }
 
-func hasDocker() bool {
-	_, err := exec.LookPath("docker")
-	return err == nil
-}
-
-func isDockerDaemonRunning() bool {
-	return exec.Command("docker", "info").Run() == nil
+func isDockerDaemonRunning(ctx context.Context) bool {
+	cmd := sgdocker.Command(ctx, "info")
+	cmd.Stdout, cmd.Stderr = nil, nil
+	return cmd.Run() == nil
 }
 
 func inspectPortAddress(ctx context.Context, containerID, containerPort string) (string, error) {
 	var stdout bytes.Buffer
-	cmd := sg.Command(ctx, "docker", "inspect", containerID)
+	cmd := sgdocker.Command(ctx, "inspect", containerID)
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -150,7 +145,7 @@ func awaitReachable(ctx context.Context, addr string, wait, maxWait time.Duratio
 }
 
 func isRunningOnCloudBuild(ctx context.Context) bool {
-	cmd := sg.Command(ctx, "docker", "network", "inspect", "cloudbuild")
+	cmd := sgdocker.Command(ctx, "network", "inspect", "cloudbuild")
 	var stdout bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, nil
 	return cmd.Run() == nil
