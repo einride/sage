@@ -340,6 +340,13 @@ func (s *fileState) extractTar(reader io.Reader) error {
 			if err := os.MkdirAll(path, 0o755); err != nil {
 				return fmt.Errorf("extractTar: MkdirAll() failed: %w", err)
 			}
+		case tar.TypeSymlink:
+			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+				return fmt.Errorf("failed writing symbolic link: %s", err)
+			}
+			if err := os.Symlink(header.Linkname, path); err != nil {
+				return fmt.Errorf("failed writing symbolic link: %s", err)
+			}
 		case tar.TypeReg:
 			// Not all directories in the tar file are TypeDir so we have to make
 			// sure to create any paths that might only show up as TypeReg
@@ -358,10 +365,9 @@ func (s *fileState) extractTar(reader io.Reader) error {
 				return fmt.Errorf("extractTar: Copy() failed: %w", err)
 			}
 			outFile.Close()
-
 		default:
 			return fmt.Errorf(
-				"extractTar: uknown type: %v in %s",
+				"extractTar: unknown type: %v in %s",
 				header.Typeflag,
 				header.Name,
 			)
