@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sggcloud"
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sgyq"
 )
@@ -130,7 +131,7 @@ func printServiceAccountAccessToken(ctx context.Context, serviceAccount, keyFile
 	}()
 	sg.Logger(ctx).Printf("generating access token for %s...", serviceAccount)
 	var getAccountOutput strings.Builder
-	cmd := sg.Command(ctx, "gcloud", "config", "get", "account")
+	cmd := sggcloud.Command(ctx, "config", "get", "account")
 	cmd.Stdout = &getAccountOutput
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -139,14 +140,14 @@ func printServiceAccountAccessToken(ctx context.Context, serviceAccount, keyFile
 	if prevAccount == "" {
 		return "", fmt.Errorf("no active Google Cloud Account, did you remember to `gcloud auth login`")
 	}
-	cmd = sg.Command(ctx, "gcloud", "auth", "activate-service-account", "--key-file", keyFile)
+	cmd = sggcloud.Command(ctx, "auth", "activate-service-account", "--key-file", keyFile)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	var accessTokenOutput strings.Builder
-	cmd = sg.Command(ctx, "gcloud", "auth", "print-access-token")
+	cmd = sggcloud.Command(ctx, "auth", "print-access-token")
 	cmd.Stdout = &accessTokenOutput
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -155,13 +156,13 @@ func printServiceAccountAccessToken(ctx context.Context, serviceAccount, keyFile
 	if accessToken == "" {
 		return "", fmt.Errorf("got empty access token")
 	}
-	cmd = sg.Command(ctx, "gcloud", "auth", "revoke", serviceAccount)
+	cmd = sggcloud.Command(ctx, "auth", "revoke", serviceAccount)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	cmd = sg.Command(ctx, "gcloud", "config", "set", "account", prevAccount)
+	cmd = sggcloud.Command(ctx, "config", "set", "account", prevAccount)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	if err := cmd.Run(); err != nil {

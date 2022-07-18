@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sggcloud"
 )
 
 //go:embed Dockerfile
@@ -62,7 +63,7 @@ func DockerImage(ctx context.Context, serviceName, gcpProject, gcpRegion string)
 	if err != nil {
 		panic(err)
 	}
-	token := sg.Output(sg.Command(ctx, "gcloud", "auth", "print-access-token"))
+	token := sg.Output(sggcloud.Command(ctx, "auth", "print-access-token"))
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	resp, err := http.DefaultClient.Do(req)
