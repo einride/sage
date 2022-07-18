@@ -10,7 +10,6 @@ import (
 	"go.einride.tech/sage/tools/sggolangcilint"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmarkdownfmt"
-	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
 func main() {
@@ -23,14 +22,9 @@ func main() {
 }
 
 func All(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown, FormatYAML)
+	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown)
 	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
-}
-
-func FormatYAML(ctx context.Context) error {
-	sg.Logger(ctx).Println("formatting YAML files...")
-	return sgyamlfmt.Command(ctx, "-d", sg.FromGitRoot(), "-r").Run()
 }
 
 func GoModTidy(ctx context.Context) error {
