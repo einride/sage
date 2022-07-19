@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"sync"
 
 	"go.einride.tech/sage/sg/internal/runner"
@@ -21,6 +22,12 @@ func Deps(ctx context.Context, functions ...interface{}) {
 	var wg sync.WaitGroup
 	for i, f := range checkedFunctions {
 		i, f := i, f
+		// Forcing serial deps can protect low-powered build machines from running out of memory.
+		// EXPERIMENTAL: Support for this environment variable may be removed at any time.
+		if forceSerialDeps, ok := os.LookupEnv("SAGE_FORCE_SERIAL_DEPS"); ok && isTrue(forceSerialDeps) {
+			errs[i] = runner.RunOnce(WithLogger(ctx, NewLogger(f.Name())), f.ID(), f.Run)
+			continue
+		}
 		wg.Add(1)
 		go func() {
 			defer func() {
@@ -66,4 +73,9 @@ func checkFunctions(functions ...interface{}) []Target {
 		result = append(result, Fn(f))
 	}
 	return result
+}
+
+func isTrue(s string) bool {
+	value, err := strconv.ParseBool(s)
+	return err == nil && value
 }
