@@ -13,12 +13,14 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-// nolint: gochecknoglobals
-var commandPath string
+const (
+	name    = "go-semantic-release"
+	version = "2.24.0"
+)
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, commandPath, args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *exec.Cmd {
@@ -37,12 +39,8 @@ func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *ex
 }
 
 func PrepareCommand(ctx context.Context) error {
-	const (
-		binaryName = "gosemantic-release"
-		version    = "2.18.0"
-	)
-	binDir := sg.FromToolsDir(binaryName, version)
-	binary := filepath.Join(binDir, binaryName)
+	binDir := sg.FromToolsDir(name, version)
+	binary := filepath.Join(binDir, name)
 	var hostOS string
 	switch strings.Split(runtime.GOOS, "/")[0] {
 	case "linux":
@@ -53,21 +51,21 @@ func PrepareCommand(ctx context.Context) error {
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
 	binURL := fmt.Sprintf(
-		"https://github.com/go-semantic-release/semantic-release/releases/download/v%s/semantic-release_v%s_%s_amd64",
+		"https://github.com/go-semantic-release/semantic-release/releases/download/v%s/semantic-release_v%s_%s_%s",
 		version,
 		version,
 		hostOS,
+		runtime.GOARCH,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithRenameFile("", binaryName),
+		sgtool.WithRenameFile("", name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", binaryName, err)
+		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	commandPath = binary
 	return os.Chmod(binary, 0o755)
 }
