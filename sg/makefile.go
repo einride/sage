@@ -15,6 +15,8 @@ import (
 	"go.einride.tech/sage/internal/strcase"
 )
 
+const defaultGoVersion = "1.18.4"
+
 type Makefile struct {
 	Namespace     interface{}
 	Path          string
@@ -57,23 +59,37 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	g.P()
 	g.P("sagefile := ", filepath.Join(includePath, binDir, sageFileBinary))
 	g.P()
-
-	dependencies := fmt.Sprintf(" %s/go.mod %s/*.go", includePath, includePath)
-	if strings.TrimSpace(Output(Command(ctx, "go", "list", "-m"))) == "go.einride.tech/sage" {
-		g.P(".PHONY: $(sagefile)")
-		dependencies = ""
-	}
-	g.P("$(sagefile):", dependencies)
-	g.P("\t@cd ", includePath, " && go mod tidy && go run .")
+	g.P("# Setup Go.")
+	g.P("go := $(shell command -v go 2>/dev/null)")
+	g.P("ifndef go")
+	g.P("SAGE_GO_VERSION ?= ", defaultGoVersion)
+	g.P("export GOROOT := ", filepath.Join(includePath, toolsDir, "go", "$(SAGE_GO_VERSION)", "go"))
+	g.P("export PATH := $(PATH):$(GOROOT)/bin")
+	g.P("go := $(GOROOT)/bin/go")
+	g.P("os := $(shell uname | tr '[:upper:]' '[:lower:]')")
+	g.P("arch := $(shell uname -m)")
+	g.P("ifeq ($(arch),x86_64)")
+	g.P("arch := amd64")
+	g.P("endif")
+	g.P("$(go):")
+	g.P("\t$(info installing Go $(SAGE_GO_VERSION)...)")
+	g.P("\t@mkdir -p $(dir $(GOROOT))")
+	g.P("\t@curl -sSL https://go.dev/dl/go$(SAGE_GO_VERSION).$(os)-$(arch).tar.gz | tar xz -C $(dir $(GOROOT))")
+	g.P("\t@touch $(GOROOT)/go.mod")
+	g.P("\t@chmod +x $(go)")
+	g.P("endif")
+	g.P()
+	g.P(".PHONY: $(sagefile)")
+	g.P("$(sagefile): $(go)")
+	g.P("\t@cd ", includePath, " && $(go) mod tidy && $(go) run .")
 	g.P()
 	g.P(".PHONY: sage")
 	g.P("sage:")
-	g.P("\t@git clean -fxq $(sagefile)")
 	g.P("\t@$(MAKE) $(sagefile)")
 	g.P()
 	g.P(".PHONY: update-sage")
-	g.P("update-sage:")
-	g.P("\t@cd ", includePath, " && go get -d go.einride.tech/sage@latest && go mod tidy && go run .")
+	g.P("update-sage: $(go)")
+	g.P("\t@cd ", includePath, " && $(go) get -d go.einride.tech/sage@latest && $(go) mod tidy && $(go) run .")
 	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
