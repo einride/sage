@@ -39,7 +39,7 @@ func GoTest(ctx context.Context) error {
 
 func GoReview(ctx context.Context) error {
 	sg.Logger(ctx).Println("reviewing Go files...")
-	return sggoreview.Command(ctx, "-c", "1", "./...").Run()
+	return sggoreview.Run(ctx)
 }
 
 func GoLint(ctx context.Context) error {
