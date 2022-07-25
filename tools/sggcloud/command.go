@@ -22,6 +22,13 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
+	// Special case: use local gcloud CLI when available.
+	if binary, err := exec.LookPath("gcloud"); err == nil {
+		if _, err := sgtool.CreateSymlink(binary); err != nil {
+			return err
+		}
+		return nil
+	}
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
