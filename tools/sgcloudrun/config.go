@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -18,6 +19,16 @@ import (
 
 // Develop starts the Cloud Run service at the provided Go path with the provided service account and config.
 func Develop(ctx context.Context, path, keyFile, configFile string) error {
+	cmd, err := DevelopCommand(ctx, path, keyFile, configFile)
+	if err != nil {
+		return err
+	}
+	return cmd.Run()
+}
+
+// DevelopCommand returns an *exec.Cmd pre-configured to start the Cloud Run service at the provided Go path
+// with the provided service account and config.
+func DevelopCommand(ctx context.Context, path, keyFile, configFile string) (*exec.Cmd, error) {
 	var key struct {
 		Type        string
 		ProjectID   string `json:"project_id"`
@@ -25,21 +36,21 @@ func Develop(ctx context.Context, path, keyFile, configFile string) error {
 	}
 	keyData, err := os.ReadFile(keyFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := json.Unmarshal(keyData, &key); err != nil {
-		return err
+		return nil, err
 	}
 	if key.Type != "service_account" {
-		return fmt.Errorf("not a valid service account JSON key file: %s", keyFile)
+		return nil, fmt.Errorf("not a valid service account JSON key file: %s", keyFile)
 	}
 	accessToken, err := printServiceAccountAccessToken(ctx, key.ClientEmail, keyFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	env, err := resolveEnvFromConfigFile(ctx, configFile, key.ProjectID, accessToken)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cmd := sg.Command(ctx, "go", "run", path)
 	cmd.Env = append(cmd.Env, "K_REVISION=local"+sggit.SHA(ctx))
@@ -48,7 +59,7 @@ func Develop(ctx context.Context, path, keyFile, configFile string) error {
 	cmd.Env = append(cmd.Env, "GOOGLE_APPLICATION_CREDENTIALS="+keyFile)
 	cmd.Env = append(cmd.Env, env...)
 	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
-	return cmd.Run()
+	return cmd, nil
 }
 
 func resolveEnvFromConfigFile(ctx context.Context, filename, project, accessToken string) (_ []string, err error) {
