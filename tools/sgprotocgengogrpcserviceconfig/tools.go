@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.3.0"
+	version = "0.4.1"
 	name    = "protoc-gen-go-grpc-service-config"
 )
 
@@ -27,9 +27,8 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	// nolint: lll
 	binURL := fmt.Sprintf(
-		"https://github.com/einride/protoc-gen-go-grpc-service-config/releases/download/v%s/protoc-gen-go-grpc-service-config_%s_%s_%s.tar.gz",
+		"https://github.com/einride/grpc-service-config-go/releases/download/v%s/grpc-service-config-go_%s_%s_%s.tar.gz",
 		version,
 		version,
 		hostOS,
