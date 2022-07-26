@@ -68,7 +68,16 @@ func DeployPreview(ctx context.Context, opts DeployPreviewOptions) (string, erro
 	if err := json.Unmarshal(output, &parsedOutput); err != nil {
 		return "", fmt.Errorf("parse output: %w\n%s", err, output)
 	}
-	return parsedOutput.Result[opts.Project].URL, nil
+	// assume that site name is equal to project name if site option not set
+	url := parsedOutput.Result[opts.Project].URL
+	if opts.Site != "" {
+		url = parsedOutput.Result[opts.Site].URL
+	}
+	// deployed preview defaulted to another site than specified project name or site name
+	if url == "" {
+		return "", fmt.Errorf("could not resolve preview url. Make sure to specify site in the deploy preview options")
+	}
+	return url, nil
 }
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
