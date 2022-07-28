@@ -15,26 +15,56 @@ import (
 	"go.einride.tech/sage/tools/sgdocker"
 )
 
+type EmulatorContainer struct {
+	Context      context.Context
+	ContainerID  string
+	DatabaseHost string
+	AdminHost    string
+}
+
 // RunEmulator runs the Cloud Spanner emulator in Docker.
 func RunEmulator(ctx context.Context) (_ func(), err error) {
+	emulator, err := RunEmulatorContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if emulator.ContainerID == "" {
+		return emulator.Close, nil
+	}
+	if err := os.Setenv("SPANNER_EMULATOR_HOST", emulator.DatabaseHost); err != nil {
+		emulator.Close()
+		return nil, err
+	}
+	cleanup := func() {
+		emulator.Close()
+		if err := os.Unsetenv("SPANNER_EMULATOR_HOST"); err != nil {
+			sg.Logger(ctx).Printf("failed to unset SPANNER_EMULATOR_HOST: %v", err)
+		}
+	}
+	return cleanup, nil
+}
+
+func RunEmulatorContainer(ctx context.Context) (_ EmulatorContainer, err error) {
+	emulator := EmulatorContainer{Context: ctx}
 	defer func() {
 		if err != nil {
+			emulator.Close()
 			err = fmt.Errorf("run Cloud Spanner emulator: %w", err)
 		}
 	}()
 	sg.Logger(ctx).Println("starting Cloud Spanner emulator...")
 	if emulatorHost, ok := os.LookupEnv("SPANNER_EMULATOR_HOST"); ok {
 		sg.Logger(ctx).Printf("a Cloud Spanner emulator is already running on %s", emulatorHost)
-		return func() {}, nil
+		return emulator, nil
 	}
 	if !isDockerDaemonRunning(ctx) {
-		return nil, fmt.Errorf("the Docker daemon does not seem to be running")
+		return emulator, fmt.Errorf("the Docker daemon does not seem to be running")
 	}
 	const image = "gcr.io/cloud-spanner-emulator/emulator:latest"
 	cmd := sgdocker.Command(ctx, "pull", image)
 	cmd.Stdout, cmd.Stderr = nil, nil
 	if err := cmd.Run(); err != nil {
-		return nil, err
+		return emulator, err
 	}
 	var dockerRunCmd *exec.Cmd
 	if isRunningOnCloudBuild(ctx) {
@@ -45,40 +75,40 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	var dockerRunStdout strings.Builder
 	dockerRunCmd.Stdout = &dockerRunStdout
 	if err := dockerRunCmd.Run(); err != nil {
-		return nil, err
+		return emulator, err
 	}
 	containerID := strings.TrimSpace(dockerRunStdout.String())
-	cleanup := func() {
-		sg.Logger(ctx).Println("stopping down Cloud Spanner emulator...")
-		cmd := sgdocker.Command(ctx, "kill", containerID)
-		cmd.Stdout, cmd.Stderr = nil, nil
-		if err := cmd.Run(); err != nil {
-			sg.Logger(ctx).Printf("failed to kill emulator container: %v", err)
-		}
-		cmd = sgdocker.Command(ctx, "rm", "-v", containerID)
-		cmd.Stdout, cmd.Stderr = nil, nil
-		if err := cmd.Run(); err != nil {
-			sg.Logger(ctx).Printf("failed to remove emulator container: %v", err)
-		}
-		if err := os.Unsetenv("SPANNER_EMULATOR_HOST"); err != nil {
-			sg.Logger(ctx).Printf("failed to unset SPANNER_EMULATOR_HOST: %v", err)
-		}
-	}
-	emulatorHost, err := inspectPortAddress(ctx, containerID, "9010/tcp")
+	emulator.ContainerID = containerID
+	emulator.DatabaseHost, err = inspectPortAddress(ctx, containerID, "9010/tcp")
 	if err != nil {
-		cleanup()
-		return nil, err
+		return emulator, err
 	}
-	if err := os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost); err != nil {
-		cleanup()
-		return nil, err
+	emulator.AdminHost, err = inspectPortAddress(ctx, containerID, "9020/tcp")
+	if err != nil {
+		return emulator, err
 	}
-	sg.Logger(ctx).Printf("running Cloud Spanner emulator on %s", emulatorHost)
-	if err := awaitReachable(ctx, emulatorHost, 100*time.Millisecond, 10*time.Second); err != nil {
-		cleanup()
-		return nil, err
+	sg.Logger(ctx).Printf("running Cloud Spanner emulator on %s", emulator.DatabaseHost)
+	if err := awaitReachable(ctx, emulator.DatabaseHost, 100*time.Millisecond, 10*time.Second); err != nil {
+		return emulator, err
 	}
-	return cleanup, nil
+	return emulator, nil
+}
+
+func (e EmulatorContainer) Close() {
+	if e.ContainerID == "" {
+		return
+	}
+	sg.Logger(e.Context).Println("stopping down Cloud Spanner emulator...")
+	cmd := sgdocker.Command(e.Context, "kill", e.ContainerID)
+	cmd.Stdout, cmd.Stderr = nil, nil
+	if err := cmd.Run(); err != nil {
+		sg.Logger(e.Context).Printf("failed to kill emulator container: %v", err)
+	}
+	cmd = sgdocker.Command(e.Context, "rm", "-v", e.ContainerID)
+	cmd.Stdout, cmd.Stderr = nil, nil
+	if err := cmd.Run(); err != nil {
+		sg.Logger(e.Context).Printf("failed to remove emulator container: %v", err)
+	}
 }
 
 func isDockerDaemonRunning(ctx context.Context) bool {
