@@ -26,6 +26,10 @@ type DeployPreviewOptions struct {
 	ChannelID string
 	// CmdDir can be set if the firebase.json file is not in root of repository.
 	CmdDir string
+	// Expires sets the duration until channel expires.
+	// Defaults to 7 days.
+	// Examples: "12h", "7d", "30d"
+	Expires string
 }
 
 // DeployPreview deploy static files to a Firebase hosting channel. Returns the generated URL
@@ -39,6 +43,9 @@ func DeployPreview(ctx context.Context, opts DeployPreviewOptions) (string, erro
 	}
 	if opts.Site != "" {
 		args = append(args, "--only", opts.Site)
+	}
+	if opts.Expires != "" {
+		args = append(args, "--expires", opts.Expires)
 	}
 	cmd := Command(
 		ctx,
