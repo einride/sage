@@ -84,10 +84,6 @@ linters:
     # [fast: false, auto-fix: false]
     - govet
 
-    # Check that code uses short syntax for if-statements whenever possible.
-    # [fast: true, auto-fix: false]
-    - ifshort
-
     # Detect when assignments to existing variables are not used.
     # [fast: true, auto-fix: false]
     - ineffassign
