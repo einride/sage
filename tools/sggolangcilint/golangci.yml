@@ -1,6 +1,6 @@
 run:
   timeout: 10m
-  allow-parallel-runners: true
+  allow-parallel-runners: false
 
 issues:
   fix: true
