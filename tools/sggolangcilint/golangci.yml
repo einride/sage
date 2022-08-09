@@ -62,7 +62,8 @@ linters:
 
     # Check whether code was gofumpt-ed.
     # [fast: true, auto-fix: true]
-    - gofumpt
+    # TOOD: Re-enable when it supports updated Go 1.19 GoDoc syntax.
+    #- gofumpt
 
     # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
     # [fast: true, auto-fix: false]
@@ -83,10 +84,6 @@ linters:
     # Report suspicious constructs, such as Printf calls whose arguments do not align with the format string.
     # [fast: false, auto-fix: false]
     - govet
-
-    # Check that code uses short syntax for if-statements whenever possible.
-    # [fast: true, auto-fix: false]
-    - ifshort
 
     # Detect when assignments to existing variables are not used.
     # [fast: true, auto-fix: false]
@@ -191,6 +188,22 @@ linters:
     # Drop-in replacement of golint.
     # [fast: false, auto-fix: false]
     - revive
+
+    # Check for pass []any as any in variadic func(...any).
+    # [fast: false, auto-fix: false]
+    - asasalint
+
+    # Check for dangerous unicode character sequences.
+    # [fast: true, auto-fix: false]
+    - bidichk
+
+    # Check types passed to the json encoding functions.
+    # [fast: false, auto-fix: false]
+    - errchkjson
+
+    # Check for the possibility to use variables/constants from the Go standard library.
+    # [fast: true, auto-fix: false]
+    - usestdlibvars
 
 linters-settings:
   gomodguard:

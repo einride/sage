@@ -47,7 +47,7 @@ func DockerImage(ctx context.Context, serviceName, gcpProject, gcpRegion string)
 	)
 	req, err := http.NewRequestWithContext(
 		ctx,
-		"GET",
+		http.MethodGet,
 		fmt.Sprintf(
 			"https://servicemanagement.googleapis.com/v1/services/%s/configs/%s?view=FULL",
 			serviceName,

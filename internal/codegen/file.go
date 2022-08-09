@@ -78,7 +78,7 @@ func (f *File) Write(p []byte) (int, error) {
 	if err != nil {
 		f.err = fmt.Errorf("write: %w", err)
 	}
-	return n, err // nolint: wrapcheck // false positive
+	return n, err //nolint: wrapcheck // false positive
 }
 
 // RawContent returns the raw content of the file.
