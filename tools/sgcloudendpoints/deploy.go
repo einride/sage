@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -73,7 +72,6 @@ func Deploy(ctx context.Context, opts DeployOptions) (err error) {
 	if err != nil {
 		return fmt.Errorf("read config: %w", err)
 	}
-	log.Println(string(endpointsConfigData))
 	matches := regexp.MustCompile(`name:(.*)`).FindStringSubmatch(string(endpointsConfigData))
 	if len(matches) == 0 {
 		return fmt.Errorf("match service name: found no match in %s", opts.EndpointsConfigPath)
