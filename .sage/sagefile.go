@@ -16,12 +16,12 @@ func main() {
 	sg.GenerateMakefiles(
 		sg.Makefile{
 			Path:          sg.FromGitRoot("Makefile"),
-			DefaultTarget: All,
+			DefaultTarget: Default,
 		},
 	)
 }
 
-func All(ctx context.Context) error {
+func Default(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown)
 	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
