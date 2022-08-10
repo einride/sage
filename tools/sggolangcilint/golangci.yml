@@ -1,6 +1,8 @@
 run:
   timeout: 10m
   allow-parallel-runners: true
+  skip-dirs:
+    - node_modules
 
 issues:
   fix: true
