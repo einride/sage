@@ -28,15 +28,12 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
+func defaultConfigPath() string {
+	return sg.FromToolsDir(name, ".golangci.yml")
+}
+
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, args ...string) error {
-	defaultConfigPath := sg.FromToolsDir("golangci-lint", ".golangci.yml")
-	if err := os.MkdirAll(filepath.Dir(defaultConfigPath), 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(defaultConfigPath, DefaultConfig, 0o600); err != nil {
-		return err
-	}
 	var commands []*exec.Cmd
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -96,5 +93,14 @@ func PrepareCommand(ctx context.Context) error {
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
+
+	configPath := defaultConfigPath()
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(configPath, DefaultConfig, 0o600); err != nil {
+		return err
+	}
+
 	return nil
 }
