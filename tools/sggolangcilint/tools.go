@@ -32,6 +32,21 @@ func defaultConfigPath() string {
 	return sg.FromToolsDir(name, ".golangci.yml")
 }
 
+func CommandInDirectory(ctx context.Context, directory string, args ...string) *exec.Cmd {
+	configPath := filepath.Join(directory, ".golangci.yml")
+	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
+		configPath = defaultConfigPath()
+	}
+	var excludeArg []string
+	if directory == sg.FromSageDir() {
+		excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
+	}
+	cmdArgs := append([]string{"run", "-c", configPath}, args...)
+	cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
+	cmd.Dir = directory
+	return cmd
+}
+
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, args ...string) error {
 	var commands []*exec.Cmd
@@ -42,21 +57,7 @@ func Run(ctx context.Context, args ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
-		configPath := filepath.Join(filepath.Dir(path), ".golangci.yml")
-		if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
-			configPath = defaultConfigPath
-		}
-		pathPrefix, err := filepath.Rel(sg.FromGitRoot(), filepath.Dir(path))
-		if err != nil {
-			return err
-		}
-		var excludeArg []string
-		if filepath.Dir(path) == sg.FromSageDir() {
-			excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
-		}
-		cmdArgs := append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)
-		cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
-		cmd.Dir = filepath.Dir(path)
+		cmd := CommandInDirectory(ctx, filepath.Dir(path), args...)
 		commands = append(commands, cmd)
 		return cmd.Start()
 	}); err != nil {
