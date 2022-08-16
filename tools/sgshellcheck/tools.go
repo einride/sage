@@ -87,6 +87,7 @@ func PrepareCommand(ctx context.Context) error {
 	if err := sgtool.FromLocal(
 		ctx,
 		decompressedArchive,
+		sgtool.WithUntar(),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithDestinationDir(binDir),
 		sgtool.WithSymlink(binary),
