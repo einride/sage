@@ -92,12 +92,23 @@ func hasFileReferences(line string) bool {
 // Output runs the given command, and returns all output from stdout in a neatly, trimmed manner,
 // panicking if an error occurs.
 func Output(cmd *exec.Cmd) string {
+	s, err := OutputWithErr(cmd)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+// OutputWithErr runs the given command.
+// Returns the error if one occurs,
+// otherwise returns all output from stdout in a neatly, trimmed manner,.
+func OutputWithErr(cmd *exec.Cmd) (string, error) {
 	cmd.Stdout = nil
 	output, err := cmd.Output()
 	if err != nil {
-		panic(fmt.Sprintf("%s failed: %v", cmd.Path, err))
+		return "", fmt.Errorf("%s failed: %v", cmd.Path, err)
 	}
-	return strings.TrimSpace(string(output))
+	return strings.TrimSpace(string(output)), nil
 }
 
 func prependPath(environ []string, paths ...string) []string {
