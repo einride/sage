@@ -15,7 +15,7 @@ import (
 
 const (
 	name    = "ko"
-	version = "0.11.2"
+	version = "0.12.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
