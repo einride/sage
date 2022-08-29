@@ -18,10 +18,6 @@ linters:
     # [fast: false, auto-fix: false]
     - bodyclose
 
-    # Find unused code.
-    # [fast: false, auto-fix: false]
-    - deadcode
-
     # Check for two durations multiplied together.
     # [fast: false, auto-fix: false]
     - durationcheck
@@ -139,10 +135,6 @@ linters:
     # [fast: false, auto-fix: false]
     - staticcheck
 
-    # Find unused struct fields.
-    # [fast: false, auto-fix: false]
-    - structcheck
-
     # A replacement for golint.
     # [fast: false, auto-fix: false]
     - stylecheck
@@ -162,10 +154,6 @@ linters:
     # Check Go code for unused constants, variables, functions and types.
     # [fast: false, auto-fix: false]
     - unused
-
-    # Find unused global variables and constants.
-    # [fast: false, auto-fix: false]
-    - varcheck
 
     # Find wasted assignment statements.
     # [fast: false, auto-fix: false]
