@@ -62,6 +62,7 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	g.P()
 	g.P("# Setup Go.")
 	g.P("go := $(shell command -v go 2>/dev/null)")
+	g.P("export GOWORK ?= off")
 	g.P("ifndef go")
 	g.P("SAGE_GO_VERSION ?= ", defaultGoVersion)
 	g.P("export GOROOT := $(abspath $(cwd)/", filepath.Join(includePath, toolsDir, "go", "$(SAGE_GO_VERSION)", "go"), ")")
