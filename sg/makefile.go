@@ -103,6 +103,9 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 		" ",
 		filepath.Join(includePath, buildDir),
 	)
+	g.P()
+	g.P(".PHONY: clean")
+	g.P("clean: clean-sage")
 	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
 		if function.Recv == mk.namespaceName() {
 			g.P()
