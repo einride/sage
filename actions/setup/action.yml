@@ -10,7 +10,7 @@ inputs:
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
-    default: 1.18
+    default: 1.19
 
   fetch-depth:
     description: Number of commits to fetch. 0 indicates all history for all branches and tags.
