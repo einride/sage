@@ -57,6 +57,9 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName, binaryName)
 	hostOS := runtime.GOOS
+	if hostOS == sgtool.Darwin {
+		hostOS = "macOS"
+	}
 	balena := fmt.Sprintf("balena-cli-%s-%s-x64-standalone", version, hostOS) // only x64 supported.
 	binURL := fmt.Sprintf(
 		"https://github.com/balena-io/balena-cli/releases/download/%s/%s.zip",
