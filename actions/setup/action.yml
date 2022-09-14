@@ -37,9 +37,9 @@ runs:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-${{ inputs.cacheKey }}-
+          ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
 
     - name: Cache sage folders
       uses: actions/cache@v3
@@ -47,6 +47,6 @@ runs:
         path: |
           ./.sage/tools
           ./.sage/bin
-        key: ${{ runner.os }}-sage-${{ inputs.cacheKey }}-${{ hashFiles('./.sage/go.sum') }}
+        key: ${{ runner.os }}-sage-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-sage-${{ inputs.cacheKey }}-
+          ${{ runner.os }}-sage-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
