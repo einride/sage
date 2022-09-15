@@ -49,15 +49,19 @@ func Run(ctx context.Context, args ...string) error {
 		if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
 			configPath = defaultConfigPath
 		}
-		pathPrefix, err := filepath.Rel(sg.FromGitRoot(), filepath.Dir(path))
-		if err != nil {
-			return err
-		}
+		// Temporarily commenting usage of --path-prefix out below to solve an issue
+		// like this https://github.com/golangci/golangci-lint/issues/3195
+		//
+		// pathPrefix, err := filepath.Rel(sg.FromGitRoot(), filepath.Dir(path))
+		// if err != nil {
+		// 	return err
+		// }
+		// cmdArgs := append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)
+		cmdArgs := append([]string{"run", "-c", configPath}, args...)
 		var excludeArg []string
 		if filepath.Dir(path) == sg.FromSageDir() {
 			excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
 		}
-		cmdArgs := append([]string{"run", "-c", configPath, "--path-prefix", pathPrefix}, args...)
 		cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
