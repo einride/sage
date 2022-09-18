@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "1.19.1"
+	version = "1.27.6"
 	name    = "tfsec"
 )
 
