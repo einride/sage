@@ -39,7 +39,11 @@ func VerifyNoDiff(ctx context.Context) error {
 
 // Tags returns the tags of the current HEAD.
 func Tags(ctx context.Context) []string {
-	return strings.Split(sg.Output(Command(ctx, "tag", "--points-at", "HEAD")), "\n")
+	result := strings.Split(sg.Output(Command(ctx, "tag", "--points-at", "HEAD")), "\n")
+	if len(result) == 1 && result[0] == "" {
+		return nil
+	}
+	return result
 }
 
 // SHA returns the full SHA of the current HEAD.
