@@ -21,6 +21,10 @@ inputs:
     description: Number of commits to fetch. 0 indicates all history for all branches and tags.
     default: 0
 
+  git-branch:
+    description: What branch to checkout
+    default: master
+
 runs:
   using: composite
 
@@ -30,6 +34,7 @@ runs:
       with:
         # Needed for conventional commit linting.
         fetch-depth: ${{ inputs.fetch-depth }}
+        ref: ${{ inputs.git-branch }}
 
     - name: Set up Go
       uses: actions/setup-go@v3
