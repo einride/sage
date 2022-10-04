@@ -5,7 +5,7 @@ run:
     - node_modules
 
 issues:
-  fix: true
+  fix: false
 
 linters:
   disable-all: true
