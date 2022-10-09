@@ -17,7 +17,7 @@ import (
 
 const (
 	name    = "golangci-lint"
-	version = "1.49.0"
+	version = "1.50.0"
 )
 
 //go:embed golangci.yml
