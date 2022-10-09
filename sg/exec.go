@@ -14,7 +14,7 @@ import (
 
 type cmdEnvCtxKey string
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var cmdEnvKey cmdEnvCtxKey = "cmdEnv"
 
 // ContextWithEnv returns a context with environment variables which are appended to Command.

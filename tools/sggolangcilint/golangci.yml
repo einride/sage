@@ -60,8 +60,7 @@ linters:
 
     # Check whether code was gofumpt-ed.
     # [fast: true, auto-fix: true]
-    # TOOD: Re-enable when it supports updated Go 1.19 GoDoc syntax.
-    #- gofumpt
+    - gofumpt
 
     # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
     # [fast: true, auto-fix: false]

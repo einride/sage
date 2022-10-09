@@ -18,7 +18,7 @@ import (
 // version can be found here: https://github.com/hadolint/hadolint
 const version = "2.8.0"
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
