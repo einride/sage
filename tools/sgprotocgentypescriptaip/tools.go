@@ -30,7 +30,7 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	//nolint: lll
+	//nolint:lll
 	downloadURL := fmt.Sprintf(
 		"https://github.com/einride/protoc-gen-typescript-aip/releases/download/v%s/protoc-gen-typescript-aip_%s_%s_%s.tar.gz",
 		version,

@@ -14,7 +14,7 @@ import (
 
 const version = "1.1.0"
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {

@@ -23,7 +23,7 @@ const prettierConfigContent = `module.exports = {
 
 const name = "prettier"
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var prettierrc = sg.FromToolsDir("prettier", ".prettierrc.js")
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {

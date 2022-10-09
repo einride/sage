@@ -27,7 +27,7 @@ const commitlintFileContent = `module.exports = {
 
 const name = "commitlint"
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var commitlintrc = sg.FromToolsDir("commitlint", ".commitlintrc.js")
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
