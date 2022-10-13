@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -45,21 +46,24 @@ func initSage(ctx context.Context) {
 	if sg.FromWorkDir() != sg.FromGitRoot() {
 		sg.Logger(ctx).Fatal("can only be generated in git root directory")
 	}
+	sageModulePath, err := resolveSageModulePath(ctx)
+	if err != nil {
+		sg.Logger(ctx).Fatal(err)
+	}
 	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
 	if err := os.WriteFile(sg.FromSageDir("main.go"), mainFile, 0o600); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
-	_, err := os.Stat(sg.FromGitRoot("Makefile"))
-	if err == nil {
+	if _, err := os.Stat(sg.FromGitRoot("Makefile")); err == nil {
 		const mm = "Makefile.old"
 		sg.Logger(ctx).Printf("Makefile already exists, renaming  Makefile to %s", mm)
 		if err := os.Rename(sg.FromGitRoot("Makefile"), sg.FromGitRoot(mm)); err != nil {
 			sg.Logger(ctx).Fatal(err)
 		}
 	}
-	cmd := sg.Command(ctx, "go", "mod", "init", "sage")
+	cmd := sg.Command(ctx, "go", "mod", "init", sageModulePath)
 	cmd.Dir = sg.FromSageDir()
 	if err := cmd.Run(); err != nil {
 		sg.Logger(ctx).Fatal(err)
@@ -125,4 +129,29 @@ func addToDependabot() error {
 		return nil
 	}
 	return os.WriteFile(dependabotYMLPath, appendSageDependabotConfig(dependabotYML), 0o600)
+}
+
+func resolveSageModulePath(ctx context.Context) (string, error) {
+	const moduleName = ".sage"
+	if _, err := os.Stat("go.mod"); err != nil {
+		return moduleName, nil //nolint:nilerr
+	}
+	var out bytes.Buffer
+	cmd := sg.Command(ctx, "go", "mod", "edit", "-json")
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	var modFile struct {
+		Module struct {
+			Path string
+		}
+	}
+	if err := json.Unmarshal(out.Bytes(), &modFile); err != nil {
+		return "", err
+	}
+	if modFile.Module.Path == "" {
+		return moduleName, nil
+	}
+	return filepath.Join(modFile.Module.Path, moduleName), nil
 }
