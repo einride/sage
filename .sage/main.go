@@ -8,6 +8,7 @@ import (
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilint"
+	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmarkdownfmt"
 	"go.einride.tech/sage/tools/sgyamlfmt"
@@ -23,7 +24,7 @@ func main() {
 }
 
 func Default(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown, FormatYaml)
+	sg.Deps(ctx, ConvcoCheck, GoLint, GoLicenses, GoReview, GoTest, FormatMarkdown, FormatYaml)
 	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
 }
@@ -46,6 +47,11 @@ func GoReview(ctx context.Context) error {
 func GoLint(ctx context.Context) error {
 	sg.Logger(ctx).Println("linting Go files...")
 	return sggolangcilint.Run(ctx)
+}
+
+func GoLicenses(ctx context.Context) error {
+	sg.Logger(ctx).Println("checking Go licenses...")
+	return sggolicenses.Check(ctx)
 }
 
 func FormatMarkdown(ctx context.Context) error {

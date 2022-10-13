@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	//go:embed example/.sage/sagefile.go
-	sagefile []byte
+	//go:embed example/.sage/main.go
+	mainFile []byte
 	//go:embed example/.github/dependabot.yml
 	exampleDependabotYML []byte
 )
@@ -48,7 +48,7 @@ func initSage(ctx context.Context) {
 	if err := os.Mkdir(sg.FromSageDir(), 0o755); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
-	if err := os.WriteFile(sg.FromSageDir("sagefile.go"), sagefile, 0o600); err != nil {
+	if err := os.WriteFile(sg.FromSageDir("main.go"), mainFile, 0o600); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
 	_, err := os.Stat(sg.FromGitRoot("Makefile"))
@@ -81,7 +81,7 @@ func initSage(ctx context.Context) {
 	}
 	sg.Logger(ctx).Println(`successfully initialized!
 
-To get started, have a look at the sagefile.go in the .sage directory,
+To get started, have a look at the main.go in the .sage directory,
 and look at https://github.com/einride/sage#readme to learn more`)
 }
 
