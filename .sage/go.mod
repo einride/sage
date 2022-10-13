@@ -1,4 +1,4 @@
-module sage
+module github.com/einride/sage/.sage
 
 go 1.17
 

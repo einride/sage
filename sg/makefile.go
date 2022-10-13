@@ -51,7 +51,7 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	if err != nil {
 		return err
 	}
-	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")
+	g.P("# To learn more, see ", includePath, "/main.go and https://github.com/einride/sage.")
 	if len(mk.defaultTargetName()) != 0 {
 		g.P()
 		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
