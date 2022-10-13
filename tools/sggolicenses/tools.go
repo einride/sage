@@ -39,7 +39,15 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 		if err != nil {
 			return err
 		}
-		args := []string{"check", goModulePath, "--ignore", "github.com/einride"}
+		args := []string{
+			"check",
+			goModulePath,
+			"--skip_headers",
+			"--ignore",
+			"github.com/einride",
+			"--ignore",
+			"go.einride.tech",
+		}
 		if len(disallowedTypes) > 0 {
 			args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
 		} else {
