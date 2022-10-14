@@ -24,8 +24,9 @@ func main() {
 }
 
 func Default(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoLicenses, GoReview, GoTest, FormatMarkdown, FormatYaml)
-	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
+	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown, FormatYaml)
+	sg.SerialDeps(ctx, GoModTidy)
+	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
 	return nil
 }
 
