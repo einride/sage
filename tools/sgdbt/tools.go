@@ -13,7 +13,7 @@ import (
 
 const (
 	name                   = "dbt"
-	bigqueryPackageVersion = "1.2.0"
+	bigqueryPackageVersion = "1.3.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
