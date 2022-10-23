@@ -5,14 +5,17 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 )
 
+// Command returns an [exec.Cmd] for invoking git.
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, "git", args...)
 }
 
+// VerifyNoDiff returns an error if the current working tree has a diff.
 func VerifyNoDiff(ctx context.Context) error {
 	cmd := Command(ctx, "status", "--porcelain")
 	var status bytes.Buffer
@@ -34,6 +37,16 @@ func VerifyNoDiff(ctx context.Context) error {
 	return nil
 }
 
+// Tags returns the tags of the current HEAD.
+func Tags(ctx context.Context) []string {
+	result := strings.Split(sg.Output(Command(ctx, "tag", "--points-at", "HEAD")), "\n")
+	if len(result) == 1 && result[0] == "" {
+		return nil
+	}
+	return result
+}
+
+// SHA returns the full SHA of the current HEAD.
 func SHA(ctx context.Context) string {
 	revision := sg.Output(
 		Command(ctx, "rev-parse", "--verify", "HEAD"),
@@ -44,6 +57,7 @@ func SHA(ctx context.Context) string {
 	return revision
 }
 
+// ShortSHA returns the short SHA of the current HEAD.
 func ShortSHA(ctx context.Context) string {
 	revision := sg.Output(
 		Command(ctx, "rev-parse", "--verify", "--short", "HEAD"),

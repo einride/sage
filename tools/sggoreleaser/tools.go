@@ -1,4 +1,4 @@
-package sgprotocgengoaipdataloader
+package sggoreleaser
 
 import (
 	"context"
@@ -7,14 +7,15 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 )
 
 const (
-	version = "0.3.2"
-	name    = "protoc-gen-go-aip-dataloader"
+	name    = "goreleaser"
+	version = "1.11.5"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -25,26 +26,35 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
+	var hostOS string
+	switch strings.Split(runtime.GOOS, "/")[0] {
+	case "linux":
+		hostOS = "Linux"
+	case "darwin":
+		hostOS = "Darwin"
+	default:
+		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
+	}
+	arch := runtime.GOARCH
+	if arch == "amd64" {
+		arch = "x86_64"
+	}
 	binURL := fmt.Sprintf(
-		"https://github.com/einride/protoc-gen-go-aip-dataloader"+
-			"/releases/download/v%s/protoc-gen-go-aip-dataloader_%s_%s_%s.tar.gz",
+		"https://github.com/goreleaser/goreleaser/releases/download/v%s/goreleaser_%s_%s.tar.gz",
 		version,
-		version,
-		runtime.GOOS,
-		runtime.GOARCH,
+		hostOS,
+		arch,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntarGz(),
+		sgtool.WithRenameFile("", name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
+		sgtool.WithUntarGz(),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-	if err := os.Chmod(binary, 0o755); err != nil {
-		return fmt.Errorf("unable to make %s command: %w", name, err)
-	}
-	return nil
+	return os.Chmod(binary, 0o755)
 }

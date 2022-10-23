@@ -6,7 +6,8 @@ import (
 )
 
 // global state for the runner.
-// nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var (
 	mu      sync.Mutex
 	onceFns = map[string]func(context.Context) error{}

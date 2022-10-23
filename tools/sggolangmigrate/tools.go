@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	version = "4.15.1"
+	version = "4.15.2"
 	name    = "migrate"
 )
 
-// nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var commandPath string
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {

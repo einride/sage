@@ -241,13 +241,13 @@ func WithHTTPHeader(key, value string) Opt {
 }
 
 func (s *fileState) downloadBinary(ctx context.Context, url string) (io.ReadCloser, func(), error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
 	}
 
 	req.Header = s.httpHeader
-	// nolint: bodyclose // false positive due to cleanup function
+	//nolint:bodyclose // false positive due to cleanup function
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
@@ -270,7 +270,7 @@ func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 		}
 
 		// Store filename/path for returning and using later on
-		// nolint: gosec // allow file traversal when extracting archive
+		//nolint:gosec // allow file traversal when extracting archive
 		fpath := filepath.Join(s.dstPath, dstName)
 
 		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
@@ -298,7 +298,7 @@ func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 			return filenames, err
 		}
 
-		// nolint: gosec // allow potential decompression bomb
+		//nolint:gosec // allow potential decompression bomb
 		_, err = io.Copy(outFile, rc)
 
 		// Close the file without defer to close before next iteration of loop
@@ -331,9 +331,11 @@ func (s *fileState) extractTar(reader io.Reader) error {
 		if name, ok := s.archiveFiles[dstName]; ok {
 			dstName = name
 		}
-
-		// nolint: gosec // allow traversal into archive
+		//nolint:gosec // allow traversal into archive
 		path := filepath.Join(s.dstPath, dstName)
+		if strings.Contains(path, "..") {
+			return fmt.Errorf("encountered .. inside tar filepath (%s). For security reasons, this is not allowed", path)
+		}
 
 		switch header.Typeflag {
 		case tar.TypeDir:
@@ -360,7 +362,7 @@ func (s *fileState) extractTar(reader io.Reader) error {
 			if err := os.Chmod(path, 0o775); err != nil {
 				return fmt.Errorf("extractTar: Chmod() failed: %w", err)
 			}
-			// nolint: gosec // allow potential decompression bomb
+			//nolint:gosec // allow potential decompression bomb
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return fmt.Errorf("extractTar: Copy() failed: %w", err)
 			}

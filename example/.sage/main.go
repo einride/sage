@@ -8,22 +8,27 @@ import (
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilint"
+	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmarkdownfmt"
+	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
 func main() {
 	sg.GenerateMakefiles(
 		sg.Makefile{
 			Path:          sg.FromGitRoot("Makefile"),
-			DefaultTarget: All,
+			DefaultTarget: Default,
 		},
 	)
 }
 
-func All(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown)
-	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
+func Default(ctx context.Context) error {
+	sg.Deps(ctx, ConvcoCheck, FormatMarkdown, FormatYaml)
+	sg.Deps(ctx, GoLint, GoReview)
+	sg.Deps(ctx, GoTest)
+	sg.Deps(ctx, GoModTidy)
+	sg.Deps(ctx, GoLicenses, GitVerifyNoDiff)
 	return nil
 }
 
@@ -47,9 +52,19 @@ func GoLint(ctx context.Context) error {
 	return sggolangcilint.Run(ctx)
 }
 
+func GoLicenses(ctx context.Context) error {
+	sg.Logger(ctx).Println("checking Go licenses...")
+	return sggolicenses.Check(ctx)
+}
+
 func FormatMarkdown(ctx context.Context) error {
 	sg.Logger(ctx).Println("formatting Markdown files...")
 	return sgmarkdownfmt.Command(ctx, "-w", ".").Run()
+}
+
+func FormatYaml(ctx context.Context) error {
+	sg.Logger(ctx).Println("formatting Yaml files...")
+	return sgyamlfmt.Run(ctx)
 }
 
 func ConvcoCheck(ctx context.Context) error {

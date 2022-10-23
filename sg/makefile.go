@@ -51,19 +51,21 @@ func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk
 	if err != nil {
 		return err
 	}
-	g.P("# To learn more, see ", includePath, "/sagefile.go and https://github.com/einride/sage.")
+	g.P("# To learn more, see ", includePath, "/main.go and https://github.com/einride/sage.")
 	if len(mk.defaultTargetName()) != 0 {
 		g.P()
 		g.P(".DEFAULT_GOAL := ", toMakeTarget(mk.defaultTargetName()))
 	}
 	g.P()
-	g.P("sagefile := ", filepath.Join(includePath, binDir, sageFileBinary))
+	g.P("cwd := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))")
+	g.P("sagefile := $(abspath $(cwd)/", filepath.Join(includePath, binDir, sageFileBinary), ")")
 	g.P()
 	g.P("# Setup Go.")
 	g.P("go := $(shell command -v go 2>/dev/null)")
+	g.P("export GOWORK ?= off")
 	g.P("ifndef go")
 	g.P("SAGE_GO_VERSION ?= ", defaultGoVersion)
-	g.P("export GOROOT := ", filepath.Join(includePath, toolsDir, "go", "$(SAGE_GO_VERSION)", "go"))
+	g.P("export GOROOT := $(abspath $(cwd)/", filepath.Join(includePath, toolsDir, "go", "$(SAGE_GO_VERSION)", "go"), ")")
 	g.P("export PATH := $(PATH):$(GOROOT)/bin")
 	g.P("go := $(GOROOT)/bin/go")
 	g.P("os := $(shell uname | tr '[:upper:]' '[:lower:]')")

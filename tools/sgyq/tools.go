@@ -13,7 +13,7 @@ import (
 
 const (
 	name    = "yq"
-	version = "4.26.1"
+	version = "4.27.5"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {

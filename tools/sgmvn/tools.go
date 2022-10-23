@@ -1,19 +1,18 @@
-package sggh
+package sgmvn
 
 import (
 	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 )
 
 const (
-	name    = "gh"
-	version = "2.15.0"
+	name    = "mvn"
+	version = "3.8.6"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -22,23 +21,18 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	hostOS := runtime.GOOS
-	hostArch := runtime.GOARCH
-	binDir := sg.FromToolsDir(name, version)
-	binary := filepath.Join(binDir, name)
-	binURL := fmt.Sprintf(
-		"https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz",
-		version,
-		version,
-		hostOS,
-		hostArch,
-	)
+	toolDir := sg.FromToolsDir(name)
+	binDir := filepath.Join(toolDir, version, "bin")
+	binary := filepath.Join(binDir, "apache-maven-"+version, "bin", name)
 	if err := sgtool.FromRemote(
 		ctx,
-		binURL,
+		fmt.Sprintf(
+			"https://dlcdn.apache.org/maven/maven-3/%s/binaries/apache-maven-%s-bin.tar.gz",
+			version,
+			version,
+		),
 		sgtool.WithDestinationDir(binDir),
 		sgtool.WithUntarGz(),
-		sgtool.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {

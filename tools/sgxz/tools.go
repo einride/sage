@@ -1,9 +1,8 @@
-package sgprotocgentypescripthttp
+package sgxz
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -13,45 +12,44 @@ import (
 )
 
 const (
-	version    = "0.8.1"
-	binaryName = "protoc-gen-typescript-http"
+	version = "5.2.5"
+	name    = "xz"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
+	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	binDir := sg.FromToolsDir(binaryName, version)
+	const binaryName = "xz"
+	toolDir := sg.FromToolsDir(binaryName)
+	binDir := filepath.Join(toolDir, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	//nolint:lll
-	downloadURL := fmt.Sprintf(
-		"https://github.com/einride/protoc-gen-typescript-http/releases/download/v%s/protoc-gen-typescript-http_%s_%s_%s.tar.gz",
+	if hostOS == sgtool.Darwin && hostArch == sgtool.ARM64 {
+		hostArch = sgtool.X8664
+	}
+	xz := fmt.Sprintf("%s-%s-%s-%s", binaryName, version, hostOS, hostArch)
+	binURL := fmt.Sprintf(
+		"https://github.com/therootcompany/xz-static/releases/download/v%s/%s.tar.gz",
 		version,
-		version,
-		hostOS,
-		hostArch,
+		xz,
 	)
-
 	if err := sgtool.FromRemote(
 		ctx,
-		downloadURL,
+		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntarGz(),
+		sgtool.WithUntar(),
+		sgtool.WithRenameFile(fmt.Sprintf("./%s/xz", xz), binaryName),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", binaryName, err)
 	}
-	if err := os.Chmod(binary, 0o755); err != nil {
-		return fmt.Errorf("unable to make %s command: %w", binaryName, err)
-	}
-
 	return nil
 }
