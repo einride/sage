@@ -31,10 +31,12 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 		return nil, fmt.Errorf("the Docker daemon does not seem to be running")
 	}
 	const image = "gcr.io/cloud-spanner-emulator/emulator:latest"
-	cmd := sgdocker.Command(ctx, "pull", image)
-	cmd.Stdout, cmd.Stderr = nil, nil
-	if err := cmd.Run(); err != nil {
-		return nil, err
+	if _, ok := os.LookupEnv("SPANNER_EMULATOR_SKIP_PULL"); !ok {
+		cmd := sgdocker.Command(ctx, "pull", image)
+		cmd.Stdout, cmd.Stderr = nil, nil
+		if err := cmd.Run(); err != nil {
+			return nil, err
+		}
 	}
 	var dockerRunCmd *exec.Cmd
 	if isRunningOnCloudBuild(ctx) {
