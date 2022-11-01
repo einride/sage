@@ -33,7 +33,7 @@ func PrepareCommand(ctx context.Context) error {
 	}
 	hostArch := runtime.GOARCH
 	binURL := fmt.Sprintf(
-		"https://github.com/phrase/phrase-cli/releases/download/%s/phrase_%s_%s.tar.gz",
+		"https://github.com/phrase/phrase-cli/releases/download/%s/phrase_%s_%s",
 		version,
 		hostOS,
 		hostArch,
@@ -42,7 +42,7 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntarGz(),
+		sgtool.WithRenameFile("", binaryName),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
