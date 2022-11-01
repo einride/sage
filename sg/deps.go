@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 
 	"go.einride.tech/sage/sg/internal/runner"
@@ -22,6 +23,20 @@ func Deps(ctx context.Context, functions ...interface{}) {
 	var wg sync.WaitGroup
 	for i, f := range checkedFunctions {
 		i, f := i, f
+
+		dependencies := getDependencies(ctx)
+		for _, dependency := range dependencies {
+			if dependency.ID() == f.ID() {
+				depNames := make([]string, len(dependencies))
+				for i, dependency := range dependencies {
+					depNames[i] = dependency.Name()
+				}
+				msg := fmt.Sprintf("dependency cycle calling %s! chain: %s", f.Name(), strings.Join(depNames, ","))
+				panic(msg)
+			}
+		}
+		ctx := withDependency(ctx, f)
+
 		// Forcing serial deps can protect low-powered build machines from running out of memory.
 		// EXPERIMENTAL: Support for this environment variable may be removed at any time.
 		if forceSerialDeps, ok := os.LookupEnv("SAGE_FORCE_SERIAL_DEPS"); ok && isTrue(forceSerialDeps) {
@@ -78,4 +93,20 @@ func checkFunctions(functions ...interface{}) []Target {
 func isTrue(s string) bool {
 	value, err := strconv.ParseBool(s)
 	return err == nil && value
+}
+
+type dependencyChainContextKey struct{}
+
+func getDependencies(ctx context.Context) []Target {
+	result, ok := ctx.Value(dependencyChainContextKey{}).([]Target)
+	if !ok {
+		return []Target{}
+	}
+	return result
+}
+
+func withDependency(ctx context.Context, target Target) context.Context {
+	dependencies := getDependencies(ctx)
+	dependencies = append(dependencies, target)
+	return context.WithValue(ctx, dependencyChainContextKey{}, dependencies)
 }
