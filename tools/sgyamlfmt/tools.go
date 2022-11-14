@@ -15,11 +15,11 @@ import (
 )
 
 //go:embed yamlfmt.yaml
-var DefaultConfig []byte
+var defaultConfig []byte
 
 const (
 	name              = "yamlfmt"
-	version           = "0.5.0"
+	version           = "0.6.0"
 	defaultConfigName = ".yamlfmt"
 )
 
@@ -35,7 +35,7 @@ func Run(ctx context.Context, args ...string) error {
 	if err := os.MkdirAll(filepath.Dir(defaultConfigPath), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(defaultConfigPath, DefaultConfig, 0o600); err != nil {
+	if err := os.WriteFile(defaultConfigPath, defaultConfig, 0o600); err != nil {
 		return err
 	}
 	configPath := sg.FromGitRoot(defaultConfigName)
