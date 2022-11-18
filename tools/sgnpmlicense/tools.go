@@ -203,7 +203,6 @@ func LicenseCheckerCommand(ctx context.Context) *exec.Cmd {
 			Facebook2Clause,
 			Facebook3Clause,
 			FacebookExamples,
-			WTFPL,
 		},
 		";",
 	)
