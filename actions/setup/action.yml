@@ -7,6 +7,11 @@ inputs:
     required: false
     default: ${{ github.workflow }}.${{ github.job }}
 
+  disableCache:
+    description: Disable cache
+    required: false
+    default: false
+
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
@@ -38,6 +43,7 @@ runs:
         check-latest: ${{ inputs.check-latest }}
 
     - name: Cache Go modules
+      if: ${{ !inputs.disableCache }}
       uses: actions/cache@v3
       with:
         path: |
@@ -48,6 +54,7 @@ runs:
           ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
 
     - name: Cache sage folders
+      if: ${{ !inputs.disableCache }}
       uses: actions/cache@v3
       with:
         path: |
