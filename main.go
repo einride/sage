@@ -21,6 +21,11 @@ var (
 	//go:embed example/.github/dependabot.yml
 	exampleDependabotYML []byte
 )
+const (
+	user     = "dbuser"
+	password = "s3cretp4ssword"
+)
+
 
 func main() {
 	ctx := sg.WithLogger(context.Background(), sg.NewLogger("sage"))
