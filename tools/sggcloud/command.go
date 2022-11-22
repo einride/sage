@@ -34,6 +34,9 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
+	if hostOS == sgtool.Darwin && hostArch == sgtool.ARM64 {
+		hostArch = "arm"
+	}
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, "google-cloud-sdk", "bin", name)
 	binURL := fmt.Sprintf(
