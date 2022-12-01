@@ -3,7 +3,6 @@ package sgcloudspanner
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -91,42 +90,21 @@ func isDockerDaemonRunning(ctx context.Context) bool {
 
 func inspectPortAddress(ctx context.Context, containerID, containerPort string) (string, error) {
 	var stdout bytes.Buffer
-	cmd := sgdocker.Command(ctx, "inspect", containerID)
+	cmd := sgdocker.Command(ctx, "port", containerID, containerPort)
 	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	var containers []struct {
-		NetworkSettings struct {
-			Ports map[string][]struct {
-				HostIP   string
-				HostPort string
-			}
-			Networks map[string]struct {
-				Gateway string
-			}
+	output := stdout.String()
+	lines := strings.Split(output, "\n")
+	// docker port can return ipv6 mapping as well, take the first non ipv6 mapping.
+	for _, line := range lines {
+		mapping := strings.TrimSpace(line)
+		if _, err := net.ResolveTCPAddr("tcp4", mapping); err == nil {
+			return mapping, nil
 		}
 	}
-	if err := json.NewDecoder(&stdout).Decode(&containers); err != nil {
-		return "", err
-	}
-	var host string
-	var port string
-	for _, container := range containers {
-		if hostPorts, ok := container.NetworkSettings.Ports[containerPort]; ok {
-			for _, hostPort := range hostPorts {
-				host, port = hostPort.HostIP, hostPort.HostPort
-				break // prefer first option
-			}
-		}
-		if network, ok := container.NetworkSettings.Networks["cloudbuild"]; ok {
-			host = network.Gateway
-		}
-	}
-	if host == "" || port == "" {
-		return "", fmt.Errorf("failed to inspect container %s for port %s", containerID, containerPort)
-	}
-	return fmt.Sprintf("%s:%s", host, port), nil
+	return "", fmt.Errorf("no mapping found for %s in container %s", containerPort, containerID)
 }
 
 func awaitReachable(ctx context.Context, addr string, wait, maxWait time.Duration) error {
