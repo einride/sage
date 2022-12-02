@@ -43,7 +43,7 @@ runs:
         check-latest: ${{ inputs.check-latest }}
 
     - name: Cache Go modules
-      if: ${{ !inputs.disableCache }}
+      if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v3
       with:
         path: |
@@ -54,7 +54,7 @@ runs:
           ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
 
     - name: Cache sage folders
-      if: ${{ !inputs.disableCache }}
+      if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v3
       with:
         path: |
