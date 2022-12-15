@@ -3,6 +3,7 @@ package sgcloudspanner
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -12,6 +13,10 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/tools/sgdocker"
+)
+
+const (
+	cloudbuildNetwork = "cloudbuild"
 )
 
 // RunEmulator runs the Cloud Spanner emulator in Docker.
@@ -39,7 +44,7 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	}
 	var dockerRunCmd *exec.Cmd
 	if isRunningOnCloudBuild(ctx) {
-		dockerRunCmd = sgdocker.Command(ctx, "run", "-d", "--network", "cloudbuild", "--publish-all", image)
+		dockerRunCmd = sgdocker.Command(ctx, "run", "-d", "--network", cloudbuildNetwork, "--publish-all", image)
 	} else {
 		dockerRunCmd = sgdocker.Command(ctx, "run", "-d", "--publish-all", image)
 	}
@@ -65,10 +70,19 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 			sg.Logger(ctx).Printf("failed to unset SPANNER_EMULATOR_HOST: %v", err)
 		}
 	}
-	emulatorHost, err := inspectPortAddress(ctx, containerID, "9010/tcp")
-	if err != nil {
-		cleanup()
-		return nil, err
+	var emulatorHost string
+	if isRunningOnCloudBuild(ctx) {
+		emulatorHost, err = inspectPortAddressCloudbuild(ctx, containerID, "9010/tcp", image)
+		if err != nil {
+			cleanup()
+			return nil, err
+		}
+	} else {
+		emulatorHost, err = inspectPortAddress(ctx, containerID, "9010/tcp")
+		if err != nil {
+			cleanup()
+			return nil, err
+		}
 	}
 	if err := os.Setenv("SPANNER_EMULATOR_HOST", emulatorHost); err != nil {
 		cleanup()
@@ -107,6 +121,45 @@ func inspectPortAddress(ctx context.Context, containerID, containerPort string) 
 	return "", fmt.Errorf("no mapping found for %s in container %s", containerPort, containerID)
 }
 
+func inspectPortAddressCloudbuild(ctx context.Context, containerID, containerPort, image string) (string, error) {
+	var stdout bytes.Buffer
+	cmd := sgdocker.Command(ctx, "inspect", containerID)
+	cmd.Stdout = &stdout
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	var containers []struct {
+		Config struct {
+			Image string
+		}
+		NetworkSettings struct {
+			Ports map[string][]struct {
+				HostPort string
+			}
+			Networks map[string]struct {
+				Gateway string
+			}
+		}
+	}
+	if err := json.NewDecoder(&stdout).Decode(&containers); err != nil {
+		return "", err
+	}
+	var host, port string
+
+	for _, container := range containers {
+		if container.Config.Image == image {
+			port = container.NetworkSettings.Ports[containerPort][0].HostPort // prefer first option
+		}
+		if network, ok := container.NetworkSettings.Networks[cloudbuildNetwork]; ok {
+			host = network.Gateway
+		}
+	}
+	if host == "" || port == "" {
+		return "", fmt.Errorf("failed to inspect container %s for port %s", containerID, containerPort)
+	}
+	return fmt.Sprintf("%s:%s", host, port), nil
+}
+
 func awaitReachable(ctx context.Context, addr string, wait, maxWait time.Duration) error {
 	deadline := time.Now().Add(maxWait)
 	for time.Now().Before(deadline) {
@@ -125,7 +178,7 @@ func awaitReachable(ctx context.Context, addr string, wait, maxWait time.Duratio
 }
 
 func isRunningOnCloudBuild(ctx context.Context) bool {
-	cmd := sgdocker.Command(ctx, "network", "inspect", "cloudbuild")
+	cmd := sgdocker.Command(ctx, "network", "inspect", cloudbuildNetwork)
 	var stdout bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, nil
 	return cmd.Run() == nil
