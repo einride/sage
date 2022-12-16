@@ -15,8 +15,13 @@ import (
 	"go.einride.tech/sage/tools/sgdocker"
 )
 
+// Cloud Spanner Emulator versions can be found here,
+// https://console.cloud.google.com/gcr/images/cloud-spanner-emulator/global/emulator
 const (
 	cloudbuildNetwork = "cloudbuild"
+	url               = "gcr.io/cloud-spanner-emulator/emulator"
+	version           = "sha256:5469945589399bd79ead8bed929f5eb4d1c5ee98d095df5b0ebe35f0b7160a84" // 1.4.8
+	image             = url + "@" + version
 )
 
 // RunEmulator runs the Cloud Spanner emulator in Docker.
@@ -33,14 +38,6 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	}
 	if !isDockerDaemonRunning(ctx) {
 		return nil, fmt.Errorf("the Docker daemon does not seem to be running")
-	}
-	const image = "gcr.io/cloud-spanner-emulator/emulator:latest"
-	if _, ok := os.LookupEnv("SPANNER_EMULATOR_SKIP_PULL"); !ok {
-		cmd := sgdocker.Command(ctx, "pull", image)
-		cmd.Stdout, cmd.Stderr = nil, nil
-		if err := cmd.Run(); err != nil {
-			return nil, err
-		}
 	}
 	var dockerRunCmd *exec.Cmd
 	if isRunningOnCloudBuild(ctx) {
