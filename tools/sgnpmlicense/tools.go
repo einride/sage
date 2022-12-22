@@ -246,7 +246,7 @@ func LicenseCheckerCommand(ctx context.Context) *exec.Cmd {
 
 	args := []string{
 		"--excludePrivatePackages",
-		"--csv",
+		"--summary",
 		"--failOn",
 		strings.Join([]string{forbiddenType, restrictedType}, ";"),
 	}
