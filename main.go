@@ -20,6 +20,8 @@ var (
 	mainFile []byte
 	//go:embed example/.github/dependabot.yml
 	exampleDependabotYML []byte
+	//go:embed example/.gitattributes
+	exampleGitAttributes []byte
 )
 
 func main() {
@@ -76,6 +78,9 @@ func initSage(ctx context.Context) {
 	if err := addToDependabot(); err != nil {
 		sg.Logger(ctx).Fatal(err)
 	}
+	if err := addToGitAttributes(); err != nil {
+		sg.Logger(ctx).Fatal(err)
+	}
 	// Generate make targets
 	// Use exec.CommandContext instead of sg.Command to avoid double log tags.
 	cmd = exec.CommandContext(ctx, "go", "run", ".")
@@ -129,6 +134,35 @@ func addToDependabot() error {
 		return nil
 	}
 	return os.WriteFile(dependabotYMLPath, appendSageDependabotConfig(dependabotYML), 0o600)
+}
+
+func hasSageGitAttributes(gitAttributes []byte) bool {
+	sc := bufio.NewScanner(bytes.NewReader(gitAttributes))
+	sc.Split(bufio.ScanLines)
+	for sc.Scan() {
+		if bytes.Contains(sc.Bytes(), []byte("Makefile")) || bytes.Contains(sc.Bytes(), []byte("**/Makefile")) {
+			if bytes.Contains(sc.Bytes(), []byte("linguist-generated=true")) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func appendSageGitAttributes(gitAttributes []byte) []byte {
+	return append(gitAttributes, exampleGitAttributes...)
+}
+
+func addToGitAttributes() error {
+	gitAttributesPath := sg.FromGitRoot(".gitattributes")
+	gitAttributes, err := os.ReadFile(gitAttributesPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return os.WriteFile(gitAttributesPath, exampleGitAttributes, 0o600)
+	}
+	if hasSageGitAttributes(gitAttributes) {
+		return nil
+	}
+	return os.WriteFile(gitAttributesPath, appendSageGitAttributes(gitAttributes), 0o600)
 }
 
 func resolveSageModulePath(ctx context.Context) (string, error) {
