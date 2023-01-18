@@ -13,7 +13,7 @@ import (
 
 const (
 	name    = "gcloud"
-	version = "393.0.0"
+	version = "410.0.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
