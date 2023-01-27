@@ -39,6 +39,7 @@ func DeployPreview(ctx context.Context, opts DeployPreviewOptions) (string, erro
 		"hosting:channel:deploy",
 		opts.ChannelID,
 		"--project", opts.Project,
+		"--only", opts.Project,
 		"--json",
 	}
 	if opts.Site != "" {
