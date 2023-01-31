@@ -12,10 +12,15 @@ import (
 )
 
 const (
-	name    = "sqlfluff"
-	version = "0.13.0"
+	name               = "sqlfluff"
+	version            = "1.4.5"
+	dbtBigQueryVersion = "1.3.0"
 )
 
+// Command runs the sqlfluff CLI.
+// If templater = dbt is used in the .sqlfluff file, the working directory of the cmd needs to be set to the same
+// directory as where the .sqlfluff file is, and no nested .sqlfluff files can be used.
+// Read more here: https://docs.sqlfluff.com/en/stable/configuration.html#known-caveats
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
@@ -51,6 +56,24 @@ func PrepareCommand(ctx context.Context) error {
 		pip,
 		"install",
 		fmt.Sprintf("sqlfluff==%s", version),
+	).Run(); err != nil {
+		return err
+	}
+	// install dbt-bigquery and sqlfluff-templater-dbt to enable using
+	// templater = dbt in .sqlfluff config file
+	if err := sg.Command(
+		ctx,
+		pip,
+		"install",
+		fmt.Sprintf("dbt-bigquery==%s", dbtBigQueryVersion),
+	).Run(); err != nil {
+		return err
+	}
+	if err := sg.Command(
+		ctx,
+		pip,
+		"install",
+		fmt.Sprintf("sqlfluff-templater-dbt==%s", version),
 	).Run(); err != nil {
 		return err
 	}
