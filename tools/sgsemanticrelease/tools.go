@@ -13,7 +13,7 @@ import (
 
 const packageJSONContent = `{
     "devDependencies": {
-        "semantic-release": "19.0.3",
+        "semantic-release": "20.1.0",
         "conventional-changelog-conventionalcommits": "5.0.0"
     }
 }`
