@@ -43,7 +43,7 @@ func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) 
 		args = append(args, "--disallowed_types=forbidden,restricted")
 	}
 	cmd := Command(ctx, args...)
-	cmd.Dir = filepath.Dir(directory)
+	cmd.Dir = directory
 	// go-licenses tries to exclude standard library packages by checking if they are prefixed
 	// with `runtime.GOROOT()`. However, if the go-licenses tool is not run with a GOROOT environment variable,
 	// that call will return the GOROOT path used during build time of go-licenses. This typically works on Linux,
