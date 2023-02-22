@@ -26,7 +26,7 @@ type ValidateOptions struct {
 func Validate(ctx context.Context, opts ValidateOptions) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("deploy Cloud Endpoints API gateway: %w", err)
+			err = fmt.Errorf("validate Cloud Endpoints API gateway: %w", err)
 		}
 	}()
 	rootDir := sg.FromBuildDir("sgcloudendpoints")
