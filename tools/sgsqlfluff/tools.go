@@ -15,6 +15,7 @@ const (
 	name               = "sqlfluff"
 	version            = "1.4.5"
 	dbtBigQueryVersion = "1.3.0"
+	pytzVersion        = "2022.7.1"
 )
 
 // Command runs the sqlfluff CLI.
@@ -74,6 +75,16 @@ func PrepareCommand(ctx context.Context) error {
 		pip,
 		"install",
 		fmt.Sprintf("sqlfluff-templater-dbt==%s", version),
+	).Run(); err != nil {
+		return err
+	}
+	// install pytz since dbt needs it but doesn't list it as a dependency
+	// https://github.com/dbt-labs/dbt-core/issues/7075
+	if err := sg.Command(
+		ctx,
+		pip,
+		"install",
+		fmt.Sprintf("pytz==%s", pytzVersion),
 	).Run(); err != nil {
 		return err
 	}
