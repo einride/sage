@@ -16,7 +16,7 @@ import (
 )
 
 // version can be found here: https://github.com/hadolint/hadolint
-const version = "2.12.0"
+const version = "2.12.1-beta"
 
 //nolint:gochecknoglobals
 var commandPath string
