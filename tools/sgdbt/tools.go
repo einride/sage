@@ -13,8 +13,7 @@ import (
 
 const (
 	name                   = "dbt"
-	bigqueryPackageVersion = "1.3.0"
-	pytzVersion            = "2022.7.1"
+	bigqueryPackageVersion = "1.4.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -52,16 +51,6 @@ func PrepareCommand(ctx context.Context) error {
 		pip,
 		"install",
 		fmt.Sprintf("dbt-bigquery==%s", bigqueryPackageVersion),
-	).Run(); err != nil {
-		return err
-	}
-	// install pytz since dbt needs it but doesn't list it as a dependency
-	// https://github.com/dbt-labs/dbt-core/issues/7075
-	if err := sg.Command(
-		ctx,
-		pip,
-		"install",
-		fmt.Sprintf("pytz==%s", pytzVersion),
 	).Run(); err != nil {
 		return err
 	}
