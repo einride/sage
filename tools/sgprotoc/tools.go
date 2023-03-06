@@ -34,8 +34,8 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	if hostOS == "osx" && hostArch == sgtool.ARM64 {
-		hostArch = sgtool.X8664
+	if hostArch == sgtool.ARM64 {
+		hostArch = "aarch_64"
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/protocolbuffers/protobuf/releases/download/v%s/protoc-%s-%s-%s.zip",

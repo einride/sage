@@ -33,8 +33,8 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	if hostOS == "osx" && hostArch == sgtool.ARM64 {
-		hostArch = sgtool.X8664
+	if hostArch == sgtool.ARM64 {
+		hostArch = "aarch_64"
 	}
 	binURL := fmt.Sprintf(
 		"https://repo1.maven.org/maven2/io/grpc/%s/%s/%s-%s-%s-%s.exe",
