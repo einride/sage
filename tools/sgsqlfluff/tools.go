@@ -13,7 +13,7 @@ import (
 
 const (
 	name               = "sqlfluff"
-	version            = "1.4.5"
+	version            = "2.0.0a4"
 	dbtBigQueryVersion = "1.4.0"
 )
 
