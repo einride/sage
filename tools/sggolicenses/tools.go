@@ -17,7 +17,7 @@ import (
 
 const (
 	name    = "go-licenses"
-	version = "v1.4.0"
+	version = "v1.6.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
