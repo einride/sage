@@ -260,7 +260,6 @@ func (s *fileState) downloadBinary(ctx context.Context, url string) (io.ReadClos
 
 // extractZip will decompress a zip archive from the given gzip.Reader into
 // the destination path.
-// The path must exist already.
 func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 	filenames := make([]string, 0)
 	for _, f := range reader.File {
@@ -286,6 +285,14 @@ func (s *fileState) extractZip(reader *zip.Reader) ([]string, error) {
 				return nil, err
 			}
 			continue
+		}
+
+		// Some zip files do not contain folders as file entries.
+		// Make sure our parent dirs exists before we unzip.
+		dir := path.Dir(fpath)
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return filenames, err
 		}
 
 		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
