@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "3.19.5"
+const version = "22.2"
 
 //nolint:gochecknoglobals
 var commandPath string
