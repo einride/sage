@@ -27,7 +27,7 @@ func PrepareCommand(ctx context.Context) error {
 	if err := sgtool.FromRemote(
 		ctx,
 		fmt.Sprintf(
-			"https://dlcdn.apache.org/maven/maven-3/%s/binaries/apache-maven-%s-bin.tar.gz",
+			"https://archive.apache.org/dist/maven/maven-3/%s/binaries/apache-maven-%s-bin.tar.gz",
 			version,
 			version,
 		),
