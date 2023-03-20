@@ -12,7 +12,7 @@ import (
 
 const (
 	name    = "mvn"
-	version = "3.8.7"
+	version = "3.8.8"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
