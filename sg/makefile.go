@@ -46,7 +46,7 @@ func (m Makefile) defaultTargetName() string {
 	return result
 }
 
-func generateMakefile(ctx context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
+func generateMakefile(_ context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
 	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
 	if err != nil {
 		return err

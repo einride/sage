@@ -29,7 +29,7 @@ func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 // FormatProto formats all proto files in the repo.
-func FormatProto(ctx context.Context, args ...string) error {
+func FormatProto(ctx context.Context) error {
 	var protoFiles []string
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {

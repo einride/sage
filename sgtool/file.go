@@ -58,7 +58,7 @@ func newFileState() *fileState {
 
 // FromLocal can be used to work with local archive files.
 // HTTP related Options, such as WithHTTPHeader don't do anything here.
-func FromLocal(ctx context.Context, filepath string, opts ...Opt) error {
+func FromLocal(_ context.Context, filepath string, opts ...Opt) error {
 	s := newFileState()
 	for _, o := range opts {
 		o(s)

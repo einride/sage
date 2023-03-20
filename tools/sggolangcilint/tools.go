@@ -17,7 +17,7 @@ import (
 
 const (
 	name    = "golangci-lint"
-	version = "1.51.2"
+	version = "1.52.0"
 )
 
 //go:embed golangci.yml
@@ -99,9 +99,5 @@ func PrepareCommand(ctx context.Context) error {
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(configPath, DefaultConfig, 0o600); err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(configPath, DefaultConfig, 0o600)
 }

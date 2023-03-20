@@ -95,8 +95,5 @@ func PrepareCommand(ctx context.Context) error {
 	); err != nil {
 		return fmt.Errorf("unable to extract %s: %w", decompressedArchive, err)
 	}
-	if err := os.RemoveAll(decompressedArchive); err != nil {
-		return err
-	}
-	return nil
+	return os.RemoveAll(decompressedArchive)
 }
