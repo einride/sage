@@ -15,7 +15,7 @@ import (
 	"go.einride.tech/sage/internal/strcase"
 )
 
-const defaultGoVersion = "1.18.4"
+const defaultGoVersion = "1.20.2"
 
 type Makefile struct {
 	Namespace     interface{}
