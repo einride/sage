@@ -23,7 +23,8 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
-func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *exec.Cmd {
+// ReleaseFromCloudBuildCommand creates a semantic release with optional extra arguments to semantic-release.
+func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string, extraArgs ...string) *exec.Cmd {
 	args := []string{
 		"--allow-initial-development-versions",
 		"--allow-no-changes",
@@ -32,6 +33,7 @@ func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string) *ex
 		"--provider-opt",
 	}
 	args = append(args, "slug="+repo)
+	args = append(args, extraArgs...)
 	if !ci {
 		args = append(args, "--dry")
 	}
