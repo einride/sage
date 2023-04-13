@@ -2,6 +2,8 @@ package sgsqlfluff
 
 import (
 	"context"
+	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -17,6 +19,9 @@ const (
 	dbtBigQueryVersion = "1.4.0"
 )
 
+//go:embed .sqlfluff
+var DefaultConfig []byte
+
 // Command runs the sqlfluff CLI.
 // If templater = dbt is used in the .sqlfluff file, the working directory of the cmd needs to be set to the same
 // directory as where the .sqlfluff file is, and no nested .sqlfluff files can be used.
@@ -24,6 +29,32 @@ const (
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
+}
+
+func defaultConfigPath() string {
+	return sg.FromToolsDir(name, ".sqlfluff")
+}
+
+func CommandInDirectory(ctx context.Context, directory string, args ...string) *exec.Cmd {
+	configPath := filepath.Join(directory, "dbt/.sqlfluff")
+	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
+		configPath = defaultConfigPath()
+	}
+	cmdArgs := append(args, []string{"--config", configPath}...)
+	cmd := Command(ctx, cmdArgs...)
+	cmd.Dir = directory
+	return cmd
+}
+
+func Run(ctx context.Context, args ...string) error {
+	var commands []*exec.Cmd
+	path, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	cmd := CommandInDirectory(ctx, filepath.Dir(path), args...)
+	commands = append(commands, cmd)
+	return cmd.Run()
 }
 
 func PrepareCommand(ctx context.Context) error {
@@ -80,5 +111,10 @@ func PrepareCommand(ctx context.Context) error {
 	if _, err := sgtool.CreateSymlink(binary); err != nil {
 		return err
 	}
-	return nil
+	configPath := defaultConfigPath()
+	sg.Logger(ctx).Println(configPath)
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(configPath, DefaultConfig, 0o600)
 }

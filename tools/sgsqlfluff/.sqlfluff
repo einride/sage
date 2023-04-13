@@ -1,0 +1,18 @@
+[sqlfluff]
+dialect = bigquery
+templater = jinja
+sql_file_exts = .sql
+max_line_length = 120
+
+[sqlfluff:templater]
+unwrap_wrapped_queries = true
+
+[sqlfluff:templater:jinja]
+apply_dbt_builtins = true
+load_macros_from_path = ../../../data-mesh/dbt/macros
+
+[sqlfluff:indentation]
+tab_space_size = 2
+
+[sqlfluff:rules:L010]
+capitalisation_policy = upper
