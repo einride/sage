@@ -238,6 +238,9 @@ linters-settings:
 
   misspell:
     locale: US
+    ignore-words:
+      - cancelled
+      - cancelling
 
   prealloc:
     simple: true
