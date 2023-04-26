@@ -15,7 +15,7 @@ import (
 
 const (
 	name    = "go-semantic-release"
-	version = "2.25.0"
+	version = "2.27.1"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
