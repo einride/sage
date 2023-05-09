@@ -41,17 +41,7 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-
-    - name: Cache Go modules
-      if: ${{ inputs.disableCache != 'true' }}
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
+        cache: ${{ inputs.disableCache != 'true' }}
 
     - name: Cache sage folders
       if: ${{ inputs.disableCache != 'true' }}
