@@ -14,7 +14,7 @@ import (
 const (
 	name               = "sqlfluff"
 	version            = "2.0.0a4"
-	dbtBigQueryVersion = "1.4.0"
+	dbtBigQueryVersion = "1.5.1"
 )
 
 // Command runs the sqlfluff CLI.
