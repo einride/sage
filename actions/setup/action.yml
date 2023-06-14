@@ -5,7 +5,7 @@ inputs:
   cacheKey:
     description: Custom cache key used
     required: false
-    default: ${{ github.workflow }}.${{ github.job }}
+    default: cachekey
 
   disableCache:
     description: Disable cache
@@ -50,6 +50,10 @@ runs:
         path: |
           ./.sage/tools
           ./.sage/bin
-        key: ${{ runner.os }}-sage-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
+        key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-sage-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
+          ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
+          ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-
+          ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-
+          ${{ runner.os }}-sage-${{ github.workflow }}-
+          ${{ runner.os }}-sage-
