@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	version    = "1.33.1"
-	binaryName = "cloud_sql_proxy"
+	version    = "2.3.0"
+	binaryName = "cloud-sql-proxy"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -25,12 +25,12 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	filename := fmt.Sprintf(
-		"cloud_sql_proxy.%s.%s",
+		"cloud-sql-proxy.%s.%s",
 		runtime.GOOS,
 		runtime.GOARCH,
 	)
 	binURL := fmt.Sprintf(
-		"https://storage.googleapis.com/cloudsql-proxy/v%s/%s",
+		"https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v%s/%s",
 		version,
 		filename,
 	)
