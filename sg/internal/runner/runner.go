@@ -2,7 +2,9 @@ package runner
 
 import (
 	"context"
+	"os"
 	"sync"
+	"time"
 )
 
 // global state for the runner.
@@ -15,6 +17,13 @@ var (
 
 // RunOnce uses key to ensure that fn runs exactly once and always returns the error from the initial run.
 func RunOnce(ctx context.Context, key string, fn func(context.Context) error) error {
+	before := time.Now()
+	defer func() {
+		if os.Getenv("SAGE_TRACE") == "true" {
+			elapsed := time.Since(before)
+			println(key, "took", elapsed.String())
+		}
+	}()
 	mu.Lock()
 	onceFn, ok := onceFns[key]
 	if !ok {

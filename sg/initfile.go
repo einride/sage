@@ -1,3 +1,4 @@
+//nolint:lll
 package sg
 
 import (
@@ -47,6 +48,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 		if strings.Contains(loggerName, ":") {
 			loggerName = strings.Split(loggerName, ":")[1]
 		}
+		g.P("before := ", g.Import("time"), ".Now()")
 		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", loggerName, "\")")
 		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
 		if len(function.Decl.Type.Params.List) > 1 {
@@ -90,14 +92,17 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 				")",
 			)
 			g.P("if err != nil {")
+			g.P(`if os.Getenv("SAGE_TRACE") == "true" {println("`, getTargetFunctionName(function), ` took", `, g.Import("time"), `.Since(before).String(), "to error")}`)
 			g.P("logger.Fatal(err)")
 			g.P("}")
 		} else {
 			g.P("err = ", strings.ReplaceAll(getTargetFunctionName(function), ":", nsStruct), "(ctx)")
 			g.P("if err != nil {")
+			g.P(`if os.Getenv("SAGE_TRACE") == "true" {println("`, getTargetFunctionName(function), ` took", `, g.Import("time"), `.Since(before).String(), "to error")}`)
 			g.P("logger.Fatal(err)")
 			g.P("}")
 		}
+		g.P(`if os.Getenv("SAGE_TRACE") == "true" {println("`, getTargetFunctionName(function), ` took", `, g.Import("time"), ".Since(before).String())}")
 	})
 	g.P("default:")
 	g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"sagefile\")")
