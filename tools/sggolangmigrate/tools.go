@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "4.15.2"
+	version = "4.16.2"
 	name    = "migrate"
 )
 
