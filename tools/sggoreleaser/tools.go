@@ -15,7 +15,7 @@ import (
 
 const (
 	name    = "goreleaser"
-	version = "1.11.5"
+	version = "1.19.1"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
