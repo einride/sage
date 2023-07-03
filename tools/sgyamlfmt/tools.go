@@ -19,7 +19,7 @@ var defaultConfig []byte
 
 const (
 	name              = "yamlfmt"
-	version           = "0.6.0"
+	version           = "0.9.0"
 	defaultConfigName = ".yamlfmt"
 )
 
