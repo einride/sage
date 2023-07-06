@@ -43,6 +43,10 @@ update-sage: $(go)
 clean-sage:
 	@git clean -fdx .sage/tools .sage/bin .sage/build
 
+.PHONY: backstage-validate
+backstage-validate: $(sagefile)
+	@$(sagefile) BackstageValidate
+
 .PHONY: convco-check
 convco-check: $(sagefile)
 	@$(sagefile) ConvcoCheck

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.einride.tech/sage/sg"
+	"go.einride.tech/sage/tools/sgbackstage"
 	"go.einride.tech/sage/tools/sgconvco"
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sggo"
@@ -24,7 +25,7 @@ func main() {
 }
 
 func Default(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown, FormatYaml)
+	sg.Deps(ctx, ConvcoCheck, GoLint, GoReview, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
 	sg.SerialDeps(ctx, GoModTidy)
 	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
 	return nil
@@ -61,13 +62,18 @@ func FormatMarkdown(ctx context.Context) error {
 }
 
 func FormatYaml(ctx context.Context) error {
-	sg.Logger(ctx).Println("formatting Yaml files...")
+	sg.Logger(ctx).Println("formatting YAML files...")
 	return sgyamlfmt.Run(ctx)
 }
 
 func ConvcoCheck(ctx context.Context) error {
 	sg.Logger(ctx).Println("checking git commits...")
 	return sgconvco.Command(ctx, "check", "origin/master..HEAD").Run()
+}
+
+func BackstageValidate(ctx context.Context) error {
+	sg.Logger(ctx).Println("validating Backstage files...")
+	return sgbackstage.Validate(ctx)
 }
 
 func GitVerifyNoDiff(ctx context.Context) error {
