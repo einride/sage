@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+
+metadata:
+  name: sage
+  annotations:
+    github.com/project-slug: einride/sage
+
+spec:
+  type: library
+  lifecycle: production
+  owner: group:team-cloud-control

@@ -17,6 +17,11 @@ const (
 	binaryName = "backstage"
 )
 
+// Valide runs the catalog entity validator with default settings.
+func Validate(ctx context.Context) error {
+	return Command(ctx, "catalog", "entities", "validate", sg.FromGitRoot(".backstage")).Run()
+}
+
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
