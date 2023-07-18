@@ -46,15 +46,31 @@ func FromSageDir(pathElems ...string) string {
 }
 
 // FromToolsDir returns the path relative to where tools are downloaded and installed.
+// Parent directories of the returned path will be automatically created.
 func FromToolsDir(pathElems ...string) string {
-	return FromSageDir(append([]string{toolsDir}, pathElems...)...)
+	path := FromSageDir(append([]string{toolsDir}, pathElems...)...)
+	ensureParentDir(path)
+	return path
 }
 
 // FromBinDir returns the path relative to where tool binaries are installed.
+// Parent directories of the returned path will be automatically created.
 func FromBinDir(pathElems ...string) string {
-	return FromSageDir(append([]string{binDir}, pathElems...)...)
+	path := FromSageDir(append([]string{binDir}, pathElems...)...)
+	ensureParentDir(path)
+	return path
 }
 
+// FromBuildDir returns the path relative to where generated build files are installed.
+// Parent directories of the returned path will be automatically created.
 func FromBuildDir(pathElems ...string) string {
-	return FromSageDir(append([]string{buildDir}, pathElems...)...)
+	path := FromSageDir(append([]string{buildDir}, pathElems...)...)
+	ensureParentDir(path)
+	return path
+}
+
+func ensureParentDir(path string) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		panic(err)
+	}
 }
