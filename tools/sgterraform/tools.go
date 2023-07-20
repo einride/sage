@@ -194,7 +194,7 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 
 	summary = fmt.Sprintf(`
 Plan Summary: %d to create, %d to update, %d to replace, %d to destroy.
-
+<br/>
 %s
 `,
 		create.actionCount,
