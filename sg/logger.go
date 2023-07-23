@@ -33,6 +33,12 @@ func WithLogger(ctx context.Context, logger *log.Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey{}, logger)
 }
 
+// AppendLoggerPrefix appends a prefix to the current logger.
+func AppendLoggerPrefix(ctx context.Context, prefix string) context.Context {
+	logger := Logger(ctx)
+	return WithLogger(ctx, log.New(logger.Writer(), logger.Prefix()+prefix, logger.Flags()))
+}
+
 // Logger returns the log.Logger attached to ctx, or a default logger.
 func Logger(ctx context.Context) *log.Logger {
 	if value := ctx.Value(loggerContextKey{}); value != nil {
