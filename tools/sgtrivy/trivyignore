@@ -1,0 +1,5 @@
+# https://avd.aquasec.com/misconfig/google/storage/avd-gcp-0066/
+# Ignored due to being too strict.
+# Customer managed encryption keys is not something everybody needs and is often a company policy
+# with a lot of backing guidelines and not something one simply toggles on and off.
+AVD-GCP-0066
