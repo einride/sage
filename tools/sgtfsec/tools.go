@@ -1,3 +1,6 @@
+// Deprecated: tfsec is deprecated and has been replaced by trivy.
+//
+// See sgtrivy package for a replacement.
 package sgtfsec
 
 import (
