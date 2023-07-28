@@ -67,7 +67,7 @@ func PrepareCommand(ctx context.Context) error {
 	switch runtime.GOARCH {
 	case sgtool.AMD64:
 		goarch = "64bit"
-	case sgtool.Darwin:
+	case sgtool.ARM64:
 		goarch = "ARM64"
 	default:
 		return fmt.Errorf("unsupported ARCH in sgtrivy package %s", runtime.GOARCH)
