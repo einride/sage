@@ -13,8 +13,8 @@ import (
 
 const (
 	name               = "sqlfluff"
-	version            = "2.1.1"
-	dbtBigQueryVersion = "1.5.1"
+	version            = "2.1.4"
+	dbtBigQueryVersion = "1.6.0"
 )
 
 // Command runs the sqlfluff CLI.
@@ -66,8 +66,6 @@ func PrepareCommand(ctx context.Context) error {
 		pip,
 		"install",
 		fmt.Sprintf("dbt-bigquery==%s", dbtBigQueryVersion),
-		// TODO: remove when sqlfluff is bumped https://github.com/sqlfluff/sqlfluff/issues/4930
-		fmt.Sprintf("dbt-core==%s", "1.5.1"),
 	).Run(); err != nil {
 		return err
 	}
