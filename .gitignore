@@ -1,1 +1,5 @@
 .idea/
+
+# Go Workspace files
+go.work
+go.work.sum
