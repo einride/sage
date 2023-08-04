@@ -137,7 +137,8 @@ func resolveSageModulePath(ctx context.Context) (string, error) {
 		return moduleName, nil //nolint:nilerr
 	}
 	var out bytes.Buffer
-	cmd := sg.Command(ctx, "go", "mod", "edit", "-json")
+	cmd := exec.CommandContext(ctx, "go", "mod", "edit", "-json")
+	cmd.Dir = sg.FromGitRoot()
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
 		return "", err
