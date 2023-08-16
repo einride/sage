@@ -15,7 +15,7 @@ import (
 
 const (
 	name    = "goreview"
-	version = "0.23.1"
+	version = "0.26.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
