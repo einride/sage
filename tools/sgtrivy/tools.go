@@ -29,12 +29,14 @@ func defaultConfigPath() string {
 // CheckTerraformCommand checks terraform configuration on the given dir
 // for any known security misconfigurations.
 // It includes a default .trivyignore.yaml which can be
-// overridedn by setting a .trivyignore.yaml in the git root.
+// overridden by setting a .trivyignore.yaml in the git root.
 func CheckTerraformCommand(ctx context.Context, dir string) *exec.Cmd {
 	args := []string{
 		"config",
 		"--exit-code",
 		"1",
+		"--skip-files",
+		"./**/*.yaml",
 		dir,
 	}
 
