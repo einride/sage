@@ -77,7 +77,7 @@ func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, p
 		sg.Logger(ctx).Fatal(err)
 	}
 	statusIcon, summary := getCommentSummary(ctx, planFilePath)
-	comment := fmt.Sprintf(`
+	template := `
 <div>
 <img
   align="right"
@@ -94,12 +94,29 @@ func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, p
 
 </p>
 </details>
-`,
+`
+
+	comment := fmt.Sprintf(
+		template,
 		statusIcon,
 		environment,
 		statusIcon,
 		summary,
-		fmt.Sprintf("```"+"hcl\n%s\n"+"```", strings.TrimSpace(string(out))))
+		fmt.Sprintf("```"+"hcl\n%s\n"+"```", strings.TrimSpace(string(out))),
+	)
+
+	// GitHub has a limit on how many characters a message is allowed to have.
+	// If we are over that limit, make it visible for the user.
+	if len(comment) > 65536 {
+		comment = fmt.Sprintf(
+			template,
+			statusIcon,
+			environment,
+			statusIcon,
+			summary,
+			"```markdown\nPlan is too large to show in a GitHub comment. See CI logs for details\n```",
+		)
+	}
 	return sgghcomment.Command(
 		ctx,
 		"--pr",
