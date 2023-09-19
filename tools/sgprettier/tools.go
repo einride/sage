@@ -12,8 +12,8 @@ import (
 
 const packageJSONContent = `{
   "devDependencies": {
-    "@einride/prettier-config": "2.0.0",
-    "prettier": "2.7.1"
+    "@einride/prettier-config": "2.1.0",
+    "prettier": "3.0.3"
   }
 }`
 
