@@ -17,6 +17,11 @@ inputs:
     required: false
     default: '1.21'
 
+  cache-dependency-path:
+    description: Path to the go.sum file(s) to use in caching.
+    required: false
+    default: go.sum
+
   check-latest:
     description: If true, checks whether the cached go version is the latest, if not then downloads the latest. Useful when you need to use the latest version.
     required: false
@@ -42,6 +47,7 @@ runs:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
         cache: ${{ inputs.disableCache != 'true' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
 
     - name: Cache sage folders
       if: ${{ inputs.disableCache != 'true' }}
