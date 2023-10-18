@@ -15,7 +15,7 @@ import (
 
 const (
 	name    = "convco"
-	version = "0.4.0"
+	version = "0.4.3"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
