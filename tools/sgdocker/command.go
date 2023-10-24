@@ -34,6 +34,9 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
+	if hostArch == sgtool.ARM64 {
+		hostArch = "aarch64"
+	}
 	if hostOS == sgtool.Darwin {
 		hostOS = "mac"
 	}
