@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "1.18.0"
+	version = "1.23.0"
 	name    = "sqlc"
 )
 
