@@ -27,6 +27,9 @@ func PrepareCommand(ctx context.Context) error {
 	).Run()
 }
 
-func Authenticate(ctx context.Context) error {
-	return Command(ctx).Run()
+// Generate a .npmrc file in the specified directory.
+func Authenticate(ctx context.Context, directory string) error {
+	cmd := Command(ctx)
+	cmd.Dir = directory
+	return cmd.Run()
 }
