@@ -26,3 +26,7 @@ func PrepareCommand(ctx context.Context) error {
 		fmt.Sprintf("google-artifactregistry-auth@%s", version),
 	).Run()
 }
+
+func Authenticate(ctx context.Context) error {
+	return Command(ctx).Run()
+}
