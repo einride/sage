@@ -13,20 +13,11 @@ const (
 	version = "3.1.2"
 )
 
-func Command(ctx context.Context, args ...string) *exec.Cmd {
-	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, sg.FromBinDir(name), args...)
-}
-
-func PrepareCommand(ctx context.Context) error {
+func Command(ctx context.Context) *exec.Cmd {
 	sg.Logger(ctx).Println("authenticating npm to artifact registry...")
 	return sg.Command(
 		ctx,
 		"npx",
 		fmt.Sprintf("google-artifactregistry-auth@%s", version),
-	).Run()
-}
-
-func Authenticate(ctx context.Context) error {
-	return Command(ctx).Run()
+	)
 }
