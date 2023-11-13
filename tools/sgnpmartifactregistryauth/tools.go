@@ -1,4 +1,4 @@
-package sgcommitlint
+package sgnpmartifactregistryauth
 
 import (
 	"context"
