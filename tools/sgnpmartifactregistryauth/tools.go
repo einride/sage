@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	name               = "npm-artifact-registry-auth"
+	name               = "artifactregistry-auth"
 	packageJSONContent = `{
 		"devDependencies": {
-			"google-artifactregistry-auth: "3.1.2",
+			"google-artifactregistry-auth": "3.1.2"
 		}
 	}`
 )
