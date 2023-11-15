@@ -1,18 +1,16 @@
-:herb: Sage
-===========
+# :herb: Sage
 
-Sage is a Make-like build tool inspired by [Mage](https://magefile.org/) that provides a curated and maintained set of build [tools](./tools) for Go projects.
+Sage is a Make-like build tool inspired by [Mage](https://magefile.org/) that
+provides a curated and maintained set of build [tools](./tools) for Go projects.
 
 [![Release](https://github.com/einride/sage/actions/workflows/release.yml/badge.svg)](https://github.com/einride/sage/actions/workflows/release.yml)
 
-Requirements
-------------
+## Requirements
 
--	[Go](https://golang.org/doc/install) >= 1.17
--	[GNU Make](https://www.gnu.org/software/make/)
+- [Go](https://golang.org/doc/install) >= 1.17
+- [GNU Make](https://www.gnu.org/software/make/)
 
-Getting started
----------------
+## Getting started
 
 To initilize Sage in a repository, just run:
 
@@ -22,12 +20,16 @@ go run go.einride.tech/sage@latest init
 
 Run `make`.
 
-Two changes should now have happened. If the project had a previous `Makefile` it should have been renamed to `Makefile.old` and a new should have been created. If the project have a dependabot config, a sage config should have been added.
+Two changes should now have happened. If the project had a previous `Makefile`
+it should have been renamed to `Makefile.old` and a new should have been
+created. If the project have a dependabot config, a sage config should have been
+added.
 
-Usage
------
+## Usage
 
-Sage imports, and targets within the Sagefiles, can be written to Makefiles, you can generate as many Makefiles as you want, see more at [Makefiles / Sage namespaces](https://github.com/einride/sage#makefiles--sage-namespaces).
+Sage imports, and targets within the Sagefiles, can be written to Makefiles, you
+can generate as many Makefiles as you want, see more at
+[Makefiles / Sage namespaces](https://github.com/einride/sage#makefiles--sage-namespaces).
 
 ### Sagefiles
 
@@ -35,7 +37,9 @@ You can have as many Sagefiles as you want in the `.sage` folder.
 
 #### Targets
 
-Any public function in the main package will be exported. Functions can have no return value but error. The following arguments are supported: Optional first argument of context.Context, string, int or bool.
+Any public function in the main package will be exported. Functions can have no
+return value but error. The following arguments are supported: Optional first
+argument of context.Context, string, int or bool.
 
 ```golang
 func All() {
@@ -57,7 +61,8 @@ func ConvcoCheck(ctx context.Context, rev string) error {
 
 #### Makefiles / Sage namespaces
 
-To generate Makefiles, a `main` method needs to exist in one of the Sagefiles where we call the `sg.GenerateMakefiles` method.
+To generate Makefiles, a `main` method needs to exist in one of the Sagefiles
+where we call the `sg.GenerateMakefiles` method.
 
 ```golang
 func main() {
@@ -70,7 +75,10 @@ func main() {
 }
 ```
 
-If another makefile is desired, lets say one that only includes Terraform targets, we utilize the `sg.Namespace` type and just add another `Makefile` to the `GenerateMakefiles` method and specify the namespace, path and default target.
+If another makefile is desired, lets say one that only includes Terraform
+targets, we utilize the `sg.Namespace` type and just add another `Makefile` to
+the `GenerateMakefiles` method and specify the namespace, path and default
+target.
 
 ```golang
 
@@ -97,7 +105,9 @@ func (Terraform) TerraformInitDev() {
 }
 ```
 
-It is also possible to embed a Namespace in order to add metadata to it and potentially reuse it for different Makefiles, the supported fields for an embedded Namespace are exported String, Int & Boolean.
+It is also possible to embed a Namespace in order to add metadata to it and
+potentially reuse it for different Makefiles, the supported fields for an
+embedded Namespace are exported String, Int & Boolean.
 
 ```golang
 
@@ -129,7 +139,8 @@ func (n MyNamespace) PrintName(ctx context.Context) error {
 }
 ```
 
-NOTE: The `sg.GenerateMakefiles` function is evaluated when the sage binary is built so doing something like this
+NOTE: The `sg.GenerateMakefiles` function is evaluated when the sage binary is
+built so doing something like this
 
 ```golang
 sg.Makefile{
@@ -138,11 +149,14 @@ sg.Makefile{
 },
 ```
 
-will cause whatever value the environment variable `Name` has at the time to be hardcoded in the built sage binary.
+will cause whatever value the environment variable `Name` has at the time to be
+hardcoded in the built sage binary.
 
 #### Dependencies
 
-Dependencies can be defined just by specificing the function, or with `sg.Fn` if the function takes arguments. `Deps` runs in parallel while `SerialDeps` runs serially.
+Dependencies can be defined just by specificing the function, or with `sg.Fn` if
+the function takes arguments. `Deps` runs in parallel while `SerialDeps` runs
+serially.
 
 ```golang
 sg.Deps(
