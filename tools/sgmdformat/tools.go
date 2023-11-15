@@ -19,8 +19,21 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	args = append([]string{"."}, args...)
+	args = setDefaultArgs(args)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
+}
+
+// setDefaultArgs to iterate numbers on ordered lists and wrap at 80 chars.
+func setDefaultArgs(args []string) []string {
+	defaultArgs := []string{
+		"--number",
+		"--wrap",
+		"80",
+	}
+	if len(args) == 0 {
+		args = append(args, defaultArgs...)
+	}
+	return append([]string{"."}, args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
@@ -45,6 +58,5 @@ func PrepareCommand(ctx context.Context) error {
 	if _, err := sgtool.CreateSymlink(mdformat); err != nil {
 		return err
 	}
-
 	return nil
 }
