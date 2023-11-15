@@ -1,3 +1,6 @@
+// Deprecated: markdownfmt is deprecated and has been replaced by mdformat.
+//
+// See sgmdformat package for a replacement.
 package sgmarkdownfmt
 
 import (
