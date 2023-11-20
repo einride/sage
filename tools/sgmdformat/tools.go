@@ -25,15 +25,15 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 // setDefaultArgs to iterate numbers on ordered lists and wrap at 80 chars.
 func setDefaultArgs(args []string) []string {
-	defaultArgs := []string{
+	if len(args) != 0 {
+		return args
+	}
+	return []string{
 		"--number",
 		"--wrap",
 		"80",
+		".",
 	}
-	if len(args) == 0 {
-		args = append(args, defaultArgs...)
-	}
-	return append([]string{"."}, args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
