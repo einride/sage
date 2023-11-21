@@ -25,6 +25,8 @@ func NpmAuthenticate(ctx context.Context, packageJSONDir, registryURL string) er
 		return err
 	}
 	registry := strings.TrimPrefix(registryURL, "https://")
+	// Trailing slashes at the end of the URL have been known to cause issues with some setups
+	registry = strings.TrimSuffix(registry, "/")
 
 	// If we have yarn installed, find its version
 	yarnMajor := "1"
