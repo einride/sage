@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -24,13 +25,22 @@ func NpmAuthenticate(ctx context.Context, packageJSONDir, registryURL string) er
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	registry := strings.TrimPrefix(registryURL, "https://")
 	// Trailing slashes at the end of the URL have been known to cause issues with some setups
 	registry = strings.TrimSuffix(registry, "/")
 
+	expired, err := isGoogleAuthExpired(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to verify Google authentication token expiration: %v", err)
+	}
+	if expired {
+		return fmt.Errorf("google authentication token is expired. Please authenticate using 'gcloud auth login'")
+	}
+
 	// If we have yarn installed, find its version
 	yarnMajor := "1"
-	_, err := exec.LookPath("yarn")
+	_, err = exec.LookPath("yarn")
 	if err != nil {
 		if !errors.Is(err, exec.ErrNotFound) {
 			return err
@@ -80,4 +90,33 @@ func NpmAuthenticate(ctx context.Context, packageJSONDir, registryURL string) er
 	}
 
 	return nil
+}
+
+// isGoogleAuthExpired uses gcloud to determine whether the user has an expired token or not.
+// false (along with a warning log) is returned if the gcloud auth describe command does not return data
+// in the format we are expecting.
+func isGoogleAuthExpired(ctx context.Context) (bool, error) {
+	var strExpiry string
+	account := sg.Output(sg.Command(ctx, "gcloud", "config", "get-value", "account"))
+	// gcloud auth describe is an undocumented gcloud API which allows us to get back
+	// information about the currently authenticated user including the token expiration time.
+	authInfo := sg.Output(sg.Command(ctx, "gcloud", "auth", "describe", account))
+	lines := strings.Split(authInfo, "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "expired: ") {
+			continue
+		}
+		strExpiry = strings.TrimPrefix(line, "expired: ")
+	}
+	// Because the atuth describe command is not documented and could potentially changes,
+	// if we are unable to parse its output we will log a warning and return false.
+	if strExpiry == "" {
+		sg.Logger(ctx).Println("WARNING: unable to determine expiration time of Google authentication token")
+		return false, nil
+	}
+	authExpired, err := strconv.ParseBool(strExpiry)
+	if err != nil {
+		return false, fmt.Errorf("unable to parse expiration time of Google authentication token: %v", err)
+	}
+	return authExpired, nil
 }
