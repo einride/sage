@@ -5,9 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
+	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sgpython"
 )
 
@@ -19,21 +21,22 @@ const (
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	args = setDefaultArgs(args)
+	args = setDefaultArgs(ctx, args)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 // setDefaultArgs to iterate numbers on ordered lists and wrap at 80 chars.
-func setDefaultArgs(args []string) []string {
+func setDefaultArgs(ctx context.Context, args []string) []string {
 	if len(args) != 0 {
 		return args
 	}
-	return []string{
+	args = []string{
 		"--number",
 		"--wrap",
 		"80",
-		".",
 	}
+	args = append(args, listMarkdownFiles(ctx)...)
+	return args
 }
 
 func PrepareCommand(ctx context.Context) error {
@@ -59,4 +62,22 @@ func PrepareCommand(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// list markdown files known by git + untracked ones.
+func listMarkdownFiles(ctx context.Context) []string {
+	output := strings.TrimSpace(
+		sg.Output(sggit.Command(
+			ctx,
+			"ls-files",
+			"*.md",               // only markdown files
+			"--others",           // include untracked files
+			"--exclude-standard", // exclude ignored files
+			"--cached",           // include "normal" files
+		)),
+	)
+	if len(output) == 0 {
+		return nil
+	}
+	return strings.Split(output, "\n")
 }
