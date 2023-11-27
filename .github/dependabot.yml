@@ -20,3 +20,8 @@ updates:
     directory: .sage
     schedule:
       interval: weekly
+
+  - package-ecosystem: pip
+    directory: tools/sgmdformat
+    schedule:
+      interval: weekly
