@@ -2,6 +2,9 @@ package sgmdformat
 
 import (
 	"context"
+	"crypto/sha256"
+	_ "embed"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,10 +17,11 @@ import (
 )
 
 const (
-	name    = "mdformat"
-	syntax  = "gfm"
-	version = "0.3.5"
+	name = "mdformat"
 )
+
+//go:embed requirements.txt
+var requirements []byte
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
@@ -40,6 +44,7 @@ func setDefaultArgs(ctx context.Context, args []string) []string {
 }
 
 func PrepareCommand(ctx context.Context) error {
+	version := fmt.Sprintf("%x", sha256.Sum256(requirements))
 	toolDir := sg.FromToolsDir(name, version)
 	mdformat := filepath.Join(toolDir, "bin", name)
 	if _, err := os.Stat(mdformat); err == nil {
@@ -55,7 +60,11 @@ func PrepareCommand(ctx context.Context) error {
 	if err := sg.Command(ctx, pip, "install", "-U", "pip").Run(); err != nil {
 		return err
 	}
-	if err := sg.Command(ctx, pip, "install", name+"-"+syntax+"=="+version).Run(); err != nil {
+	requirementsFile := filepath.Join(toolDir, "requirements.txt")
+	if err := os.WriteFile(requirementsFile, requirements, 0o600); err != nil {
+		return err
+	}
+	if err := sg.Command(ctx, pip, "install", "-r", requirementsFile).Run(); err != nil {
 		return err
 	}
 	if _, err := sgtool.CreateSymlink(mdformat); err != nil {
