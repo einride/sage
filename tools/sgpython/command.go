@@ -37,6 +37,9 @@ func PrepareCommand(ctx context.Context) error {
 		// Special case: Avoid building from source if we already have Python 3 on the system.
 		sg.Logger(ctx).Printf("using system Python: %s", systemPython3)
 		symlink := filepath.Join(sg.FromBinDir(), name)
+		if err := os.MkdirAll(sg.FromBinDir(), 0o755); err != nil {
+			return err
+		}
 		if _, err := os.Lstat(symlink); err == nil {
 			if err := os.Remove(symlink); err != nil {
 				return err
