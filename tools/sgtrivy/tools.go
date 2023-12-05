@@ -18,7 +18,7 @@ import (
 var defaultConfig []byte
 
 const (
-	version = "0.46.0"
+	version = "0.48.0"
 	name    = "trivy"
 )
 
@@ -33,10 +33,10 @@ func defaultConfigPath() string {
 func CheckTerraformCommand(ctx context.Context, dir string) *exec.Cmd {
 	args := []string{
 		"config",
+		"--misconfig-scanners",
+		"terraform,terraformplan",
 		"--exit-code",
 		"1",
-		"--skip-files",
-		"./**/*.yaml",
 		dir,
 	}
 
