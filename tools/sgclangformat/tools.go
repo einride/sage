@@ -23,12 +23,15 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(toolName), args...)
 }
 
+// FormatProtoCommand returns a clang-format command for proto formatting.
+// Deprecated: Use sgbuf to format proto files.
 func FormatProtoCommand(ctx context.Context, args ...string) *exec.Cmd {
 	const protoStyle = "--style={BasedOnStyle: Google, ColumnLimit: 0, Language: Proto}"
 	return Command(ctx, append([]string{"-i", protoStyle}, args...)...)
 }
 
 // FormatProto formats all proto files in the repo.
+// Deprecated: Use sgbuf to format proto files.
 func FormatProto(ctx context.Context) error {
 	var protoFiles []string
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
