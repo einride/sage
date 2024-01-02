@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version    = "2.3.0"
+	version    = "2.8.1"
 	binaryName = "cloud-sql-proxy"
 )
 
