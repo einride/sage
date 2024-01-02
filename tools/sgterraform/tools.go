@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version    = "1.6.2"
+	version    = "1.6.6"
 	binaryName = "terraform"
 )
 
