@@ -20,7 +20,7 @@ import (
 const (
 	cloudbuildNetwork = "cloudbuild"
 	url               = "gcr.io/cloud-spanner-emulator/emulator"
-	version           = "sha256:ab53ffefbcb53cea3b893e07c6796ba5df3bc67d1561eeb8efecaec466134f2f" //nolint:gosec // 1.5.9
+	version           = "sha256:5d905e581977bd3d543742e74ddb75c0ba65517cf19742089ae1be45b7b8aa49" //nolint:gosec // 1.5.13
 	image             = url + "@" + version
 )
 
