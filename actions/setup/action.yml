@@ -51,7 +51,7 @@ runs:
 
     - name: Cache sage folders
       if: ${{ inputs.disableCache != 'true' }}
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ./.sage/tools
