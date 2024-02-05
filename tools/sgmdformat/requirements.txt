@@ -1,2 +1,3 @@
 mdformat-gfm==0.3.6
+mdformat-mkdocs==2.0.2
 mdformat-admon==2.0.1
