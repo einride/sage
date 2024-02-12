@@ -1,12 +1,11 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
-
 metadata:
   name: sage
-  annotations:
-    github.com/project-slug: einride/sage
-
+  title: Sage
+  description: Make-like build tool that provides a curated and maintained set of tools for Go projects.
 spec:
   type: library
   lifecycle: production
-  owner: group:team-cloud-control
+  owner: platform-engineering
+  system: developer-tools
