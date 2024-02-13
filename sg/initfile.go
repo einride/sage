@@ -22,7 +22,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("ctx := ", g.Import("context"), ".Background()")
 	g.P("if len(", g.Import("os"), ".Args) < 2 {")
 	g.P(g.Import("fmt"), `.Println("Targets:")`)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
+	forEachTargetFunction(pkg, func(function *doc.Func, _ *doc.Type) {
 		// If function namespace is not part of the to be generated Makefiles, skip it.
 		if skipFunction, _ := shouldBeGenerated(mks, function.Recv); !skipFunction {
 			return
@@ -35,7 +35,7 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 	g.P("_ = args")
 	g.P("var err error")
 	g.P("switch target {")
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
+	forEachTargetFunction(pkg, func(function *doc.Func, _ *doc.Type) {
 		// If function namespace is not part of the to be generated Makefiles, skip it.
 		skipFunction, nsStruct := shouldBeGenerated(mks, function.Recv)
 		if !skipFunction {
