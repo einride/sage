@@ -17,6 +17,8 @@ import (
 	"go.einride.tech/sage/tools/sgghcomment"
 )
 
+const tripleQuote = "```" // required by goconst since used more than 3
+
 const (
 	version    = "1.7.1"
 	binaryName = "terraform"
@@ -50,7 +52,7 @@ func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, pl
 </div>
 
 %s
-`, environment, fmt.Sprintf("```"+"hcl\n%s\n"+"```", strings.TrimSpace(string(out))))
+`, environment, fmt.Sprintf(tripleQuote+"hcl\n%s\n"+tripleQuote, strings.TrimSpace(string(out))))
 
 	return sgghcomment.Command(
 		ctx,
@@ -102,7 +104,7 @@ func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, p
 		environment,
 		statusIcon,
 		summary,
-		fmt.Sprintf("```"+"hcl\n%s\n"+"```", strings.TrimSpace(string(out))),
+		fmt.Sprintf(tripleQuote+"hcl\n%s\n"+tripleQuote, strings.TrimSpace(string(out))),
 	)
 
 	// GitHub has a limit on how many characters a message is allowed to have.

@@ -103,7 +103,7 @@ func generateMakefile(_ context.Context, g *codegen.File, pkg *doc.Package, mk M
 		" ",
 		filepath.Join(includePath, buildDir),
 	)
-	forEachTargetFunction(pkg, func(function *doc.Func, namespace *doc.Type) {
+	forEachTargetFunction(pkg, func(function *doc.Func, _ *doc.Type) {
 		if function.Recv == mk.namespaceName() {
 			g.P()
 			g.P(".PHONY: ", toMakeTarget(getTargetFunctionName(function)))

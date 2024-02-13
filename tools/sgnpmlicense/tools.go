@@ -36,7 +36,7 @@ const (
 	BSD2ClauseFreeBSD           = "BSD-2-Clause-FreeBSD"
 	BSD2ClauseNetBSD            = "BSD-2-Clause-NetBSD"
 	BSD2Clause                  = "BSD-2-Clause"
-	BSD3ClauseAttribution       = "BSD-3-Clause-Attribution" //nolint:gosec
+	BSD3ClauseAttribution       = "BSD-3-Clause-Attribution"
 	BSD3ClauseClear             = "BSD-3-Clause-Clear"
 	BSD3ClauseLBNL              = "BSD-3-Clause-LBNL"
 	BSD3Clause                  = "BSD-3-Clause"
