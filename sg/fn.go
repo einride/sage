@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 // Target represents a target function that can be run with Deps.
@@ -79,8 +80,14 @@ func newFn(f interface{}, args ...interface{}) (Target, error) {
 		return nil, fmt.Errorf("failed to generate JSON name for args: %w", err)
 	}
 	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+	// If f is a method bound to a specific receiver the compiler
+	// will wrap the function and add `-fm` to the end of its name.
+	// Since there is no way to name a function in go with a hyphen, the
+	// suffix can simply be removed.
+	// See: https://stackoverflow.com/questions/32925344/why-is-there-a-fm-suffix-when-getting-a-functions-name-in-go
+	trimmedName := strings.TrimSuffix(name, "-fm")
 	return fn{
-		name: name,
+		name: trimmedName,
 		id:   name + "(" + string(argsID) + ")",
 		f: func(ctx context.Context) error {
 			callArgs := make([]reflect.Value, 0, argCount)

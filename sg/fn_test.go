@@ -30,7 +30,7 @@ func TestFn_Name(t *testing.T) {
 		{
 			name:     "namespace value",
 			fn:       ns.MyFunc,
-			expected: "go.einride.tech/sage/sg.namespace.MyFunc-fm",
+			expected: "go.einride.tech/sage/sg.namespace.MyFunc",
 		},
 	} {
 		tt := tt
