@@ -118,6 +118,10 @@ linters:
     # [fast: true, auto-fix: false]
     - promlinter
 
+    # Reports direct reads from proto message fields when getters should be used.
+    # [fast: false, auto-fix: true]
+    - protogetter
+
     # Check whether Err of rows is checked successfully.
     # [fast: false, auto-fix: false]
     - rowserrcheck
@@ -242,6 +246,9 @@ linters-settings:
     simple: true
     range-loops: true
     for-loops: true
+
+  protogetter:
+    skip-any-generated: true
 
   staticcheck:
     go: 1.17
