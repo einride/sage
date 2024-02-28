@@ -46,10 +46,6 @@ linters:
     # [fast: true, auto-fix: false]
     - gochecknoinits
 
-    # Find repeated strings that could be replaced by a constant.
-    # [fast: true, auto-fix: false]
-    - goconst
-
     # Check for bugs, performance and style issues.
     # [fast: false, auto-fix: false]
     - gocritic
@@ -262,10 +258,6 @@ linters-settings:
     # Don't enforce %w to minimize implicit interface leakage.
     # https://github.com/dwmkerr/hacker-laws#hyrums-law-the-law-of-implicit-interfaces
     errorf: false
-
-  goconst:
-    ignore-tests: true
-    min-occurrences: 5
 
   gomoddirectives:
     replace-local: true
