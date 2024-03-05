@@ -1,4 +1,4 @@
-package golines
+package sggolines
 
 import (
 	"context"
