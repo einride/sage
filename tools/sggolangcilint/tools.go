@@ -33,16 +33,27 @@ func defaultConfigPath() string {
 }
 
 func CommandInDirectory(ctx context.Context, directory string, args ...string) *exec.Cmd {
-	configPath := filepath.Join(directory, ".golangci.yml")
-	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
-		configPath = defaultConfigPath()
+	cmdArgs := []string{"run"}
+	var skipConfig bool
+	for _, arg := range args {
+		if arg == "--no-config" {
+			skipConfig = true
+			break
+		}
 	}
-	var excludeArg []string
+	if !skipConfig {
+		configPath := filepath.Join(directory, ".golangci.yml")
+		if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
+			configPath = defaultConfigPath()
+		}
+		cmdArgs = append(cmdArgs, "-c", configPath)
+	} else {
+		cmdArgs = append(cmdArgs, "--no-config")
+	}
 	if directory == sg.FromSageDir() {
-		excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
+		cmdArgs = append(cmdArgs, "--exclude", "(is a global variable|is unused)")
 	}
-	cmdArgs := append([]string{"run", "-c", configPath}, args...)
-	cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
+	cmd := Command(ctx, append(cmdArgs, args...)...)
 	cmd.Dir = directory
 	return cmd
 }
