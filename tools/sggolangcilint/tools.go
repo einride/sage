@@ -23,6 +23,9 @@ const (
 //go:embed golangci.yml
 var DefaultConfig []byte
 
+//go:embed golangci.fix.yml
+var defaultFixConfig []byte
+
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
@@ -30,6 +33,10 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func defaultConfigPath() string {
 	return sg.FromToolsDir(name, ".golangci.yml")
+}
+
+func defaultFixConfigPath() string {
+	return sg.FromToolsDir(name, ".golangci.fix.yml")
 }
 
 func CommandInDirectory(ctx context.Context, directory string, args ...string) *exec.Cmd {
@@ -71,6 +78,31 @@ func Run(ctx context.Context, args ...string) error {
 	return nil
 }
 
+// Run GolangCI-Lint --fix in every Go module from the root of the current git repo.
+func Fix(ctx context.Context, args ...string) error {
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		cmd := Command(ctx, append([]string{"run", "-c", defaultFixConfigPath(), "--fix"}, args...)...)
+		cmd.Dir = filepath.Dir(path)
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(name)
 	binDir := filepath.Join(toolDir, version, "bin")
@@ -94,10 +126,16 @@ func PrepareCommand(ctx context.Context) error {
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
-
 	configPath := defaultConfigPath()
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile(configPath, DefaultConfig, 0o600)
+	if err := os.WriteFile(configPath, DefaultConfig, 0o600); err != nil {
+		return err
+	}
+	fixConfigPath := defaultFixConfigPath()
+	if err := os.MkdirAll(filepath.Dir(fixConfigPath), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(fixConfigPath, defaultFixConfig, 0o600)
 }
