@@ -1,4 +1,4 @@
-package sggolines
+package sggofumpt
 
 import (
 	"context"
@@ -10,27 +10,12 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
-	"go.einride.tech/sage/tools/sggofumpt"
 )
 
 const (
-	name    = "golines"
-	version = "0.12.2"
+	name    = "gofumpt"
+	version = "0.6.0"
 )
-
-// Run golines on all Go files in the current git root with gofumpt as default formatter.
-func Run(ctx context.Context) error {
-	sg.Deps(ctx, sggofumpt.PrepareCommand)
-	return Command(
-		ctx,
-		"--base-formatter=gofumpt",
-		"--ignore-generated",
-		"--max-len=120",
-		"--tab-len=1",
-		"--write-output",
-		".",
-	).Run()
-}
 
 // Command returns an [*exec.Cmd] for golines.
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -43,12 +28,9 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostOS == sgtool.Darwin {
-		hostArch = "all"
-	}
 	binURL := fmt.Sprintf(
-		"https://github.com/segmentio/golines/"+
-			"releases/download/v%s/golines_%s_%s_%s.tar.gz",
+		"https://github.com/mvdan/gofumpt/"+
+			"releases/download/v%s/gofumpt_v%s_%s_%s",
 		version,
 		version,
 		hostOS,
@@ -58,8 +40,7 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntarGz(),
-		sgtool.WithRenameFile(fmt.Sprintf("golines_%s_%s_%s/golines", version, hostOS, hostArch), name),
+		sgtool.WithRenameFile(fmt.Sprintf("gofumpt_v%s_%s_%s", version, hostOS, hostArch), name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {

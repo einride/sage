@@ -67,6 +67,10 @@ format-yaml: $(sagefile)
 git-verify-no-diff: $(sagefile)
 	@$(sagefile) GitVerifyNoDiff
 
+.PHONY: go-format
+go-format: $(sagefile)
+	@$(sagefile) GoFormat
+
 .PHONY: go-licenses
 go-licenses: $(sagefile)
 	@$(sagefile) GoLicenses
@@ -74,6 +78,10 @@ go-licenses: $(sagefile)
 .PHONY: go-lint
 go-lint: $(sagefile)
 	@$(sagefile) GoLint
+
+.PHONY: go-lint-fix
+go-lint-fix: $(sagefile)
+	@$(sagefile) GoLintFix
 
 .PHONY: go-mod-tidy
 go-mod-tidy: $(sagefile)

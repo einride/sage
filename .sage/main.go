@@ -10,6 +10,7 @@ import (
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilint"
 	"go.einride.tech/sage/tools/sggolicenses"
+	"go.einride.tech/sage/tools/sggolines"
 	"go.einride.tech/sage/tools/sggoreview"
 	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
@@ -49,6 +50,16 @@ func GoReview(ctx context.Context) error {
 func GoLint(ctx context.Context) error {
 	sg.Logger(ctx).Println("linting Go files...")
 	return sggolangcilint.Run(ctx)
+}
+
+func GoLintFix(ctx context.Context) error {
+	sg.Logger(ctx).Println("fixing Go files...")
+	return sggolangcilint.Fix(ctx)
+}
+
+func GoFormat(ctx context.Context) error {
+	sg.Logger(ctx).Println("formatting Go files...")
+	return sggolines.Run(ctx)
 }
 
 func GoLicenses(ctx context.Context) error {
