@@ -23,9 +23,6 @@ const (
 //go:embed golangci.yml
 var DefaultConfig []byte
 
-//go:embed golangci.fix.yml
-var defaultFixConfig []byte
-
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
@@ -33,10 +30,6 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func defaultConfigPath() string {
 	return sg.FromToolsDir(name, ".golangci.yml")
-}
-
-func defaultFixConfigPath() string {
-	return sg.FromToolsDir(name, ".golangci.fix.yml")
 }
 
 func CommandInDirectory(ctx context.Context, directory string, args ...string) *exec.Cmd {
@@ -48,7 +41,7 @@ func CommandInDirectory(ctx context.Context, directory string, args ...string) *
 	if directory == sg.FromSageDir() {
 		excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
 	}
-	cmdArgs := append([]string{"run", "-c", configPath}, args...)
+	cmdArgs := append([]string{"run", "--allow-parallel-runners", "-c", configPath}, args...)
 	cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
 	cmd.Dir = directory
 	return cmd
@@ -88,7 +81,7 @@ func Fix(ctx context.Context, args ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
-		cmd := Command(ctx, append([]string{"run", "-c", defaultFixConfigPath(), "--fix"}, args...)...)
+		cmd := Command(ctx, append([]string{"run", "--allow-serial-runners", "-c", defaultConfigPath(), "--fix"}, args...)...)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
 		return cmd.Start()
@@ -130,12 +123,5 @@ func PrepareCommand(ctx context.Context) error {
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(configPath, DefaultConfig, 0o600); err != nil {
-		return err
-	}
-	fixConfigPath := defaultFixConfigPath()
-	if err := os.MkdirAll(filepath.Dir(fixConfigPath), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(fixConfigPath, defaultFixConfig, 0o600)
+	return os.WriteFile(configPath, DefaultConfig, 0o600)
 }
