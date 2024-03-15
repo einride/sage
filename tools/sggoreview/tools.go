@@ -18,12 +18,17 @@ const (
 	version = "0.26.0"
 )
 
+// Command returns an [exec.Cmd] pointing to the goreview binary.
+//
+// Deprecated: Use sggolangcilint.Command for all your linting needs.
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
 // Run goreview in every Go module from the root of the current git repo.
+//
+// Deprecated: Use sggolangcilint.Run for all your linting needs.
 func Run(ctx context.Context, args ...string) error {
 	var commands []*exec.Cmd
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
@@ -48,6 +53,9 @@ func Run(ctx context.Context, args ...string) error {
 	return nil
 }
 
+// PrepareCommand downloads the goreview binary and adds it to the PATH.
+//
+// Deprecated: Use sggolangcilint.PrepareCommand for all your linting needs.
 func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(name)
 	binDir := filepath.Join(toolDir, version, "bin")

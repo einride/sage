@@ -162,7 +162,6 @@ serially.
 sg.Deps(
 	sg.Fn(ConvcoCheck, "origin/main..HEAD"),
 	GolangciLint,
-	GoReview,
 )
 sg.SerialDeps(
 	GoModTidy,
