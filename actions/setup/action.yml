@@ -15,7 +15,7 @@ inputs:
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
-    default: '1.21'
+    default: '1.22'
 
   cache-dependency-path:
     description: Path to the go.sum file(s) to use in caching.
