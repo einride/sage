@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	name                   = "dbt"
-	bigqueryPackageVersion = "1.6.0"
+	name                       = "dbt"
+	bigqueryPackageVersion     = "1.6.0"
+	googleCloudBigQueryVersion = "3.19.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -50,6 +51,9 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		pip,
 		"install",
+		// Temporarily specifying google-cloud-bigquery to get around issue
+		// https://github.com/googleapis/python-bigquery/issues/1877
+		fmt.Sprintf("google-cloud-bigquery==%s", googleCloudBigQueryVersion),
 		fmt.Sprintf("dbt-bigquery==%s", bigqueryPackageVersion),
 	).Run(); err != nil {
 		return err
