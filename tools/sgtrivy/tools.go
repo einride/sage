@@ -18,7 +18,7 @@ import (
 var defaultConfig []byte
 
 const (
-	version = "0.48.0"
+	version = "0.50.1"
 	name    = "trivy"
 )
 
