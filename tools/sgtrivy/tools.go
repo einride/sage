@@ -34,7 +34,7 @@ func CheckTerraformCommand(ctx context.Context, dir string) *exec.Cmd {
 	args := []string{
 		"config",
 		"--misconfig-scanners",
-		"terraform,terraformplan",
+		"terraform,terraformplan-json,terraformplan-snapshot",
 		"--exit-code",
 		"1",
 		dir,
