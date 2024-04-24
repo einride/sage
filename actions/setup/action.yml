@@ -41,6 +41,13 @@ runs:
         # Needed for conventional commit linting.
         fetch-depth: ${{ inputs.fetch-depth }}
 
+    - name: Configure env for toolchain ignore
+      # See issues:
+      #  - https://github.com/actions/setup-go/issues/424
+      #  - https://github.com/actions/setup-go/pull/460
+      shell: bash
+      run: echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
+
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
