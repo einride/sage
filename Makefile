@@ -55,6 +55,10 @@ convco-check: $(sagefile)
 default: $(sagefile)
 	@$(sagefile) Default
 
+.PHONY: double-git-verify-no-diff
+double-git-verify-no-diff: $(sagefile)
+	@$(sagefile) DoubleGitVerifyNoDiff
+
 .PHONY: format-markdown
 format-markdown: $(sagefile)
 	@$(sagefile) FormatMarkdown

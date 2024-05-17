@@ -24,6 +24,13 @@ func main() {
 	)
 }
 
+func DoubleGitVerifyNoDiff(ctx context.Context) error {
+	sg.SerialDeps(ctx, GitVerifyNoDiff)
+	sg.SerialDeps(ctx, FormatMarkdown)
+	sg.SerialDeps(ctx, GitVerifyNoDiff) // this should report a change
+	return nil
+}
+
 func Default(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
 	sg.SerialDeps(ctx, GoModTidy)
