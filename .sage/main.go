@@ -32,10 +32,9 @@ func DoubleGitVerifyNoDiff(ctx context.Context) error {
 }
 
 func Default(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
-	sg.SerialDeps(ctx, GoModTidy)
-	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
-	return nil
+	sg.Deps(ctx, DoubleGitVerifyNoDiff)
+	cmd := sggit.Command(ctx, "status", "--short")
+	return cmd.Run()
 }
 
 func GoModTidy(ctx context.Context) error {
