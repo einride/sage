@@ -6,7 +6,6 @@ provides a curated and maintained set of build [tools](./tools) for Go projects.
 [![Release](https://github.com/einride/sage/actions/workflows/release.yml/badge.svg)](https://github.com/einride/sage/actions/workflows/release.yml)
 
 ## Requirements
-
 - [Go](https://golang.org/doc/install) >= 1.17
 - [GNU Make](https://www.gnu.org/software/make/)
 
