@@ -13,7 +13,7 @@ import (
 
 const (
 	name    = "poetry"
-	version = "1.5.1"
+	version = "1.8.3"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
