@@ -25,9 +25,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
-// Check for disallowed types of Go licenses in a specific directory.
-// By default, Google's forbidden and restricted types are disallowed.
-func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) error {
+func checkDir(ctx context.Context, directory string, appendArgs []string) error {
 	args := []string{
 		"check",
 		".",
@@ -37,11 +35,9 @@ func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) 
 		"--ignore",
 		"go.einride.tech",
 	}
-	if len(disallowedTypes) > 0 {
-		args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
-	} else {
-		args = append(args, "--disallowed_types=forbidden,restricted")
-	}
+
+	args = append(args, appendArgs...)
+
 	cmd := Command(ctx, args...)
 	cmd.Dir = directory
 	// go-licenses tries to exclude standard library packages by checking if they are prefixed
@@ -57,9 +53,45 @@ func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) 
 	return cmd.Run()
 }
 
-// Check for disallowed types of Go licenses.
+// Check for disallowed types of Go licenses in a specific directory.
 // By default, Google's forbidden and restricted types are disallowed.
-func Check(ctx context.Context, disallowedTypes ...string) error {
+func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) error {
+	var appendArgs []string
+	if len(disallowedTypes) > 0 {
+		appendArgs = append(appendArgs, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+	} else {
+		appendArgs = append(appendArgs, "--disallowed_types=forbidden,restricted")
+	}
+
+	return checkDir(ctx, directory, appendArgs)
+}
+
+// Check for disallowed types of Go licenses in a specific directory.
+// By default, Google's forbidden and restricted types are disallowed.
+// Allows to ignore some dependencies by specifying their package path (ie "github.com/einride/sage").
+func CheckDirWithIgnored(
+	ctx context.Context,
+	directory string,
+	ignoredPackages []string,
+	disallowedTypes ...string,
+) error {
+	appendArgs := make([]string, 0, len(ignoredPackages)+1)
+
+	for _, ignored := range ignoredPackages {
+		appendArgs = append(appendArgs, "--ignore")
+		appendArgs = append(appendArgs, ignored)
+	}
+
+	if len(disallowedTypes) > 0 {
+		appendArgs = append(appendArgs, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+	} else {
+		appendArgs = append(appendArgs, "--disallowed_types=forbidden,restricted")
+	}
+
+	return checkDir(ctx, directory, appendArgs)
+}
+
+func check(ctx context.Context, appendArgs []string) error {
 	var commands []*exec.Cmd
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -81,11 +113,8 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 			"--ignore",
 			"go.einride.tech",
 		}
-		if len(disallowedTypes) > 0 {
-			args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
-		} else {
-			args = append(args, "--disallowed_types=forbidden,restricted")
-		}
+
+		args = append(args, appendArgs...)
 		cmd := Command(ctx, args...)
 		cmd.Dir = filepath.Dir(path)
 		// go-licenses tries to exclude standard library packages by checking if they are prefixed
@@ -109,6 +138,38 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 		}
 	}
 	return nil
+}
+
+// Check for disallowed types of Go licenses.
+// By default, Google's forbidden and restricted types are disallowed.
+func Check(ctx context.Context, disallowedTypes ...string) error {
+	var appendArgs []string
+	if len(disallowedTypes) > 0 {
+		appendArgs = append(appendArgs, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+	} else {
+		appendArgs = append(appendArgs, "--disallowed_types=forbidden,restricted")
+	}
+
+	return check(ctx, appendArgs)
+}
+
+// Check for disallowed types of Go licenses.
+// By default, Google's forbidden and restricted types are disallowed.
+// Allows to ignore some dependencies by specifying their package path (ie "github.com/einride/sage").
+func CheckWithIgnored(ctx context.Context, ignoredPackages []string, disallowedTypes ...string) error {
+	appendArgs := make([]string, 0, len(ignoredPackages)+1)
+	for _, ignored := range ignoredPackages {
+		appendArgs = append(appendArgs, "--ignore")
+		appendArgs = append(appendArgs, ignored)
+	}
+
+	if len(disallowedTypes) > 0 {
+		appendArgs = append(appendArgs, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+	} else {
+		appendArgs = append(appendArgs, "--disallowed_types=forbidden,restricted")
+	}
+
+	return check(ctx, appendArgs)
 }
 
 func PrepareCommand(ctx context.Context) error {
