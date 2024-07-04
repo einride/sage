@@ -20,7 +20,7 @@ import (
 const tripleQuote = "```" // required by goconst since used more than 3
 
 const (
-	version    = "1.8.5"
+	version    = "1.9.1"
 	binaryName = "terraform"
 )
 
