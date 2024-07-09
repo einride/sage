@@ -5,10 +5,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -18,6 +21,8 @@ import (
 )
 
 // Develop starts the Cloud Run service at the provided Go path with the provided service account and config.
+// Deprecated: Develop uses a service account key which are inherently more risky as they are not often rotated.
+// Use LocalDevelop instead.
 func Develop(ctx context.Context, path, keyFile, configFile string) error {
 	cmd, err := DevelopCommand(ctx, path, keyFile, configFile)
 	if err != nil {
@@ -28,6 +33,8 @@ func Develop(ctx context.Context, path, keyFile, configFile string) error {
 
 // DevelopCommand returns an *exec.Cmd pre-configured to start the Cloud Run service at the provided Go path
 // with the provided service account and config.
+// Deprecated: DevelopCommand uses a service account key which are inherently more risky as they are not often rotated.
+// Use LocalDevelopCommand instead.
 func DevelopCommand(ctx context.Context, path, keyFile, configFile string) (*exec.Cmd, error) {
 	var key struct {
 		Type        string
@@ -57,6 +64,80 @@ func DevelopCommand(ctx context.Context, path, keyFile, configFile string) (*exe
 	cmd.Env = append(cmd.Env, "K_CONFIGURATION="+configFile)
 	cmd.Env = append(cmd.Env, "GOOGLE_CLOUD_PROJECT="+key.ProjectID)
 	cmd.Env = append(cmd.Env, "GOOGLE_APPLICATION_CREDENTIALS="+keyFile)
+	cmd.Env = append(cmd.Env, env...)
+	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
+	return cmd, nil
+}
+
+func LocalDevelop(ctx context.Context, path, configFile, projectID, serviceAccountEmail string) error {
+	cmd, err := LocalDevelopCommand(ctx, path, configFile, projectID, serviceAccountEmail)
+	if err != nil {
+		return err
+	}
+	return cmd.Run()
+}
+
+func LocalDevelopCommand(
+	ctx context.Context,
+	path string,
+	configFile string,
+	projectID string,
+	serviceAccountEmail string,
+) (*exec.Cmd, error) {
+	// Grab the local user token to impersonate the service account
+	currentADC, err := applicationDefaultCredentials()
+	if err != nil {
+		return nil, err
+	}
+
+	// Store a local token wrapping the user token in metadata to make a delegated request.
+	// This requires the impersonated service account to have implicitDelegation permissions on itself.
+	// See https://cloud.google.com/iam/docs/create-short-lived-credentials-delegated#sa-credentials-delegated for details
+	serviceAccountImpersonationURL := fmt.Sprintf(
+		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
+		serviceAccountEmail,
+	)
+
+	delegateCreds := struct {
+		Delegates                      []string        `json:"delegates"`
+		Type                           string          `json:"type"`
+		ServiceAccountImpersonationURL string          `json:"service_account_impersonation_url"`
+		SourceCredentials              json.RawMessage `json:"source_credentials"`
+	}{
+		Delegates:                      []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
+		Type:                           "impersonated_service_account",
+		ServiceAccountImpersonationURL: serviceAccountImpersonationURL,
+		SourceCredentials:              json.RawMessage(currentADC),
+	}
+	delegateCredsJSON, err := json.Marshal(delegateCreds)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := fetchImpersonatedAccessToken(ctx, serviceAccountEmail)
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch impersonated service account access token: %v", err)
+	}
+
+	env, err := resolveEnvFromConfigFile(ctx, configFile, projectID, accessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	workDir := sg.FromBuildDir("gcloud")
+	if err := os.MkdirAll(workDir, 0o755); err != nil {
+		return nil, fmt.Errorf("unable to create path to store gcloud credentials: %v", err)
+	}
+	credsPath := filepath.Join(workDir, "creds.json")
+	if err := os.WriteFile(credsPath, delegateCredsJSON, 0o600); err != nil {
+		return nil, err
+	}
+
+	cmd := sg.Command(ctx, "go", "run", path)
+	cmd.Env = append(cmd.Env, "K_REVISION=local"+sggit.SHA(ctx))
+	cmd.Env = append(cmd.Env, "K_CONFIGURATION="+configFile)
+	cmd.Env = append(cmd.Env, "GOOGLE_CLOUD_PROJECT="+projectID)
+	cmd.Env = append(cmd.Env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
 	cmd.Env = append(cmd.Env, env...)
 	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
 	return cmd, nil
@@ -218,4 +299,74 @@ func accessSecretVersion(ctx context.Context, accessToken, project, secret, vers
 		return "", err
 	}
 	return string(decodedData), nil
+}
+
+func applicationDefaultCredentials() (string, error) {
+	home := os.Getenv("HOME")
+	path := filepath.Join(home, ".config/gcloud/application_default_credentials.json")
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", errors.New(
+				"no application default credentials found. Please authenticate using 'gcloud auth application-default login'",
+			)
+		}
+		return "", fmt.Errorf("unable to read application default credentials at %s - %v", path, err)
+	}
+	return string(b), nil
+}
+
+func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail string) (string, error) {
+	// Fetch user access token
+	var accessTokenOutput strings.Builder
+	cmd := sggcloud.Command(ctx, "auth", "print-access-token")
+	cmd.Stdout = &accessTokenOutput
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	accessToken := strings.TrimSpace(accessTokenOutput.String())
+	if accessToken == "" {
+		return "", fmt.Errorf("got empty access token")
+	}
+
+	// Generate access token for delegated service account
+	body := struct {
+		Delegates []string `json:"delegates"`
+		Scope     []string `json:"scope"`
+	}{
+		Delegates: []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
+		Scope:     []string{"https://www.googleapis.com/auth/cloud-platform"},
+	}
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("unable to json marshal access token request body: %v", err)
+	}
+
+	serviceAccountImpersonationURL := fmt.Sprintf(
+		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
+		serviceAccountEmail,
+	)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, serviceAccountImpersonationURL, bytes.NewReader(reqBody))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to generate access token for service account: %s", string(b))
+	}
+
+	var tokens struct {
+		AccessToken string `json:"accessToken"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&tokens); err != nil {
+		return "", err
+	}
+
+	return tokens.AccessToken, nil
 }
