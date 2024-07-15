@@ -24,6 +24,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 // ReleaseFromCloudBuildCommand creates a semantic release with optional extra arguments to semantic-release.
+// Deprecated: This helper will be removed in a coming release. Copy it if you still need it.
 func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string, extraArgs ...string) *exec.Cmd {
 	args := []string{
 		"--allow-initial-development-versions",
