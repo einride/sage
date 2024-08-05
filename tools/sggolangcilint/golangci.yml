@@ -236,6 +236,7 @@ linters-settings:
     ignore-words:
       - cancelled
       - cancelling
+      - analyses # allow analyses as a plural form of analysis
 
   prealloc:
     simple: true
