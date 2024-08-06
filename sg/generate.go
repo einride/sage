@@ -2,6 +2,7 @@ package sg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go/doc"
 	"go/parser"
@@ -30,7 +31,7 @@ func GenerateMakefiles(mks ...Makefile) {
 		pkg = doc.New(p, "./", 0)
 	}
 	// update .gitignore file
-	const gitignoreContent = ".gitignore\ntools/\nbin/\nbuild/\n"
+	const gitignoreContent = ".gitignore\ntools\nbin\nbuild\n"
 	if err := os.WriteFile(FromSageDir(".gitignore"), []byte(gitignoreContent), 0o600); err != nil {
 		panic(err)
 	}
@@ -60,6 +61,10 @@ func GenerateMakefiles(mks ...Makefile) {
 	if err := compileCmd.Run(); err != nil {
 		panic(fmt.Errorf("error compiling sagefiles: %w", err))
 	}
+	// setup symlinks
+	setupDirSymlink(FromBinDir(), FromSageDir(binDir))
+	setupDirSymlink(FromToolsDir(), FromSageDir(toolsDir))
+	setupDirSymlink(FromBuildDir(), FromSageDir(buildDir))
 	// Generate makefiles
 	for _, v := range mks {
 		if v.Path == "" {
@@ -74,5 +79,26 @@ func GenerateMakefiles(mks ...Makefile) {
 		if err := os.WriteFile(v.Path, mk.RawContent(), 0o600); err != nil {
 			panic(err)
 		}
+	}
+}
+
+func setupDirSymlink(oldname, newname string) {
+	if _, statErr := os.Stat(oldname); errors.Is(statErr, os.ErrNotExist) {
+		if err := os.MkdirAll(oldname, 0o755); err != nil {
+			panic(fmt.Errorf("error creating dir %q: %w", oldname, err))
+		}
+	}
+
+	if stat, statErr := os.Stat(newname); statErr == nil {
+		if stat.Mode().Type() == os.ModeSymlink {
+			return
+		}
+		if err := os.RemoveAll(newname); err != nil {
+			panic(fmt.Errorf("error removing dir %q: %w", newname, err))
+		}
+	}
+	ensureParentDir(newname)
+	if err := os.Symlink(oldname, newname); err != nil {
+		panic(fmt.Errorf("error creating symlink %q: %w", newname, err))
 	}
 }
