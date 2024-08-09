@@ -15,7 +15,7 @@ import (
 const (
 	toolName   = "balena-cli"
 	binaryName = "balena"
-	version    = "v16.6.3"
+	version    = "v18.2.34"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
