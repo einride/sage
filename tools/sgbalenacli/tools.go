@@ -54,13 +54,6 @@ func Whoami(ctx context.Context) (WhoamiInfo, error) {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	// Special case: use local balena CLI if available.
-	if binary, err := exec.LookPath("balena"); err == nil {
-		if _, err := sgtool.CreateSymlink(binary); err != nil {
-			return err
-		}
-		return nil
-	}
 	binDir := sg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName, binaryName)
 	hostOS := runtime.GOOS
