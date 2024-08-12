@@ -4,6 +4,7 @@ run:
 issues:
   fix: false
   exclude-dirs:
+    - .git
     - node_modules
 
 linters:
