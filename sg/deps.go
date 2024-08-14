@@ -47,7 +47,7 @@ func Deps(ctx context.Context, functions ...interface{}) {
 		go func() {
 			defer func() {
 				if v := recover(); v != nil {
-					errs[i] = fmt.Errorf(fmt.Sprint(v))
+					errs[i] = fmt.Errorf("%s", v)
 				}
 				wg.Done()
 			}()
