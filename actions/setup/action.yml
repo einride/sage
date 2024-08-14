@@ -12,11 +12,6 @@ inputs:
     required: false
     default: false
 
-  go-version:
-    description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
-    required: false
-    default: '1.22'
-
   cache-dependency-path:
     description: Path to the go.sum file(s) to use in caching.
     required: false
@@ -27,28 +22,11 @@ inputs:
     required: false
     default: false
 
-  fetch-depth:
-    description: Number of commits to fetch. 0 indicates all history for all branches and tags.
-    default: 0
 
 runs:
   using: composite
 
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        # Needed for conventional commit linting.
-        fetch-depth: ${{ inputs.fetch-depth }}
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ inputs.go-version }}
-        check-latest: ${{ inputs.check-latest }}
-        cache: ${{ inputs.disableCache != 'true' }}
-        cache-dependency-path: ${{ inputs.cache-dependency-path }}
-
     - name: Cache sage folders
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
@@ -56,9 +34,9 @@ runs:
         path: |
           ./.sage/tools
           ./.sage/bin
-        key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
+        key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ hashFiles('./.sage/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
+          ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ hashFiles('./.sage/go.sum') }}
           ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-
           ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-
           ${{ runner.os }}-sage-${{ github.workflow }}-
