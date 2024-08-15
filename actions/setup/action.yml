@@ -12,6 +12,11 @@ inputs:
     required: false
     default: false
 
+  go-version:
+    description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
+    required: false
+    default: '1.22'
+
   cache-dependency-path:
     description: Path to the go.sum file(s) to use in caching.
     required: false
@@ -27,6 +32,15 @@ runs:
   using: composite
 
   steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go-version }}
+        check-latest: ${{ inputs.check-latest }}
+        cache: ${{ inputs.disableCache != 'true' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
     - name: Cache sage folders
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
