@@ -53,7 +53,7 @@ runs:
           /home/runner/.cache/go-build
           /home/runner/go/pkg/mod
           /home/runner/go/bin
-        key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
+        key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
           ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-
