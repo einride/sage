@@ -17,11 +17,6 @@ inputs:
     required: false
     default: '1.22'
 
-  cache-dependency-path:
-    description: Path to the go.sum file(s) to use in caching.
-    required: false
-    default: go.sum
-
   check-latest:
     description: If true, checks whether the cached go version is the latest, if not then downloads the latest. Useful when you need to use the latest version.
     required: false
@@ -46,16 +41,18 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: ${{ inputs.disableCache != 'true' }}
-        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+        cache: false  # cache is handled by separate actions/cache step.
 
-    - name: Cache sage folders
+    - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
       with:
         path: |
           ./.sage/tools
           ./.sage/bin
+          /home/runner/.cache/go-build
+          /home/runner/go/pkg/mod
+          /home/runner/go/bin
         key: ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('./.sage/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-
