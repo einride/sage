@@ -23,24 +23,6 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
-// ReleaseFromCloudBuildCommand creates a semantic release with optional extra arguments to semantic-release.
-// Deprecated: This helper will be removed in a coming release. Copy it if you still need it.
-func ReleaseFromCloudBuildCommand(ctx context.Context, ci bool, repo string, extraArgs ...string) *exec.Cmd {
-	args := []string{
-		"--allow-initial-development-versions",
-		"--allow-no-changes",
-		"--ci-condition",
-		"default",
-		"--provider-opt",
-	}
-	args = append(args, "slug="+repo)
-	args = append(args, extraArgs...)
-	if !ci {
-		args = append(args, "--dry")
-	}
-	return Command(ctx, args...)
-}
-
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
