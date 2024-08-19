@@ -43,21 +43,11 @@ runs:
         check-latest: ${{ inputs.check-latest }}
         cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
-    - name: Generate cache key
-      id: cache-key
-      shell: bash
-      run: |
-
-        echo "restore_key=${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}-default" >> $GITHUB_OUTPUT
-
-        if [[ "${{ github.ref_name }}" == "main" || "${{ github.ref_name }}" == "master" ]]; then
-          echo "cache_key=${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}-default" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "cache_key=${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}-PR" >> $GITHUB_OUTPUT
-        else
-          echo "cache_key=${{ runner.os }}-sage-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}" >> $GITHUB_OUTPUT
-        fi
-
+    # NOTE: cache key and restore key is not the same;
+    # We want to always re-use the cache created by master in all our PRs. We also want any PR which modifies go.sum to create a new cache for itself.
+    # Therefore the cache key is set to use GITHUB_REF_NAME and the restore key is set to use GITHUB_BASE_REF.
+    # For more details, see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+    # NOTE: you need to build on push to master and on pull request in the repos which uses this reusable workflow.
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
@@ -68,7 +58,6 @@ runs:
           /home/runner/.cache/go-build
           /home/runner/go/pkg/mod
           /home/runner/go/bin
-        key: ${{ steps.cache-key.outputs.cache_key }}
+        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ steps.cache-key.outputs.restore_key }}
-
+          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
