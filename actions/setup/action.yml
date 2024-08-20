@@ -41,7 +41,7 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false  # cache is handled by separate actions/cache step.
+        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
