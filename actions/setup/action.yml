@@ -58,6 +58,7 @@ runs:
           /home/runner/.cache/go-build
           /home/runner/go/pkg/mod
           /home/runner/go/bin
-        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+        # NOTE: do not use **/go.sum because: https://github.com/actions/runner/issues/449
+        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('go.sum', '*/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('go.sum', '*/go.sum') }}
