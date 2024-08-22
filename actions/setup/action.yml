@@ -2,11 +2,6 @@ name: Setup Sage
 description: Setup Sage, including caching of tools and Go modules.
 
 inputs:
-  cacheKey:
-    description: Custom cache key used
-    required: false
-    default: cachekey
-
   disableCache:
     description: Disable cache
     required: false
@@ -16,6 +11,13 @@ inputs:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
     default: '1.22'
+
+  cacheKey:
+    description: Custom cache key used
+    required: false
+    # NOTE: some projects cannot use **/go.sum because: https://github.com/actions/runner/issues/449
+    # In such cases, try providing the cache key and set it to e.g. ${{ hashFiles('go.sum', '*/go.sum') }} instead
+    default: ${{ hashFiles('**/go.sum') }}
 
   check-latest:
     description: If true, checks whether the cached go version is the latest, if not then downloads the latest. Useful when you need to use the latest version.
@@ -58,6 +60,7 @@ runs:
           /home/runner/.cache/go-build
           /home/runner/go/pkg/mod
           /home/runner/go/bin
-        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+
+        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.go-version }}-${{ inputs.cacheKey }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.go-version }}-${{ inputs.cacheKey }}
