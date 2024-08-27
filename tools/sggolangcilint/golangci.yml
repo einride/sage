@@ -194,6 +194,10 @@ linters:
     # [fast: true, auto-fix: false]
     - usestdlibvars
 
+    # Checks for mistakes with OpenTelemetry/Census spans.
+    # [fast: false, auto-fix: false]
+    - spancheck
+
 linters-settings:
   gomodguard:
     blocked:
