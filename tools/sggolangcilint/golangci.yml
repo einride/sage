@@ -18,6 +18,10 @@ linters:
     # [fast: false, auto-fix: false]
     - bodyclose
 
+    # Copyloopvar is a linter detects places where loop variables are copied.
+    # [fast: false, auto-fix: false]
+    - copyloopvar
+
     # Check for two durations multiplied together.
     # [fast: false, auto-fix: false]
     - durationcheck
@@ -33,10 +37,6 @@ linters:
     # Find code that will cause problems with the error wrapping scheme introduced in Go 1.13.
     # [fast: false, auto-fix: false]
     - errorlint
-
-    # Check for pointers to enclosing loop variables.
-    # [fast: false, auto-fix: false]
-    - exportloopref
 
     # Check package import order and make it always deterministic.
     # [fast: true, auto-fix: true]
