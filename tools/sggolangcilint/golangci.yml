@@ -1,12 +1,6 @@
 run:
   timeout: 10m
 
-linter-settings:
-  gosec:
-    excludes:
-      # Flags for potentially-unsafe casting of ints. Prone to lots of false positives.
-      - G115
-
 issues:
   fix: false
   exclude-dirs:
@@ -237,6 +231,11 @@ linters-settings:
 
   gofumpt:
     extra-rules: true
+
+  gosec:
+    excludes:
+      # Flags for potentially-unsafe casting of ints. Prone to lots of false positives.
+      - G115
 
   lll:
     line-length: 120
