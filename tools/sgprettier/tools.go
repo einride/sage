@@ -13,11 +13,13 @@ import (
 const packageJSONContent = `{
   "devDependencies": {
     "@einride/prettier-config": "2.1.0",
-    "prettier": "3.0.3"
+    "prettier": "3.0.3",
+    "prettier-plugin-go-template": "0.0.15"
   }
 }`
 
 const prettierConfigContent = `module.exports = {
+	plugins: [require("prettier-plugin-go-template")],
 	...require("@einride/prettier-config"),
 }`
 
@@ -29,6 +31,20 @@ var prettierrc = sg.FromToolsDir("prettier", ".prettierrc.js")
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
+}
+
+func FormatGoTemplates(ctx context.Context) *exec.Cmd {
+	args := []string{
+		"--config",
+		prettierrc,
+		"--parser",
+		"go-template",
+		"--write",
+		"**/*.html",
+		"**/*.tmpl",
+		"!" + sg.FromSageDir(),
+	}
+	return Command(ctx, args...)
 }
 
 func FormatMarkdownCommand(ctx context.Context) *exec.Cmd {
