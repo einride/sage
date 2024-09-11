@@ -16,6 +16,10 @@ const name = "csp"
 //go:embed package.json
 var packageJSONContent []byte
 
+func Validate(ctx context.Context, policy ContentSecurityPolicy) *exec.Cmd {
+	return Command(ctx, "validate", policy.String())
+}
+
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
