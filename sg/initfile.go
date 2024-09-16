@@ -49,6 +49,18 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 		}
 		g.P("logger := ", g.Import("go.einride.tech/sage/sg"), ".NewLogger(\"", loggerName, "\")")
 		g.P("ctx = ", g.Import("go.einride.tech/sage/sg"), ".WithLogger(ctx, logger)")
+		g.P("ctx, cancel := context.WithCancel(ctx)")
+		g.P("defer cancel()")
+
+		g.P("go func() {")
+		g.P("shutdownCh := make(chan ", g.Import("os"), ".Signal, 1)")
+		g.P(g.Import("os/signal"), ".Notify(shutdownCh, ",
+			g.Import("os"), ".Interrupt, ",
+			g.Import("syscall"), ".SIGTERM)",
+		)
+		g.P("<-shutdownCh")
+		g.P("cancel()")
+		g.P("}()")
 		if len(function.Decl.Type.Params.List) > 1 {
 			expected := countParams(function.Decl.Type.Params.List) - 1
 			g.P("if len(args) != ", expected, " {")
