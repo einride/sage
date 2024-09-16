@@ -24,8 +24,7 @@ func ContextWithEnv(ctx context.Context, env ...string) context.Context {
 
 // Command should be used when returning exec.Cmd from tools to set opinionated standard fields.
 func Command(ctx context.Context, path string, args ...string) *exec.Cmd {
-	// TODO: use exec.CommandContext when we have determined there are no side-effects.
-	cmd := exec.Command(path)
+	cmd := exec.CommandContext(ctx, path)
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Dir = FromGitRoot(".")
 	cmd.Env = os.Environ()
