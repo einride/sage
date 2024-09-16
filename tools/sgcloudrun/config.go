@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"os/exec"
@@ -128,7 +129,7 @@ func LocalDevelopCommand(
 	if err := os.MkdirAll(workDir, 0o755); err != nil {
 		return nil, fmt.Errorf("unable to create path to store gcloud credentials: %v", err)
 	}
-	credsPath := filepath.Join(workDir, "creds.json")
+	credsPath := filepath.Join(workDir, fmt.Sprintf("creds-%s.json", randomLower(5)))
 	if err := os.WriteFile(credsPath, delegateCredsJSON, 0o600); err != nil {
 		return nil, err
 	}
@@ -140,6 +141,12 @@ func LocalDevelopCommand(
 	cmd.Env = append(cmd.Env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
 	cmd.Env = append(cmd.Env, env...)
 	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
+	cmd.Cancel = func() error {
+		if err := cmd.Process.Kill(); err != nil {
+			return err
+		}
+		return os.Remove(credsPath)
+	}
 	return cmd, nil
 }
 
@@ -369,4 +376,15 @@ func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail strin
 	}
 
 	return tokens.AccessToken, nil
+}
+
+func randomLower(n uint32) string {
+	b := make([]rune, n)
+	for i := range b {
+		// NOTE: code of 'a' is 97, code of 'z' is 122.
+		//       so rand.IntN(26) + 97 is code of a "random" lowercase rune.
+		//nolint:gosec // we don't need a secure randomizer for this.
+		b[i] = rune(rand.IntN(26) + 97)
+	}
+	return string(b)
 }
