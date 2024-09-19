@@ -63,12 +63,11 @@ func Run(ctx context.Context, args ...string) error {
 	}); err != nil {
 		return err
 	}
+	errs := make([]error, 0, len(commands))
 	for _, cmd := range commands {
-		if err := cmd.Wait(); err != nil {
-			return err
-		}
+		errs = append(errs, cmd.Wait())
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // Run GolangCI-Lint --fix in every Go module from the root of the current git repo.
