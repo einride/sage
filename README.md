@@ -168,3 +168,11 @@ sg.SerialDeps(
 	GitVerifyNoDiff,
 )
 ```
+
+## Security
+
+Security is very important to us. If you discover a security issue, please
+report it via email to security@einride.tech
+
+For more information, please consult our
+[vulnerability disclosure policy](https://www.einride.tech/vulnerability-disclosure-policy).
