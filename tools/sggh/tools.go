@@ -23,24 +23,37 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func PrepareCommand(ctx context.Context) error {
 	hostOS := runtime.GOOS
+	ext := "tar.gz"
+	if hostOS == sgtool.Darwin {
+		hostOS = "macOS"
+		ext = "zip"
+	}
 	hostArch := runtime.GOARCH
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
 	binURL := fmt.Sprintf(
-		"https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.tar.gz",
+		"https://github.com/cli/cli/releases/download/v%s/gh_%s_%s_%s.%s",
 		version,
 		version,
 		hostOS,
 		hostArch,
+		ext,
 	)
-	if err := sgtool.FromRemote(
-		ctx,
-		binURL,
+	opts := []sgtool.Opt{
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntarGz(),
 		sgtool.WithRenameFile(fmt.Sprintf("gh_%s_%s_%s/bin/gh", version, hostOS, hostArch), name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
+	}
+	if hostOS == "macOS" {
+		opts = append(opts, sgtool.WithUnzip())
+	} else {
+		opts = append(opts, sgtool.WithUntarGz())
+	}
+	if err := sgtool.FromRemote(
+		ctx,
+		binURL,
+		opts...,
 	); err != nil {
 		return fmt.Errorf("unable to download %s: %w", name, err)
 	}
