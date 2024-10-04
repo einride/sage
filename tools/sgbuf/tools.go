@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version = "1.35.1"
+	version = "1.44.0"
 	name    = "buf"
 )
 
