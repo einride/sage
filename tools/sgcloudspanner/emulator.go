@@ -44,6 +44,8 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	}
 	containerID := strings.TrimSpace(dockerRunStdout.String())
 	cleanup := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		sg.Logger(ctx).Println("stopping down Cloud Spanner emulator...")
 		cmd := sgdocker.Command(ctx, "kill", containerID)
 		cmd.Stdout, cmd.Stderr = nil, nil
