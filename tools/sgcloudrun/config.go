@@ -78,13 +78,16 @@ func LocalDevelop(ctx context.Context, path, configFile, projectID, serviceAccou
 	return cmd.Run()
 }
 
-func LocalDevelopCommand(
+// LocalDevelopEnv sets up the environment variables for running the Cloud Run service locally, with SA impersonation.
+// The environment variables are returned on the format KEY=value and can easily be outputted to a .env file or similar.
+// NOTE: this function creates a temporary creds-xxxxx.json file that is meant to be removed when the service is shut
+// down. Make sure to call CleanUpLocalDevelop after shutting down the service.
+func LocalDevelopEnv(
 	ctx context.Context,
-	path string,
 	configFile string,
 	projectID string,
 	serviceAccountEmail string,
-) (*exec.Cmd, error) {
+) ([]string, error) {
 	// Grab the local user token to impersonate the service account
 	currentADC, err := applicationDefaultCredentials()
 	if err != nil {
@@ -134,18 +137,47 @@ func LocalDevelopCommand(
 		return nil, err
 	}
 
+	env = append(env, "K_REVISION=local"+sggit.SHA(ctx))
+	env = append(env, "K_CONFIGURATION="+configFile)
+	env = append(env, "GOOGLE_CLOUD_PROJECT="+projectID)
+	env = append(env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
+
+	return env, nil
+}
+
+// CleanUpLocalDevelop is meant to be called after the Cloud Run service is shut down locally.
+// It removes the temporary creds-xxxxx.json file.
+func CleanUpLocalDevelop(environ []string) error {
+	for _, env := range environ {
+		if !strings.Contains(env, "GOOGLE_APPLICATION_CREDENTIALS") {
+			continue
+		}
+		credsPath := strings.Split(env, "=")[1]
+		return os.Remove(credsPath)
+	}
+	return fmt.Errorf("clean up local develop: no GOOGLE_APPLICATION_CREDENTIALS environment variable found")
+}
+
+func LocalDevelopCommand(
+	ctx context.Context,
+	path string,
+	configFile string,
+	projectID string,
+	serviceAccountEmail string,
+) (*exec.Cmd, error) {
+	env, err := LocalDevelopEnv(ctx, configFile, projectID, serviceAccountEmail)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := sg.Command(ctx, "go", "run", path)
-	cmd.Env = append(cmd.Env, "K_REVISION=local"+sggit.SHA(ctx))
-	cmd.Env = append(cmd.Env, "K_CONFIGURATION="+configFile)
-	cmd.Env = append(cmd.Env, "GOOGLE_CLOUD_PROJECT="+projectID)
-	cmd.Env = append(cmd.Env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
 	cmd.Env = append(cmd.Env, env...)
 	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
 	cmd.Cancel = func() error {
 		if err := cmd.Process.Kill(); err != nil {
 			return err
 		}
-		return os.Remove(credsPath)
+		return CleanUpLocalDevelop(cmd.Env)
 	}
 	return cmd, nil
 }
