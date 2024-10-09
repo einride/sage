@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.24.1"
+	version = "0.27.0"
 	name    = "protoc-gen-go-aip-test"
 )
 
