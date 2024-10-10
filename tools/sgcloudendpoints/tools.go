@@ -18,7 +18,7 @@ import (
 )
 
 // espVersion is the version of ESPv2 used for building images.
-const espVersion = "2.49.0"
+const espVersion = "2.50.0"
 
 //go:embed Dockerfile
 var dockerfile []byte
