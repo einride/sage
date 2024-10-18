@@ -198,6 +198,8 @@ linters:
     # [fast: false, auto-fix: false]
     - spancheck
 
+    # Ensure consistent code style when using log/slog.
+    - sloglint
 linters-settings:
   gomodguard:
     blocked:
