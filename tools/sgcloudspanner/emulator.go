@@ -44,21 +44,24 @@ func RunEmulator(ctx context.Context) (_ func(), err error) {
 	}
 	containerID := strings.TrimSpace(dockerRunStdout.String())
 	cleanup := func() {
+		// TODO(radhus): when bumping to Go >=1.21, we should define a context like this instead and avoid storing a logger.
+		// ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+		logger := sg.Logger(ctx)
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		sg.Logger(ctx).Println("stopping down Cloud Spanner emulator...")
+		logger.Println("stopping down Cloud Spanner emulator...")
 		cmd := sgdocker.Command(ctx, "kill", containerID)
 		cmd.Stdout, cmd.Stderr = nil, nil
 		if err := cmd.Run(); err != nil {
-			sg.Logger(ctx).Printf("failed to kill emulator container: %v", err)
+			logger.Printf("failed to kill emulator container: %v", err)
 		}
 		cmd = sgdocker.Command(ctx, "rm", "-v", containerID)
 		cmd.Stdout, cmd.Stderr = nil, nil
 		if err := cmd.Run(); err != nil {
-			sg.Logger(ctx).Printf("failed to remove emulator container: %v", err)
+			logger.Printf("failed to remove emulator container: %v", err)
 		}
 		if err := os.Unsetenv("SPANNER_EMULATOR_HOST"); err != nil {
-			sg.Logger(ctx).Printf("failed to unset SPANNER_EMULATOR_HOST: %v", err)
+			logger.Printf("failed to unset SPANNER_EMULATOR_HOST: %v", err)
 		}
 	}
 	emulatorHost, err := inspectPortAddress(ctx, containerID, "9010/tcp")
