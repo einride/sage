@@ -206,12 +206,12 @@ linters-settings:
       modules:
         - github.com/sirupsen/logrus:
             recommendations:
-              - go.uber.org/zap
-            reason: "Use Zap for logging."
+              - log/slog
+            reason: "Use the standard library logging package."
         - github.com/rs/zerolog:
             recommendations:
-              - go.uber.org/zap
-            reason: "Use Zap for logging."
+              - log/slog
+            reason: "Use the standard library logging package."
         - github.com/pkg/errors:
             recommendations:
               - errors
