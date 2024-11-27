@@ -40,8 +40,7 @@ func FormatGoTemplates(ctx context.Context) *exec.Cmd {
 		"--parser",
 		"go-template",
 		"--write",
-		"**/*.html",
-		"**/*.tmpl",
+		"**/*.{html,tmpl}",
 		"!" + sg.FromSageDir(),
 	}
 	return Command(ctx, args...)
