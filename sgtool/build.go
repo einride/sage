@@ -49,7 +49,17 @@ func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error)
 	if version == "" {
 		return "", fmt.Errorf("failed to determine version of package %s", pkg)
 	}
-	executable := sg.FromToolsDir("go", pkg, version, filepath.Base(pkg))
+
+	var b2 bytes.Buffer
+	cmd = sg.Command(ctx, "go", "list", "-f", "{{.Target}}", pkg)
+	cmd.Stdout = &b2
+	cmd.Dir = filepath.Dir(file)
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	commandName := filepath.Base(strings.TrimSpace(b2.String()))
+
+	executable := sg.FromToolsDir("go", pkg, version, commandName)
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)
