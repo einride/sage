@@ -319,6 +319,9 @@ func accessSecretVersion(ctx context.Context, accessToken, project, secret, vers
 	if err != nil {
 		return "", err
 	}
+	if response.StatusCode < 200 || response.StatusCode > 299 {
+		return "", fmt.Errorf("expected 200 response status, received %d", response.StatusCode)
+	}
 	defer func() {
 		_ = response.Body.Close()
 	}()
