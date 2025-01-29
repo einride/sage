@@ -14,7 +14,7 @@ import (
 
 const (
 	name    = "gofumpt"
-	version = "0.6.0"
+	version = "0.7.0"
 )
 
 // Command returns an [*exec.Cmd] for golines.
