@@ -13,7 +13,7 @@ import (
 
 const (
 	name    = "govulncheck"
-	version = "v1.1.3"
+	version = "v1.1.4"
 )
 
 // Command returns an [*exec.Cmd] for govulncheck.
