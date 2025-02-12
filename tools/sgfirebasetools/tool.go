@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version    = "v11.2.2"
+	version    = "v13.30.0"
 	binaryName = "firebase-tools"
 )
 
