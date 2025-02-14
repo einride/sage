@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
+	"path/filepath"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/tools/sgbackstage"
@@ -11,6 +15,7 @@ import (
 	"go.einride.tech/sage/tools/sggolangcilint"
 	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sggolines"
+	"go.einride.tech/sage/tools/sggopls"
 	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
@@ -27,7 +32,7 @@ func main() {
 func Default(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
 	sg.SerialDeps(ctx, GoModTidy)
-	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
+	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff, GoPls)
 	return nil
 }
 
@@ -44,6 +49,15 @@ func GoTest(ctx context.Context) error {
 func GoLint(ctx context.Context) error {
 	sg.Logger(ctx).Println("linting Go files...")
 	return sggolangcilint.Run(ctx)
+}
+
+func GoPls(ctx context.Context) error {
+	sg.Logger(ctx).Println("Linting Go files with gopls...")
+	filePaths, err := goFilePaths()
+	if err != nil {
+		return err
+	}
+	return sggopls.Check(ctx, filePaths).Run()
 }
 
 func GoLintFix(ctx context.Context) error {
@@ -84,4 +98,25 @@ func BackstageValidate(ctx context.Context) error {
 func GitVerifyNoDiff(ctx context.Context) error {
 	sg.Logger(ctx).Println("verifying that git has no diff...")
 	return sggit.VerifyNoDiff(ctx)
+}
+
+func goFilePaths() ([]string, error) {
+	var goFilePaths []string
+	err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		goFilePaths = append(goFilePaths, path)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("gathering list of go files: %w", err)
+	}
+	return goFilePaths, nil
 }
