@@ -21,7 +21,7 @@ func Check(ctx context.Context, paths []string) *exec.Cmd {
 	args = append(args, paths...)
 	return sg.Command(
 		ctx,
-		name,
+		sg.FromBinDir(name),
 		args...,
 	)
 }
