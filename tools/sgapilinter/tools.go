@@ -95,6 +95,7 @@ func Run(ctx context.Context, args ...string) error {
 						"--output-format", "json",
 						"--descriptor-set-in", descriptorFile,
 						"--config", configPath,
+						"--proto-path", moduleDir,
 					},
 					args...,
 				),
