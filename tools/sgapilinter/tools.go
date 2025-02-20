@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	version = "1.69.1"
+	version = "1.69.2"
 	name    = "api-linter"
 )
 
