@@ -10,7 +10,7 @@ import (
 
 const (
 	name    = "gopls"
-	version = "v0.17.1"
+	version = "v0.18.0"
 )
 
 // Check runs `gopls check <PATH1> <PATH2>`.
