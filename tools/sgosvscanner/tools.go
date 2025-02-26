@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version    = "1.0.2"
+	version    = "1.9.2"
 	binaryName = "osv-scanner"
 )
 
@@ -28,8 +28,7 @@ func PrepareCommand(ctx context.Context) error {
 	if err := sgtool.FromRemote(
 		ctx,
 		fmt.Sprintf(
-			"https://github.com/google/osv-scanner/releases/download/v%s/osv-scanner_%s_%s_%s",
-			version,
+			"https://github.com/google/osv-scanner/releases/download/v%s/osv-scanner_%s_%s",
 			version,
 			runtime.GOOS,
 			runtime.GOARCH,
