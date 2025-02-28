@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -47,6 +48,22 @@ func CommandInDirectory(ctx context.Context, directory string, args ...string) *
 	return cmd
 }
 
+func joinErrorMessages(errs []error) error {
+	var messages []string
+
+	for _, err := range errs {
+		if err != nil {
+			messages = append(messages, err.Error())
+		}
+	}
+
+	if len(messages) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("multiple errors occurred:\n%s", strings.Join(messages, "\n"))
+}
+
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, args ...string) error {
 	var commands []*exec.Cmd
@@ -67,7 +84,7 @@ func Run(ctx context.Context, args ...string) error {
 	for _, cmd := range commands {
 		errs = append(errs, cmd.Wait())
 	}
-	return errors.Join(errs...)
+	return joinErrorMessages(errs)
 }
 
 // Run GolangCI-Lint --fix in every Go module from the root of the current git repo.
