@@ -33,7 +33,6 @@ func TestFn_Name(t *testing.T) {
 			expected: "go.einride.tech/sage/sg.namespace.MyFunc",
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			fn := Fn(tt.fn)
 			got := fn.Name()
