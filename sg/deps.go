@@ -22,8 +22,6 @@ func Deps(ctx context.Context, functions ...interface{}) {
 	checkedFunctions := checkFunctions(functions...)
 	var wg sync.WaitGroup
 	for i, f := range checkedFunctions {
-		i, f := i, f
-
 		dependencies := getDependencies(ctx)
 		for _, dependency := range dependencies {
 			if dependency.ID() == f.ID() {
