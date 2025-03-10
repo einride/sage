@@ -181,6 +181,7 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 	destroy := TfChange{actionName: "Destroy", changes: make(map[string]int), actionCount: 0}
 	update := TfChange{actionName: "Update", changes: make(map[string]int), actionCount: 0}
 	replace := TfChange{actionName: "Replace", changes: make(map[string]int), actionCount: 0}
+	forget := TfChange{actionName: "Forget", changes: make(map[string]int), actionCount: 0}
 	for _, res := range jsonPlan.ResourceChanges {
 		actions := res.Change.Actions
 		resourceType := res.Type
@@ -193,13 +194,17 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 			update.add(resourceType)
 		case actions.Replace():
 			replace.add(resourceType)
+		case actions.Forget():
+			forget.add(resourceType)
 		case
 			actions.NoOp(),
 			actions.Read():
 			// Do nothing
 			continue
 		default:
-			sg.Logger(ctx).Fatal(fmt.Errorf("unable to determine resource operation: %v", res))
+			sg.Logger(ctx).Fatal(
+				fmt.Errorf("unable to build a terraform plan summary due to unknown actions (%v) on resource: %v", actions, res),
+			)
 		}
 	}
 
@@ -212,7 +217,7 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 	}
 
 	summary = fmt.Sprintf(`
-Plan Summary: %d to create, %d to update, %d to replace, %d to destroy.
+Plan Summary: %d to create, %d to update, %d to replace, %d to destroy, %d to forget.
 <br/>
 %s
 `,
@@ -220,6 +225,7 @@ Plan Summary: %d to create, %d to update, %d to replace, %d to destroy.
 		update.actionCount,
 		replace.actionCount,
 		destroy.actionCount,
+		forget.actionCount,
 		mapToHTMLList([]TfChange{create, destroy, update, replace}),
 	)
 
