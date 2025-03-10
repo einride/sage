@@ -44,16 +44,6 @@ func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) 
 	}
 	cmd := Command(ctx, args...)
 	cmd.Dir = directory
-	// go-licenses tries to exclude standard library packages by checking if they are prefixed
-	// with `runtime.GOROOT()`. However, if the go-licenses tool is not run with a GOROOT environment variable,
-	// that call will return the GOROOT path used during build time of go-licenses. This typically works on Linux,
-	// but on macOS with Homebrew, the GOROOT is version prefixed, which breaks as soon as Go is upgraded.
-	// For example: /opt/homebrew/Cellar/go/1.19.4/libexec
-	//
-	// As a workaround, add the GOROOT environment variable to the result of `runtime.GOROOT()` called here.
-	// This should work as the Sage binary is built on the same machine that executes it.
-	// See: https://github.com/google/go-licenses/issues/149
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GOROOT=%s", runtime.GOROOT()))
 	return cmd.Run()
 }
 
