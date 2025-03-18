@@ -7,7 +7,7 @@ provides a curated and maintained set of build [tools](./tools) for Go projects.
 
 ## Requirements
 
-- [Go](https://golang.org/doc/install) >= 1.17
+- [Go](https://golang.org/doc/install) >= 1.22
 - [GNU Make](https://www.gnu.org/software/make/)
 
 ## Getting started
