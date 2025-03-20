@@ -66,6 +66,19 @@ func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, pl
 }
 
 func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, planFilePath string) *exec.Cmd {
+	comment := PlanSummarized(ctx, environment, planFilePath)
+	return sgghcomment.Command(
+		ctx,
+		"--pr",
+		prNumber,
+		"--signkey",
+		environment,
+		"--comment",
+		comment,
+	)
+}
+
+func PlanSummarized(ctx context.Context, environment, planFilePath string) string {
 	cmd := Command(
 		ctx,
 		"show",
@@ -119,15 +132,7 @@ func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, p
 			"```markdown\nPlan is too large to show in a GitHub comment. See CI logs for details\n```",
 		)
 	}
-	return sgghcomment.Command(
-		ctx,
-		"--pr",
-		prNumber,
-		"--signkey",
-		environment,
-		"--comment",
-		comment,
-	)
+	return comment
 }
 
 func PrepareCommand(ctx context.Context) error {
