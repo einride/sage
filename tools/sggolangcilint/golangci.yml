@@ -40,6 +40,10 @@ linters:
     # [fast: false, auto-fix: false]
     - errorlint
 
+    # Detects functions from golang.org/x/exp/ that can be replaced by std functions.
+    # [fast: ?, auto-fix: true]
+    - exptostd
+
     # Check package import order and make it always deterministic.
     # [fast: true, auto-fix: true]
     - gci
