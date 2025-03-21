@@ -35,6 +35,35 @@ func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 	return symlink, nil
 }
 
+// Like GoInstall, but also takes the major version suffix (like "v2") as an argument.
+// This is useful for packages that have major version suffixes in their import paths.
+func GoInstallWithMajorVersionSuffix(ctx context.Context, pkg, suffix, version string) (string, error) {
+	executable := sg.FromToolsDir("go", pkg, version, filepath.Base(pkg))
+	// Check if executable already exist
+	if _, err := os.Stat(executable); err == nil {
+		symlink, err := CreateSymlink(executable)
+		if err != nil {
+			return "", err
+		}
+		return symlink, nil
+	}
+	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
+	if suffix != "" {
+		pkgVersion = fmt.Sprintf("%s/%s@%s", pkg, suffix, version)
+	}
+	sg.Logger(ctx).Printf("building %s...", pkgVersion)
+	cmd := sg.Command(ctx, "go", "install", pkgVersion)
+	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	symlink, err := CreateSymlink(executable)
+	if err != nil {
+		return "", err
+	}
+	return symlink, nil
+}
+
 // GoInstallWithModfile builds and installs a go binary given the package and a path
 // to the local go.mod file.
 func GoInstallWithModfile(ctx context.Context, pkg, file string) (string, error) {
