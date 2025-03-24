@@ -57,9 +57,9 @@ func NpmAuthenticate(ctx context.Context, packageJSONDir, registryURL string) er
 		yarnMajor = strings.Split(version, ".")[0]
 	}
 
-	switch {
+	switch yarnMajor {
 	// If yarn v1 or npm we use npm config
-	case yarnMajor == "1":
+	case "1":
 		cmd = sg.Command(
 			ctx,
 			"npm",

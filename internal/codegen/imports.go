@@ -99,6 +99,7 @@ func importPathToAssumedName(importPath string) string {
 	}
 	base = strings.TrimPrefix(base, "go-")
 	if i := strings.IndexFunc(base, func(r rune) bool {
+		//nolint:staticcheck // De Morgan's law intentionally not applied
 		return !('a' <= r && r <= 'z' || 'A' <= r && r <= 'Z' || '0' <= r && r <= '9' || r == '_' ||
 			r >= utf8.RuneSelf && (unicode.IsLetter(r) || unicode.IsDigit(r)))
 	}); i >= 0 {
