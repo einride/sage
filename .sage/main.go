@@ -12,7 +12,7 @@ import (
 	"go.einride.tech/sage/tools/sgconvco"
 	"go.einride.tech/sage/tools/sggit"
 	"go.einride.tech/sage/tools/sggo"
-	"go.einride.tech/sage/tools/sggolangcilint"
+	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sggolines"
 	"go.einride.tech/sage/tools/sggopls"
@@ -48,7 +48,10 @@ func GoTest(ctx context.Context) error {
 
 func GoLint(ctx context.Context) error {
 	sg.Logger(ctx).Println("linting Go files...")
-	return sggolangcilint.Run(ctx)
+	return sggolangcilintv2.Run(
+		ctx,
+		sggolangcilintv2.Config{RunRelativePathMode: sggolangcilintv2.RunRelativePathModeGitRoot},
+	)
 }
 
 func GoPls(ctx context.Context) error {
@@ -62,7 +65,10 @@ func GoPls(ctx context.Context) error {
 
 func GoLintFix(ctx context.Context) error {
 	sg.Logger(ctx).Println("fixing Go files...")
-	return sggolangcilint.Fix(ctx)
+	return sggolangcilintv2.Fix(
+		ctx,
+		sggolangcilintv2.Config{RunRelativePathMode: sggolangcilintv2.RunRelativePathModeGitRoot},
+	)
 }
 
 func GoFormat(ctx context.Context) error {
