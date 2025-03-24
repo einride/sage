@@ -1,20 +1,27 @@
+version: "2"
+
 run:
-  timeout: 10m
   build-tags:
     - wireinject
+  relative-path-mode: gomod
 
 issues:
   fix: false
-  exclude-dirs:
-    - .git
-    - node_modules
 
 linters:
-  disable-all: true
+  default: none
   enable:
+    # Check for pass []any as any in variadic func(...any).
+    # [fast: false, auto-fix: false]
+    - asasalint
+
     # Check that code does not contain non-ASCII identifiers.
     # [fast: true, auto-fix: false]
     - asciicheck
+
+    # Checks for dangerous unicode character sequences.
+    # [fast: true]
+    - bidichk
 
     # Check whether HTTP response body is closed successfully.
     # [fast: false, auto-fix: false]
@@ -32,6 +39,10 @@ linters:
     # [fast: false, auto-fix: false]
     - errcheck
 
+    # Checks types passed to the json encoding functions. Reports unsupported types and reports occurrences where the check for the returned error can be omitted.
+    # [fast: false, autofix: false]
+    - errchkjson
+
     # Check that sentinel errors are prefixed with the `Err` and error types are suffixed with the `Error`.
     # [fast: false, auto-fix: false]
     - errname
@@ -44,9 +55,9 @@ linters:
     # [fast: ?, auto-fix: true]
     - exptostd
 
-    # Check package import order and make it always deterministic.
-    # [fast: true, auto-fix: true]
-    - gci
+    # Check that no global variables exist.
+    # [fast: false, auto-fix: false]
+    - gochecknoglobals
 
     # Check that no init functions are present in Go code.
     # [fast: true, auto-fix: false]
@@ -60,10 +71,6 @@ linters:
     # [fast: true, auto-fix: true]
     - godot
 
-    # Check whether code was gofumpt-ed.
-    # [fast: true, auto-fix: true]
-    - gofumpt
-
     # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
     # [fast: true, auto-fix: false]
     - gomoddirectives
@@ -76,9 +83,9 @@ linters:
     # [fast: true, auto-fix: false]
     - goprintffuncname
 
-    # Check for code that can be simplified.
+    # Inspects source code for security problems.
     # [fast: false, auto-fix: false]
-    - gosimple
+    - gosec
 
     # Report suspicious constructs, such as Printf calls whose arguments do not align with the format string.
     # [fast: false, auto-fix: false]
@@ -108,6 +115,10 @@ linters:
     # [fast: false, auto-fix: false]
     - nilerr
 
+    # Finds sending http request without context.Context.
+    # [fast: false, auto-fix: false]
+    - noctx
+
     # Report ill-formed or insufficient nolint directives.
     # [fast: true, auto-fix: false]
     - nolintlint
@@ -128,9 +139,21 @@ linters:
     # [fast: false, auto-fix: true]
     - protogetter
 
+    # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
+    # [fast: false, auto-fix: true]
+    - revive
+
     # Check whether Err of rows is checked successfully.
     # [fast: false, auto-fix: false]
     - rowserrcheck
+
+    # Ensure consistent code style when using log/slog.
+    # [fast: false, auto-fix: false]
+    - sloglint
+
+    # Checks for mistakes with OpenTelemetry/Census spans.
+    # [fast: false, auto-fix: false]
+    - spancheck
 
     # Check that sql.Rows and sql.Stmt are closed.
     # [fast: false, auto-fix: false]
@@ -140,17 +163,9 @@ linters:
     # [fast: false, auto-fix: false]
     - staticcheck
 
-    # A replacement for golint.
-    # [fast: false, auto-fix: false]
-    - stylecheck
-
     # Detect inappropriate usage of t.Parallel() method in your Go test codes.
     # [fast: false, auto-fix: false]
     - tparallel
-
-    # Parses and type-checks Go code.
-    # [fast: false, auto-fix: false]
-    - typecheck
 
     # Remove unnecessary type conversions.
     # [fast: false, auto-fix: false]
@@ -160,6 +175,10 @@ linters:
     # [fast: false, auto-fix: false]
     - unused
 
+    # A linter that detect the possibility to use variables/constants from the Go standard library.
+    # [fast: true, auto-fix: true]
+    - usestdlibvars
+
     # Find wasted assignment statements.
     # [fast: false, auto-fix: false]
     - wastedassign
@@ -167,113 +186,80 @@ linters:
     # Detect leading and trailing whitespace.
     # [fast: true, auto-fix: true]
     - whitespace
+  settings:
+    errorlint:
+      errorf: false
 
-    # Check that no global variables exist.
-    # [fast: true, auto-fix: false]
-    - gochecknoglobals
+    gomoddirectives:
+      replace-local: true
 
-    # Inspect source code for security problems.
-    # [fast: false, auto-fix: false]
-    - gosec
+    gomodguard:
+      blocked:
+        modules:
+          - github.com/sirupsen/logrus:
+              recommendations:
+                - go.uber.org/zap
+              reason: Use Zap for logging.
+          - github.com/rs/zerolog:
+              recommendations:
+                - go.uber.org/zap
+              reason: Use Zap for logging.
+          - github.com/pkg/errors:
+              recommendations:
+                - errors
+                - fmt
+              reason: Use the standard library error packages.
+          - golang.org/x/xerrors:
+              recommendations:
+                - errors
+                - fmt
+              reason: Use the standard library error packages.
+          - github.com/golang/protobuf:
+              recommendations:
+                - google.golang.org/protobuf
+              reason: The protobuf v1 module is deprecated.
+          - github.com/stretchr/testify:
+              recommendations:
+                - gotest.tools/v3
+              reason: More reliably supports protobuf messages.
 
-    # Find sending http request without context.Context.
-    # [fast: false, auto-fix: false]
-    - noctx
+    gosec:
+      excludes:
+        - G115
 
-    # Drop-in replacement of golint.
-    # [fast: false, auto-fix: false]
-    - revive
+    lll:
+      line-length: 120
+      tab-width: 1
 
-    # Check for pass []any as any in variadic func(...any).
-    # [fast: false, auto-fix: false]
-    - asasalint
+    misspell:
+      locale: US
+      ignore-rules:
+        - cancelled
+        - cancelling
+        - analyses
 
-    # Check for dangerous unicode character sequences.
-    # [fast: true, auto-fix: false]
-    - bidichk
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: true
 
-    # Check types passed to the json encoding functions.
-    # [fast: false, auto-fix: false]
-    - errchkjson
+    protogetter:
+      skip-any-generated: true
 
-    # Check for the possibility to use variables/constants from the Go standard library.
-    # [fast: true, auto-fix: false]
-    - usestdlibvars
+    staticcheck:
+      checks:
+        - all
 
-    # Checks for mistakes with OpenTelemetry/Census spans.
-    # [fast: false, auto-fix: false]
-    - spancheck
-
-    # Ensure consistent code style when using log/slog.
-    - sloglint
-linters-settings:
-  gomodguard:
-    blocked:
-      modules:
-        - github.com/sirupsen/logrus:
-            recommendations:
-              - go.uber.org/zap
-            reason: "Use Zap for logging."
-        - github.com/rs/zerolog:
-            recommendations:
-              - go.uber.org/zap
-            reason: "Use Zap for logging."
-        - github.com/pkg/errors:
-            recommendations:
-              - errors
-              - fmt
-            reason: "Use the standard library error packages."
-        - golang.org/x/xerrors:
-            recommendations:
-              - errors
-              - fmt
-            reason: "Use the standard library error packages."
-        - github.com/golang/protobuf:
-            recommendations:
-              - google.golang.org/protobuf
-            reason: "The protobuf v1 module is deprecated."
-        - github.com/stretchr/testify:
-            recommendations:
-              - gotest.tools/v3
-            reason: "More reliably supports protobuf messages."
-
-  gofumpt:
-    extra-rules: true
-
-  gosec:
-    excludes:
-      # Flags for potentially-unsafe casting of ints. Prone to lots of false positives.
-      - G115
-
-  lll:
-    line-length: 120
-    tab-width: 1
-
-  misspell:
-    locale: US
-    ignore-words:
-      - cancelled
-      - cancelling
-      - analyses # allow analyses as a plural form of analysis
-
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: true
-
-  protogetter:
-    skip-any-generated: true
-
-  staticcheck:
-    checks: [all]
-
-  stylecheck:
-    checks: [all]
-
-  errorlint:
-    # Don't enforce %w to minimize implicit interface leakage.
-    # https://github.com/dwmkerr/hacker-laws#hyrums-law-the-law-of-implicit-interfaces
-    errorf: false
-
-  gomoddirectives:
-    replace-local: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - .git
+      - node_modules
+      - third_party$
+      - builtin$
+      - examples$
