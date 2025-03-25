@@ -388,7 +388,12 @@ func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail strin
 		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
 		serviceAccountEmail,
 	)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, serviceAccountImpersonationURL, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		serviceAccountImpersonationURL,
+		bytes.NewReader(reqBody),
+	)
 	if err != nil {
 		return "", err
 	}

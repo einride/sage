@@ -91,6 +91,57 @@ func Fix(ctx context.Context, args ...string) error {
 	return nil
 }
 
+// Run `golangci-lint fmt --diff` in every Go module from the root of the current git repo.
+func Fmt(ctx context.Context, args ...string) error {
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		cmd := Command(ctx, append([]string{"fmt", "-c", defaultConfigPath(), "--diff"}, args...)...)
+		cmd.Dir = filepath.Dir(path)
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Run `golangci-lint fmt` in every Go module from the root of the current git repo.
+// This writes the formatting to the files.
+func FmtFix(ctx context.Context, args ...string) error {
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		cmd := Command(ctx, append([]string{"fmt", "-c", defaultConfigPath()}, args...)...)
+		cmd.Dir = filepath.Dir(path)
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(name)
 	binDir := filepath.Join(toolDir, version, "bin")

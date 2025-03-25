@@ -263,3 +263,25 @@ linters:
       - third_party$
       - builtin$
       - examples$
+
+formatters:
+  enable:
+    - gci
+    - goimports
+    - gofumpt
+    - golines
+
+  settings:
+    gofumpt:
+      extra-rules: true
+    golines:
+      max-len: 120
+
+  exclusions:
+    generated: lax
+    paths:
+      - .git
+      - node_modules
+      - third_party$
+      - builtin$
+      - examples$

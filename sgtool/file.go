@@ -341,7 +341,10 @@ func (s *fileState) extractTar(reader io.Reader) error {
 		//nolint:gosec // allow traversal into archive
 		path := filepath.Join(s.dstPath, dstName)
 		if strings.Contains(path, "..") {
-			return fmt.Errorf("encountered .. inside tar filepath (%s). For security reasons, this is not allowed", path)
+			return fmt.Errorf(
+				"encountered .. inside tar filepath (%s). For security reasons, this is not allowed",
+				path,
+			)
 		}
 
 		switch header.Typeflag {
