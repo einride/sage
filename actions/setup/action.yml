@@ -17,6 +17,10 @@ inputs:
     required: false
     default: '1.24'
 
+  go-version-file:
+    description: 'Path to the go.mod or go.work file.'
+    required: false
+
   check-latest:
     description: If true, checks whether the cached go version is the latest, if not then downloads the latest. Useful when you need to use the latest version.
     required: false
@@ -42,9 +46,18 @@ runs:
         submodules: ${{ inputs.checkout-submodules }}
 
     - name: Set up Go
+      if: ${{ inputs.go-version-file == '' }}
       uses: actions/setup-go@v5
       with:
         go-version: ${{ inputs.go-version }}
+        check-latest: ${{ inputs.check-latest }}
+        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+
+    - name: Set up Go using go version file
+      if: ${{ inputs.go-version-file != '' }}
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
         cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
