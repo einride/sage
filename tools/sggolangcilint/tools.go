@@ -43,6 +43,14 @@ func CommandInDirectory(ctx context.Context, directory string, args ...string) *
 	return cmd
 }
 
+// CommandInDirectoryV2 does not automatically append any arguments, and delegates any confiuration to the caller.
+func CommandInDirectoryV2(ctx context.Context, directory string, args ...string) *exec.Cmd {
+	cmdArgs := append([]string{"run"}, args...)
+	cmd := Command(ctx, cmdArgs...)
+	cmd.Dir = directory
+	return cmd
+}
+
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, args ...string) error {
 	var commands []*exec.Cmd
