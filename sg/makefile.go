@@ -91,7 +91,7 @@ func generateMakefile(_ context.Context, g *codegen.File, pkg *doc.Package, mk M
 	g.P()
 	g.P(".PHONY: update-sage")
 	g.P("update-sage: $(go)")
-	g.P("\t@cd ", includePath, " && $(go) get -d go.einride.tech/sage@latest && $(go) mod tidy && $(go) run .")
+	g.P("\t@cd ", includePath, " && $(go) get go.einride.tech/sage@latest && $(go) mod tidy && $(go) run .")
 	g.P()
 	g.P(".PHONY: clean-sage")
 	g.P("clean-sage:")
