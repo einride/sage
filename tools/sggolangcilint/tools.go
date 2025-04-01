@@ -17,7 +17,7 @@ import (
 
 const (
 	name    = "golangci-lint"
-	version = "1.64.8"
+	version = "2.0.2"
 )
 
 //go:embed golangci.yml
@@ -37,12 +37,16 @@ func CommandInDirectory(ctx context.Context, directory string, args ...string) *
 	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
 		configPath = defaultConfigPath()
 	}
-	var excludeArg []string
-	if directory == sg.FromSageDir() {
-		excludeArg = append(excludeArg, "--exclude", "(is a global variable|is unused)")
-	}
 	cmdArgs := append([]string{"run", "--allow-parallel-runners", "-c", configPath}, args...)
-	cmd := Command(ctx, append(cmdArgs, excludeArg...)...)
+	cmd := Command(ctx, cmdArgs...)
+	cmd.Dir = directory
+	return cmd
+}
+
+// CommandInDirectoryV2 does not automatically append any arguments, and delegates any confiuration to the caller.
+func CommandInDirectoryV2(ctx context.Context, directory string, args ...string) *exec.Cmd {
+	cmdArgs := append([]string{"run"}, args...)
+	cmd := Command(ctx, cmdArgs...)
 	cmd.Dir = directory
 	return cmd
 }
