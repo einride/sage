@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version    = "0.3.2"
+	version    = "0.4.0"
 	binaryName = "protoc-gen-typescript-aip"
 )
 
@@ -27,8 +27,8 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostArch == sgtool.AMD64 {
-		hostArch = sgtool.X8664
+	if hostArch == sgtool.X8664 {
+		hostArch = sgtool.AMD64
 	}
 	//nolint:lll
 	downloadURL := fmt.Sprintf(
