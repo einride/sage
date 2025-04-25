@@ -125,6 +125,32 @@ func Fix(ctx context.Context, config Config, args ...string) error {
 	return nil
 }
 
+// Run `golangci-lint fmt` in every Go module from the root of the current git repo.
+// This writes the formatting to the files. Add the `--diff` argument if you don't want it to write to the files.
+func Fmt(ctx context.Context, config Config, args ...string) error {
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		cmd := Command(ctx, config, append([]string{"fmt", "-c", defaultConfigPath()}, args...)...)
+		cmd.Dir = filepath.Dir(path)
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func PrepareCommand(ctx context.Context, config Config) error {
 	toolDir := sg.FromToolsDir(name)
 	binDir := filepath.Join(toolDir, version, "bin")
