@@ -14,7 +14,6 @@ import (
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
-	"go.einride.tech/sage/tools/sggolines"
 	"go.einride.tech/sage/tools/sggopls"
 	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
@@ -73,7 +72,10 @@ func GoLintFix(ctx context.Context) error {
 
 func GoFormat(ctx context.Context) error {
 	sg.Logger(ctx).Println("formatting Go files...")
-	return sggolines.Run(ctx)
+	return sggolangcilintv2.Fmt(
+		ctx,
+		sggolangcilintv2.Config{RunRelativePathMode: sggolangcilintv2.RunRelativePathModeGitRoot},
+	)
 }
 
 func GoLicenses(ctx context.Context) error {
