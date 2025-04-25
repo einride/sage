@@ -43,6 +43,12 @@ type Config struct {
 	// - allow you to optionally use regexps here, like ".*\\.my\\.go$".
 	// - treat paths relative to the setting of RunRelativePathMode.
 	LintersExclusionsPaths []string
+	// Which file paths to exclude from issue reporting. The paths will still be analyzed.
+	// Golangci-Lint will:
+	// - replace "/" with the current OS file path separator to properly work on Windows.
+	// - allow you to optionally use regexps here, like ".*\\.my\\.go$".
+	// - treat paths relative to the setting of RunRelativePathMode.
+	FormattersExclusionsPaths []string
 }
 
 func Command(ctx context.Context, config Config, args ...string) *exec.Cmd {

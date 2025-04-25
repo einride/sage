@@ -261,3 +261,23 @@ linters:
     paths:{{ range .LintersExclusionsPaths }}
       - {{ . }}{{ end }}
     {{- end }}
+
+  formatters:
+    enable:
+    - gci
+    - goimports
+    - gofumpt
+    - golines
+
+    settings:
+    gofumpt:
+      extra-rules: true
+    golines:
+      max-len: 120
+
+    exclusions:
+    generated: lax
+    {{- if .FormattersExclusionsPaths }}
+    paths:{{ range .FormattersExclusionsPaths }}
+      - {{ . }}{{ end }}
+    {{- end }}
