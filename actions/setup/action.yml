@@ -78,6 +78,7 @@ runs:
           ./.sage/tools
           ./.sage/bin
           /home/runner/.cache/go-build
+          /home/runner/.cache/golangci-lint
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
