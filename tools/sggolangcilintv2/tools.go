@@ -70,6 +70,7 @@ func CommandInDirectory(ctx context.Context, config Config, directory string, ar
 	cmdArgs := append([]string{"run", "--allow-parallel-runners", "-c", configPath}, args...)
 	cmd := Command(ctx, config, cmdArgs...)
 	cmd.Dir = directory
+	sg.Logger(ctx).Printf("Running golangci-lint in : %s\n", directory)
 	return cmd
 }
 
