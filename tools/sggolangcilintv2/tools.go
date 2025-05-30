@@ -70,19 +70,31 @@ func CommandInDirectory(ctx context.Context, config Config, directory string, ar
 	cmdArgs := append([]string{"run", "--allow-parallel-runners", "-c", configPath}, args...)
 	cmd := Command(ctx, config, cmdArgs...)
 	cmd.Dir = directory
+	sg.Logger(ctx).Printf("Running golangci-lint in %s\n", directory)
 	return cmd
 }
 
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	gitRoot := sg.FromGitRoot()
+	if err := filepath.WalkDir(gitRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		relPath, err := filepath.Rel(gitRoot, path)
+		if err != nil {
+			return err
+		}
+		skip := skipDirCheck(relPath, d)
+		if skip {
+			sg.Logger(ctx).Printf("Skipping directory: %s\n", relPath)
+			return filepath.SkipDir
 		}
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
+
 		cmd := CommandInDirectory(ctx, config, filepath.Dir(path), args...)
 		commands = append(commands, cmd)
 		return cmd.Start()
@@ -99,9 +111,19 @@ func Run(ctx context.Context, config Config, args ...string) error {
 // Run GolangCI-Lint --fix in every Go module from the root of the current git repo.
 func Fix(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	gitRoot := sg.FromGitRoot()
+	if err := filepath.WalkDir(gitRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		relPath, err := filepath.Rel(gitRoot, path)
+		if err != nil {
+			return err
+		}
+		skip := skipDirCheck(relPath, d)
+		if skip {
+			sg.Logger(ctx).Printf("Skipping directory: %s\n", relPath)
+			return filepath.SkipDir
 		}
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
@@ -114,6 +136,7 @@ func Fix(ctx context.Context, config Config, args ...string) error {
 		if fileInfo.Size() == 0 {
 			return nil
 		}
+
 		cmd := Command(
 			ctx,
 			config,
@@ -137,13 +160,24 @@ func Fix(ctx context.Context, config Config, args ...string) error {
 // This writes the formatting to the files. Add the `--diff` argument if you don't want it to write to the files.
 func Fmt(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	gitRoot := sg.FromGitRoot()
+	if err := filepath.WalkDir(gitRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		relPath, err := filepath.Rel(gitRoot, path)
+		if err != nil {
+			return err
+		}
+		skip := skipDirCheck(relPath, d)
+		if skip {
+			sg.Logger(ctx).Printf("Skipping directory: %s\n", relPath)
+			return filepath.SkipDir
 		}
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
+
 		cmd := Command(ctx, config, append([]string{"fmt", "-c", defaultConfigPath()}, args...)...)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
@@ -210,4 +244,24 @@ func CreateConfigFromTemplate(ctx context.Context, outputPath string, config Con
 	defer file.Close()
 
 	return tmpl.Execute(file, config)
+}
+
+// skipDirCheck will check for skipping non-root level .sage directories as
+// well as some specific sub-directories of the root-level .sage directory.
+func skipDirCheck(relPath string, d fs.DirEntry) bool {
+	if !d.IsDir() {
+		return false
+	}
+
+	// Skip specific root-level .sage subdirectories
+	if relPath == ".sage/bin" || relPath == ".sage/build" || relPath == ".sage/tools" {
+		return true
+	}
+
+	// Skip any .sage directory that's not the root-level .sage
+	if d.Name() == ".sage" && relPath != ".sage" {
+		return true
+	}
+
+	return false
 }
