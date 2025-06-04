@@ -262,20 +262,20 @@ linters:
       - {{ . }}{{ end }}
     {{- end }}
 
-  formatters:
-    enable:
+formatters:
+  enable:
     - gci
     - goimports
     - gofumpt
     - golines
 
-    settings:
+  settings:
     gofumpt:
       extra-rules: true
     golines:
       max-len: 120
 
-    exclusions:
+  exclusions:
     generated: lax
     {{- if .FormattersExclusionsPaths }}
     paths:{{ range .FormattersExclusionsPaths }}
