@@ -29,7 +29,7 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 	return sg.Command(ctx, sg.FromBinDir(binaryName), args...)
 }
 
-func CommentOnPullRequestWithPlan(ctx context.Context, prNumber, environment, planFilePath string) *exec.Cmd {
+func CommentOnPRWithPlanSummarized(ctx context.Context, prNumber, environment, planFilePath string) *exec.Cmd {
 	cmd := Command(
 		ctx,
 		"show",
