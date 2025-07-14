@@ -344,16 +344,22 @@ func accessSecretVersion(ctx context.Context, accessToken, project, secret, vers
 }
 
 func applicationDefaultCredentials() (string, error) {
-	home := os.Getenv("HOME")
-	path := filepath.Join(home, ".config/gcloud/application_default_credentials.json")
-	b, err := os.ReadFile(path)
+	adcPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+	if adcPath == "" {
+		home := os.Getenv("HOME")
+		adcPath = filepath.Join(home, ".config/gcloud/application_default_credentials.json")
+	}
+
+	b, err := os.ReadFile(adcPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", errors.New(
-				"no application default credentials found. Please authenticate using 'gcloud auth application-default login'",
+				//nolint:lll
+				"no application default credentials found. Please authenticate using 'gcloud auth application-default login' or set the GOOGLE_APPLICATION_CREDENTIALS environment variable",
 			)
 		}
-		return "", fmt.Errorf("unable to read application default credentials at %s - %v", path, err)
+		return "", fmt.Errorf("unable to read application default credentials at %s - %v", adcPath, err)
 	}
 	return string(b), nil
 }
