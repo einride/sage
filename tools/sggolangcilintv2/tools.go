@@ -20,7 +20,7 @@ import (
 
 const (
 	name    = "golangci-lint"
-	version = "2.1.5"
+	version = "2.4.0"
 
 	RunRelativePathModeGitRoot    = "gitroot"
 	RunRelativePathModeGomod      = "gomod"

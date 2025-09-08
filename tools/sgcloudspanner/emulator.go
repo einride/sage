@@ -108,8 +108,9 @@ func inspectPortAddress(ctx context.Context, containerID, containerPort string) 
 
 func awaitReachable(ctx context.Context, addr string, wait, maxWait time.Duration) error {
 	deadline := time.Now().Add(maxWait)
+	dialer := net.Dialer{Deadline: deadline}
 	for time.Now().Before(deadline) {
-		if c, err := net.Dial("tcp", addr); err == nil {
+		if c, err := dialer.DialContext(ctx, "tcp", addr); err == nil {
 			_ = c.Close()
 			return nil
 		}

@@ -2,6 +2,7 @@ package sg
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,7 +29,9 @@ func FromGitRoot(pathElems ...string) string {
 	// We use exec.Command here because this command runs in a global,
 	// which is set up before logging is configured, resulting in unwanted log prints.
 	var output bytes.Buffer
-	c := exec.Command("git", []string{"rev-parse", "--show-toplevel"}...)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	c := exec.CommandContext(ctx, "git", []string{"rev-parse", "--show-toplevel"}...)
 	c.Env = os.Environ()
 	c.Stderr = os.Stderr
 	c.Stdout = &output
