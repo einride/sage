@@ -62,7 +62,7 @@ func defaultConfigPath() string {
 	return sg.FromToolsDir(name, ".golangci.yml")
 }
 
-func CommandInDirectory(ctx context.Context, config Config, directory string, args ...string) *exec.Cmd {
+func CommandRunInDirectory(ctx context.Context, config Config, directory string, args ...string) *exec.Cmd {
 	configPath := filepath.Join(directory, ".golangci.yml")
 	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
 		configPath = defaultConfigPath()
@@ -70,7 +70,17 @@ func CommandInDirectory(ctx context.Context, config Config, directory string, ar
 	cmdArgs := append([]string{"run", "--allow-parallel-runners", "-c", configPath}, args...)
 	cmd := Command(ctx, config, cmdArgs...)
 	cmd.Dir = directory
-	sg.Logger(ctx).Printf("Running golangci-lint in : %s\n", directory)
+	return cmd
+}
+
+func CommandFmtInDirectory(ctx context.Context, config Config, directory string, args ...string) *exec.Cmd {
+	configPath := filepath.Join(directory, ".golangci.yml")
+	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {
+		configPath = defaultConfigPath()
+	}
+	cmdArgs := append([]string{"fmt", "-c", configPath}, args...)
+	cmd := Command(ctx, config, cmdArgs...)
+	cmd.Dir = directory
 	return cmd
 }
 
@@ -84,7 +94,7 @@ func Run(ctx context.Context, config Config, args ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
-		cmd := CommandInDirectory(ctx, config, filepath.Dir(path), args...)
+		cmd := CommandRunInDirectory(ctx, config, filepath.Dir(path), args...)
 		commands = append(commands, cmd)
 		return cmd.Start()
 	}); err != nil {
