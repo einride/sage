@@ -94,6 +94,14 @@ func Run(ctx context.Context, config Config, args ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
+		fileInfo, err := d.Info()
+		if err != nil {
+			return err
+		}
+		// ignore if it's an empty go.mod
+		if fileInfo.Size() == 0 {
+			return filepath.SkipAll
+		}
 		cmd := CommandRunInDirectory(ctx, config, filepath.Dir(path), args...)
 		commands = append(commands, cmd)
 		return cmd.Start()
