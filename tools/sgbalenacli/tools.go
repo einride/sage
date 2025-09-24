@@ -15,7 +15,7 @@ import (
 const (
 	toolName   = "balena-cli"
 	binaryName = "balena"
-	version    = "v21.1.0"
+	version    = "v22.4.8"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -55,14 +55,19 @@ func Whoami(ctx context.Context) (WhoamiInfo, error) {
 
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(toolName, version)
-	binary := filepath.Join(binDir, toolName, binaryName)
+	binary := filepath.Join(binDir, "balena", "bin", binaryName) // note: changed in v22
 	hostOS := runtime.GOOS
 	if hostOS == sgtool.Darwin {
 		hostOS = "macOS"
 	}
-	balena := fmt.Sprintf("balena-cli-%s-%s-x64-standalone", version, hostOS) // only x64 supported.
+	arch := "x64"
+	if runtime.GOARCH == "arm64" {
+		arch = "arm64"
+	}
+
+	balena := fmt.Sprintf("balena-cli-%s-%s-%s-standalone", version, hostOS, arch)
 	binURL := fmt.Sprintf(
-		"https://github.com/balena-io/balena-cli/releases/download/%s/%s.zip",
+		"https://github.com/balena-io/balena-cli/releases/download/%s/%s.tar.gz",
 		version,
 		balena,
 	)
@@ -70,7 +75,7 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUnzip(),
+		sgtool.WithUntarGz(),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
