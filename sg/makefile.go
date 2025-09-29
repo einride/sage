@@ -174,3 +174,268 @@ func toMakeTarget(str string) string {
 	output = strcase.ToKebab(output)
 	return strings.ToLower(output)
 }
+
+func generateClaudeMarkdown(_ context.Context, g *codegen.File, pkg *doc.Package, mk Makefile, mks ...Makefile) error {
+	includePath, err := filepath.Rel(filepath.Dir(mk.Path), FromSageDir())
+	if err != nil {
+		return err
+	}
+	g.P("# Sage Build System - Claude Assistant Guide")
+	g.P()
+	g.P("This file provides context for Claude on how to use the Sage build system and available make targets.")
+	g.P("Generated from .sage/main.go - for more info see https://github.com/einride/sage")
+	g.P()
+
+	if len(mk.defaultTargetName()) != 0 {
+		g.P("## Default Target")
+		g.P()
+		g.P("- **Default**: `make` (runs `make ", toMakeTarget(mk.defaultTargetName()), "`)")
+		g.P()
+	}
+
+	g.P("## Available Make Targets")
+	g.P()
+
+	forEachTargetFunction(pkg, func(function *doc.Func, _ *doc.Type) {
+		if function.Recv == mk.namespaceName() {
+			targetName := toMakeTarget(getTargetFunctionName(function))
+			functionName := getTargetFunctionName(function)
+
+			g.P("### `make ", targetName, "`")
+			g.P()
+
+			// Extract metadata from function body
+			metadata := extractFunctionMetadata(function)
+
+			// Add function description from Go doc comment or extracted purpose
+			if function.Doc != "" {
+				g.P("**Description**: ", strings.TrimSpace(function.Doc))
+			} else if metadata.Purpose != "" {
+				g.P("**Description**: ", metadata.Purpose)
+			} else {
+				g.P("**Description**: ", functionName, " target")
+			}
+			g.P()
+
+			// Add function name for reference
+			g.P("**Source Function**: `", functionName, "()` in ", includePath, "/main.go")
+			g.P()
+
+			// Add sage tool information
+			if len(metadata.SageTools) > 0 {
+				g.P("**Sage Tools Used**: ", strings.Join(metadata.SageTools, ", "))
+				g.P()
+			}
+
+			// Add dependencies
+			if len(metadata.Dependencies) > 0 {
+				g.P("**Dependencies**: ", strings.Join(metadata.Dependencies, ", "))
+				g.P()
+			}
+
+			// Add parameters if any
+			if len(function.Decl.Type.Params.List) > 1 {
+				args := toMakeVars(function.Decl.Type.Params.List[1:])
+				g.P("**Parameters**:")
+				for i, arg := range args {
+					paramType := "string" // default
+					if i < len(function.Decl.Type.Params.List[1:]) {
+						paramType = fmt.Sprint(function.Decl.Type.Params.List[1:][i].Type)
+					}
+					g.P("- `", arg, "` (", paramType, ")")
+				}
+				g.P()
+				g.P("**Usage**: `make ", targetName)
+				for _, arg := range args {
+					g.P(" ", arg, "=\"value\"")
+				}
+				g.P("`")
+			} else {
+				g.P("**Usage**: `make ", targetName, "`")
+			}
+			g.P()
+		}
+	})
+
+	// Add sage-specific commands
+	g.P("## Sage System Commands")
+	g.P()
+	g.P("### `make sage`")
+	g.P("**Description**: Builds the sage binary and generates Makefiles")
+	g.P("**Usage**: `make sage`")
+	g.P()
+	g.P("### `make update-sage`")
+	g.P("**Description**: Updates Sage to the latest version")
+	g.P("**Usage**: `make update-sage`")
+	g.P()
+	g.P("### `make clean-sage`")
+	g.P("**Description**: Cleans sage build artifacts")
+	g.P("**Usage**: `make clean-sage`")
+	g.P()
+
+	g.P("## Understanding .sage Directory")
+	g.P()
+	g.P("The `.sage/` directory contains:")
+	g.P("- `main.go`: Defines all the build targets and their implementations")
+	g.P("- `tools/`: Downloaded build tools (managed by Sage)")
+	g.P("- `bin/`: Built sage binary")
+	g.P("- `build/`: Build artifacts and outputs")
+	g.P()
+	g.P("## For Claude: How to Work with This Repository")
+	g.P()
+	g.P("1. **View available targets**: Read this file or run `make` without arguments")
+	g.P("2. **Understand a target**: Check the source function in `.sage/main.go`")
+	g.P("3. **Run build tasks**: Use the make commands listed above")
+	g.P("4. **Add new targets**: Add public functions to `.sage/main.go`, then run `make sage`")
+	g.P("5. **Debug build issues**: Check `.sage/main.go` for the actual implementation")
+
+	return nil
+}
+
+// FunctionMetadata holds extracted metadata about a function
+type FunctionMetadata struct {
+	Purpose      string
+	Dependencies []string
+	SageTools    []string
+}
+
+// extractFunctionMetadata parses the function body to extract dependencies and tools
+func extractFunctionMetadata(function *doc.Func) FunctionMetadata {
+	metadata := FunctionMetadata{}
+
+	if function.Decl.Body == nil {
+		return metadata
+	}
+
+	// Walk through function body statements
+	for _, stmt := range function.Decl.Body.List {
+		extractFromStatement(stmt, &metadata)
+	}
+
+	return metadata
+}
+
+// extractFromStatement recursively extracts metadata from AST statements
+func extractFromStatement(stmt ast.Stmt, metadata *FunctionMetadata) {
+	switch s := stmt.(type) {
+	case *ast.ExprStmt:
+		extractFromExpr(s.X, metadata)
+	case *ast.AssignStmt:
+		for _, expr := range s.Rhs {
+			extractFromExpr(expr, metadata)
+		}
+	case *ast.ReturnStmt:
+		for _, expr := range s.Results {
+			extractFromExpr(expr, metadata)
+		}
+	case *ast.IfStmt:
+		if s.Init != nil {
+			extractFromStatement(s.Init, metadata)
+		}
+		if s.Cond != nil {
+			extractFromExpr(s.Cond, metadata)
+		}
+		if s.Body != nil {
+			for _, bodyStmt := range s.Body.List {
+				extractFromStatement(bodyStmt, metadata)
+			}
+		}
+		if s.Else != nil {
+			extractFromStatement(s.Else, metadata)
+		}
+	case *ast.BlockStmt:
+		for _, blockStmt := range s.List {
+			extractFromStatement(blockStmt, metadata)
+		}
+	}
+}
+
+// extractFromExpr extracts metadata from expressions
+func extractFromExpr(expr ast.Expr, metadata *FunctionMetadata) {
+	switch e := expr.(type) {
+	case *ast.CallExpr:
+		extractFromCallExpr(e, metadata)
+	case *ast.SelectorExpr:
+		// Check for sage tool usage like sggo.TestCommand, sggolangcilintv2.Run
+		if ident, ok := e.X.(*ast.Ident); ok {
+			if strings.HasPrefix(ident.Name, "sg") && ident.Name != "sg" {
+				toolName := ident.Name + "." + e.Sel.Name
+				if !contains(metadata.SageTools, toolName) {
+					metadata.SageTools = append(metadata.SageTools, toolName)
+				}
+			}
+		}
+	}
+}
+
+// extractFromCallExpr extracts metadata from function call expressions
+func extractFromCallExpr(call *ast.CallExpr, metadata *FunctionMetadata) {
+	// Check for sg.Deps and sg.SerialDeps calls
+	if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+		if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "sg" {
+			if sel.Sel.Name == "Deps" || sel.Sel.Name == "SerialDeps" {
+				// Extract dependency function names (skip first argument which is context)
+				for i, arg := range call.Args {
+					if i == 0 { // Skip context argument
+						continue
+					}
+					if depName := extractDepName(arg); depName != "" {
+						if !contains(metadata.Dependencies, depName) {
+							metadata.Dependencies = append(metadata.Dependencies, depName)
+						}
+					}
+				}
+			} else if sel.Sel.Name == "Logger" {
+				// Extract purpose from logger.Println calls
+				extractLoggerPurpose(call, metadata)
+			}
+		}
+	}
+
+	// Check for chained calls like sggo.TestCommand(ctx).Run()
+	if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+		if callExpr, ok := sel.X.(*ast.CallExpr); ok {
+			extractFromCallExpr(callExpr, metadata)
+		}
+	}
+
+	// Recursively check arguments
+	for _, arg := range call.Args {
+		extractFromExpr(arg, metadata)
+	}
+}
+
+// extractDepName extracts dependency name from function reference
+func extractDepName(expr ast.Expr) string {
+	switch e := expr.(type) {
+	case *ast.Ident:
+		return e.Name
+	case *ast.CallExpr:
+		// Handle sg.Fn(function, args...) calls
+		if sel, ok := e.Fun.(*ast.SelectorExpr); ok {
+			if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "sg" && sel.Sel.Name == "Fn" {
+				if len(e.Args) > 0 {
+					return extractDepName(e.Args[0])
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// extractLoggerPurpose tries to extract purpose from logger statements
+func extractLoggerPurpose(call *ast.CallExpr, metadata *FunctionMetadata) {
+	// Look for subsequent method calls on the logger
+	// This is a simplified extraction - in practice, we'd need to look at the next statement
+	// For now, we'll leave this empty and rely on explicit documentation
+}
+
+// contains checks if a slice contains a string
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}

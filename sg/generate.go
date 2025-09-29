@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 
 	"go.einride.tech/sage/internal/codegen"
 )
@@ -60,7 +61,7 @@ func GenerateMakefiles(mks ...Makefile) {
 	if err := compileCmd.Run(); err != nil {
 		panic(fmt.Errorf("error compiling sagefiles: %w", err))
 	}
-	// Generate makefiles
+	// Generate makefiles and CLAUDE.md files
 	for _, v := range mks {
 		if v.Path == "" {
 			panic("Path needs to be defined")
@@ -72,6 +73,18 @@ func GenerateMakefiles(mks ...Makefile) {
 			panic(err)
 		}
 		if err := os.WriteFile(v.Path, mk.RawContent(), 0o600); err != nil {
+			panic(err)
+		}
+
+		// Generate CLAUDE.md file in the same directory as the Makefile
+		claudeFile := codegen.NewMakefile(codegen.FileConfig{
+			GeneratedBy: "go.einride.tech/sage",
+		})
+		claudePath := filepath.Join(filepath.Dir(v.Path), "CLAUDE.md")
+		if err := generateClaudeMarkdown(ctx, claudeFile, pkg, v, mks...); err != nil {
+			panic(err)
+		}
+		if err := os.WriteFile(claudePath, claudeFile.RawContent(), 0o600); err != nil {
 			panic(err)
 		}
 	}
