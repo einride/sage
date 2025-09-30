@@ -6,13 +6,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"go.einride.tech/sage/sg"
 )
 
+var versionSuffixRegex = regexp.MustCompile(`/v\d+$`)
+
+// trimVersionSuffix removes version suffixes like /v2, /v3, etc. from package names.
+// This is needed because Go modules v2+ include the major version in the import path,
+// but the installed binary name should not include this suffix.
+func trimVersionSuffix(pkg string) string {
+	return versionSuffixRegex.ReplaceAllString(pkg, "")
+}
+
 func GoInstall(ctx context.Context, pkg, version string) (string, error) {
-	executable := sg.FromToolsDir("go", pkg, version, filepath.Base(pkg))
+	executable := sg.FromToolsDir("go", pkg, version, filepath.Base(trimVersionSuffix(pkg)))
 	// Check if executable already exist
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)
