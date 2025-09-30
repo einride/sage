@@ -17,7 +17,7 @@ import (
 
 const (
 	name    = "go-licenses"
-	version = "v1.6.0"
+	version = "v2.0.1"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -112,7 +112,7 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses", version)
+	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses/v2", version)
 	return err
 }
 
