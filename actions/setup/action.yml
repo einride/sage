@@ -61,15 +61,27 @@ runs:
         check-latest: ${{ inputs.check-latest }}
         cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
+    - name: Prepare Go version cache key
+      id: cache-go-version
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.go-version-file }}" ]; then
+          # Extract Go version from go.mod or go.work file (ignoring comments)
+          VERSION=$(grep -E '^go [0-9]' "${{ inputs.go-version-file }}" | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "version=${{ inputs.go-version }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Set KOCACHE environment variable
       shell: bash
       run: echo "KOCACHE=/home/runner/.ko/cache" >> $GITHUB_ENV
 
-    # NOTE: cache key and restore key is not the same;
-    # We want to always re-use the cache created by master in all our PRs. We also want any PR which modifies go.sum to create a new cache for itself.
-    # Therefore the cache key is set to use GITHUB_REF_NAME and the restore key is set to use GITHUB_BASE_REF.
-    # For more details, see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-    # NOTE: you need to build on push to master and on pull request in the repos which uses this reusable workflow.
+    # NOTE: Cache key uses OS, cacheKey input, Go version (extracted from go-version-file or from go-version input), and go.sum files hash.
+    # The restore-keys provide a fallback hierarchy when an exact match isn't found:
+    # 1. Same OS/cacheKey/Go version, but different go.sum (e.g., after dependency changes)
+    # 2. Same OS/cacheKey, but different Go version (e.g., after Go upgrades)
+    # This maximizes cache reuse across branches and dependency changes while maintaining reasonable isolation.
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
@@ -82,6 +94,7 @@ runs:
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
-        key: ${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.base_ref }}-${{ github.workflow }}-${{ github.job }}-${{ inputs.cacheKey }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-
+          ${{ runner.os }}-${{ inputs.cacheKey }}-
