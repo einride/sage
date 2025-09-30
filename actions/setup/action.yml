@@ -10,7 +10,7 @@ inputs:
   disableCache:
     description: Disable cache
     required: false
-    default: false
+    default: 'false'
 
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
@@ -24,11 +24,11 @@ inputs:
   check-latest:
     description: If true, checks whether the cached go version is the latest, if not then downloads the latest. Useful when you need to use the latest version.
     required: false
-    default: false
+    default: 'false'
 
   fetch-depth:
     description: Number of commits to fetch. 0 indicates all history for all branches and tags.
-    default: 0
+    default: '0'
 
   checkout-submodules:
     description: "Whether to checkout submodules: `true` to checkout submodules or `recursive` to recursively checkout submodules."
