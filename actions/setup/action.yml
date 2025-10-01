@@ -47,7 +47,7 @@ runs:
 
     - name: Set up Go
       if: ${{ inputs.go-version-file == '' }}
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
@@ -55,7 +55,7 @@ runs:
 
     - name: Set up Go using go version file
       if: ${{ inputs.go-version-file != '' }}
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
