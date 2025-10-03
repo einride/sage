@@ -61,17 +61,13 @@ runs:
         check-latest: ${{ inputs.check-latest }}
         cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
-    - name: Prepare Go version cache key
-      id: cache-go-version
+    # The `go version` command outputs like: "go version go1.24.5 darwin/arm64", so we want the third segment.
+    - name: Go version
+      id: go-version
       shell: bash
       run: |
-        if [ -n "${{ inputs.go-version-file }}" ]; then
-          # Extract Go version from go.mod or go.work file (ignoring comments)
-          VERSION=$(grep -E '^go [0-9]' "${{ inputs.go-version-file }}" | awk '{print $2}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-        else
-          echo "version=${{ inputs.go-version }}" >> $GITHUB_OUTPUT
-        fi
+        VERSION=$(go version | awk '{print $3}')
+        echo "go_version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Set KOCACHE environment variable
       shell: bash
@@ -94,7 +90,7 @@ runs:
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
-        key: ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.go-version.outputs.go_version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-
+          ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.go-version.outputs.go_version }}-
           ${{ runner.os }}-${{ inputs.cacheKey }}-
