@@ -31,7 +31,7 @@ func main() {
 func Default(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
 	sg.SerialDeps(ctx, GoModTidy)
-	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff, GoPls)
+	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
 	return nil
 }
 
