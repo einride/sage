@@ -51,7 +51,7 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Set up Go using go version file
       if: ${{ inputs.go-version-file != '' }}
@@ -59,7 +59,7 @@ runs:
       with:
         go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Prepare Go version cache key
       id: cache-go-version
@@ -72,12 +72,6 @@ runs:
         else
           echo "version=${{ inputs.go-version }}" >> $GITHUB_OUTPUT
         fi
-
-    - name: Debug
-      run: |
-        go version
-        go env GOPATH
-      shell: bash
 
     - name: Set KOCACHE environment variable
       shell: bash
@@ -97,8 +91,7 @@ runs:
           ./.sage/bin
           /home/runner/.cache/go-build
           /home/runner/.cache/golangci-lint
-          /home/runner/go/pkg/mod
-          /home/runner/go/bin
+          /home/runner/go
           /home/runner/.ko/cache
         key: ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
