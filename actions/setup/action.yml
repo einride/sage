@@ -51,7 +51,7 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Set up Go using go version file
       if: ${{ inputs.go-version-file != '' }}
@@ -59,17 +59,20 @@ runs:
       with:
         go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Prepare Go version cache key
       id: cache-go-version
       shell: bash
       run: |
         if [ -n "${{ inputs.go-version-file }}" ]; then
-          # Extract Go version from go.mod or go.work file (ignoring comments)
-          VERSION=$(grep -E '^go [0-9]' "${{ inputs.go-version-file }}" | awk '{print $2}')
+          DIR=$(dirname "${{ inputs.go-version-file }}")
+          cd "$DIR"
+          VERSION=$(go version | awk '{print $3}' | sed 's/go//')
+          echo "Go version cache key from file: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         else
+          echo "Go version cache key from string: $VERSION"
           echo "version=${{ inputs.go-version }}" >> $GITHUB_OUTPUT
         fi
 
