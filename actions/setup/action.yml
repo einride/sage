@@ -46,35 +46,34 @@ runs:
         submodules: ${{ inputs.checkout-submodules }}
 
     - name: Set up Go
+      id: setup-go
       if: ${{ inputs.go-version-file == '' }}
       uses: actions/setup-go@v6
       with:
         go-version: ${{ inputs.go-version }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Set up Go using go version file
+      id: setup-go-from-file
       if: ${{ inputs.go-version-file != '' }}
       uses: actions/setup-go@v6
       with:
         go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
-        cache: false  # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
+        cache: false # cache is handled by separate actions/cache step, see https://github.com/actions/setup-go/issues/358
 
     - name: Prepare Go version cache key
       id: cache-go-version
       shell: bash
       run: |
-        if [ -n "${{ inputs.go-version-file }}" ]; then
-          DIR=$(dirname "${{ inputs.go-version-file }}")
-          cd "$DIR"
-          VERSION=$(go version | awk '{print $3}' | sed 's/go//')
-          echo "Go version cache key from file: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        if [ -n "${{ steps.setup-go-from-file.outputs.go-version }}" ]; then
+          VERSION="${{ steps.setup-go-from-file.outputs.go-version }}"
         else
-          echo "Go version cache key from string: $VERSION"
-          echo "version=${{ inputs.go-version }}" >> $GITHUB_OUTPUT
+          VERSION="${{ steps.setup-go.outputs.go-version }}"
         fi
+        echo "Go version for cache key: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Set KOCACHE environment variable
       shell: bash
