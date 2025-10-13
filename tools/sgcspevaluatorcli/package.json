@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@einride/csp-evaluator-cli": "1.0.0"
+    "@einride/csp-evaluator-cli": "1.0.1"
   }
 }
