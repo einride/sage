@@ -75,15 +75,26 @@ runs:
         echo "Go version for cache key: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+    - name: Prepare cache key
+      id: cache-key
+      shell: bash
+      run: |
+        if [ "${{ inputs.cacheKey }}" != "cachekey" ]; then
+          # Respect non-default input from calling workflow
+          CACHE_KEY="${{ inputs.cacheKey }}"
+        else
+          # Prevent cache thrashing, where fastest workflow (with likely least amount of dependencies) writes the cache
+          # Replace spaces with dashes using bash parameter expansion
+          CACHE_KEY="${{ github.workflow }}"
+          CACHE_KEY="${CACHE_KEY// /-}"
+        fi
+        echo "key=$CACHE_KEY" >> $GITHUB_OUTPUT
+        echo "Using cache key: $CACHE_KEY"
+
     - name: Set KOCACHE environment variable
       shell: bash
       run: echo "KOCACHE=/home/runner/.ko/cache" >> $GITHUB_ENV
 
-    # NOTE: Cache key uses OS, cacheKey input, Go version (extracted from go-version-file or from go-version input), and go.sum files hash.
-    # The restore-keys provide a fallback hierarchy when an exact match isn't found:
-    # 1. Same OS/cacheKey/Go version, but different go.sum (e.g., after dependency changes)
-    # 2. Same OS/cacheKey, but different Go version (e.g., after Go upgrades)
-    # This maximizes cache reuse across branches and dependency changes while maintaining reasonable isolation.
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
       uses: actions/cache@v4
@@ -96,7 +107,7 @@ runs:
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
-        key: ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ inputs.cacheKey }}-${{ steps.cache-go-version.outputs.version }}-
-          ${{ runner.os }}-${{ inputs.cacheKey }}-
+          ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-
+          ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-
