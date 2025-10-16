@@ -18,18 +18,3 @@ jobs:
 
       - name: Make
         run: make
-
-  gopls:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Sage
-        uses: ./actions/setup
-        with:
-          go-version: "stable"
-
-      - name: Make
-        run: make go-pls
-

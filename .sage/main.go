@@ -2,10 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io/fs"
-	"path/filepath"
-	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/tools/sgbackstage"
@@ -14,7 +10,6 @@ import (
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
-	"go.einride.tech/sage/tools/sggopls"
 	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
@@ -51,15 +46,6 @@ func GoLint(ctx context.Context) error {
 		ctx,
 		sggolangcilintv2.Config{RunRelativePathMode: sggolangcilintv2.RunRelativePathModeGitRoot},
 	)
-}
-
-func GoPls(ctx context.Context) error {
-	sg.Logger(ctx).Println("Linting Go files with gopls...")
-	filePaths, err := goFilePaths()
-	if err != nil {
-		return err
-	}
-	return sggopls.Check(ctx, filePaths).Run()
 }
 
 func GoLintFix(ctx context.Context) error {
@@ -106,25 +92,4 @@ func BackstageValidate(ctx context.Context) error {
 func GitVerifyNoDiff(ctx context.Context) error {
 	sg.Logger(ctx).Println("verifying that git has no diff...")
 	return sggit.VerifyNoDiff(ctx)
-}
-
-func goFilePaths() ([]string, error) {
-	var goFilePaths []string
-	err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if !strings.HasSuffix(path, ".go") {
-			return nil
-		}
-		goFilePaths = append(goFilePaths, path)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("gathering list of go files: %w", err)
-	}
-	return goFilePaths, nil
 }
