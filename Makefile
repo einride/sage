@@ -87,10 +87,6 @@ go-lint-fix: $(sagefile)
 go-mod-tidy: $(sagefile)
 	@$(sagefile) GoModTidy
 
-.PHONY: go-pls
-go-pls: $(sagefile)
-	@$(sagefile) GoPls
-
 .PHONY: go-test
 go-test: $(sagefile)
 	@$(sagefile) GoTest
