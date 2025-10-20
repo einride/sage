@@ -198,12 +198,16 @@ linters:
         modules:
           - github.com/sirupsen/logrus:
               recommendations:
-                - go.uber.org/zap
-              reason: Use Zap for logging.
+                - log/slog
+              reason: Use the standard library logging packages.
           - github.com/rs/zerolog:
               recommendations:
-                - go.uber.org/zap
-              reason: Use Zap for logging.
+                - log/slog
+              reason: Use the standard library logging packages.
+          - go.uber.org/zap:
+              recommendations:
+                - log/slog
+              reason: Use the standard library logging packages.
           - github.com/pkg/errors:
               recommendations:
                 - errors
