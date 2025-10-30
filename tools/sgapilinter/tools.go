@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	version = "1.69.2"
+	version = "2.0.0"
 	name    = "api-linter"
 )
 
@@ -62,7 +62,11 @@ func Run(ctx context.Context, args ...string) error {
 			case err != nil:
 				return err
 			case !d.IsDir() && filepath.Ext(path) == ".proto":
-				protoFiles = append(protoFiles, path)
+				relPath, err := filepath.Rel(moduleDir, path)
+				if err != nil {
+					return err
+				}
+				protoFiles = append(protoFiles, relPath)
 			}
 			return nil
 		}); err != nil {
