@@ -15,7 +15,7 @@ inputs:
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
-    default: '1.24'
+    default: '1.25'
 
   go-version-file:
     description: 'Path to the go.mod or go.work file.'
