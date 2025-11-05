@@ -90,6 +90,47 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 	return nil
 }
 
+// CheckV2 checks for disallowed types of Go licenses.
+// By default, Google's forbidden and restricted types are disallowed.
+func CheckV2(ctx context.Context, disallowedTypes ...string) error {
+	var commands []*exec.Cmd
+	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || d.Name() != "go.mod" {
+			return nil
+		}
+		args := []string{
+			"check",
+			"./...",
+			"--skip_headers",
+			"--ignore",
+			"github.com/einride",
+			"--ignore",
+			"go.einride.tech",
+		}
+		if len(disallowedTypes) > 0 {
+			args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+		} else {
+			args = append(args, "--disallowed_types=forbidden,restricted")
+		}
+		cmd := Command(ctx, args...)
+		cmd.Dir = filepath.Dir(path)
+		cmd.Env = append(cmd.Env, "GOTOOLCHAIN=local") // this is required so not to traverse std lib packages
+		commands = append(commands, cmd)
+		return cmd.Start()
+	}); err != nil {
+		return err
+	}
+	for _, cmd := range commands {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func PrepareCommand(ctx context.Context) error {
 	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses/v2", version)
 	return err
