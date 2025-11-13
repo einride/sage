@@ -1,10 +1,7 @@
 package sggolicenses
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"io/fs"
 	"os/exec"
 	"path/filepath"
@@ -16,7 +13,7 @@ import (
 
 const (
 	name    = "go-licenses"
-	version = "v1.6.0"
+	version = "v2.0.1"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -49,7 +46,7 @@ func CheckDir(ctx context.Context, directory string, disallowedTypes ...string) 
 // Check for disallowed types of Go licenses.
 // By default, Google's forbidden and restricted types are disallowed.
 func Check(ctx context.Context, disallowedTypes ...string) error {
-	var commands []*exec.Cmd
+	var goModPaths []string
 	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -57,30 +54,36 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
-		goModulePath, err := loadGoModulePath(ctx, path)
-		if err != nil {
-			return err
-		}
-		args := []string{
-			"check",
-			goModulePath,
-			"--skip_headers",
-			"--ignore",
-			"github.com/einride",
-			"--ignore",
-			"go.einride.tech",
-		}
-		if len(disallowedTypes) > 0 {
-			args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
-		} else {
-			args = append(args, "--disallowed_types=forbidden,restricted")
-		}
-		cmd := Command(ctx, args...)
-		cmd.Dir = filepath.Dir(path)
-		commands = append(commands, cmd)
-		return cmd.Start()
+		goModPaths = append(goModPaths, filepath.Dir(path))
+		return nil
 	}); err != nil {
 		return err
+	}
+
+	args := []string{
+		"check",
+		"--skip_headers",
+		"--include_tests",
+		"--ignore", "github.com/einride",
+		"--ignore", "go.einride.tech",
+		"--ignore", "gotest.tools/v3", // go-licenses is unable to identify this license; Apache-2.0
+	}
+	if len(disallowedTypes) > 0 {
+		args = append(args, "--disallowed_types="+strings.Join(disallowedTypes, ","))
+	} else {
+		args = append(args, "--disallowed_types=forbidden,restricted")
+	}
+	args = append(args, "./...")
+
+	commands := make([]*exec.Cmd, 0, len(goModPaths))
+	for _, path := range goModPaths {
+		sg.Logger(ctx).Println("checking Go licenses for", path)
+		cmd := Command(ctx, args...)
+		cmd.Dir = path
+		commands = append(commands, cmd)
+		if err := cmd.Start(); err != nil {
+			return err
+		}
 	}
 	for _, cmd := range commands {
 		if err := cmd.Wait(); err != nil {
@@ -91,28 +94,6 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses", version)
+	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses/v2", version)
 	return err
-}
-
-func loadGoModulePath(ctx context.Context, goModFile string) (string, error) {
-	var out bytes.Buffer
-	cmd := sg.Command(ctx, "go", "mod", "edit", "-json")
-	cmd.Dir = filepath.Dir(goModFile)
-	cmd.Stdout = &out
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	var modFile struct {
-		Module struct {
-			Path string
-		}
-	}
-	if err := json.Unmarshal(out.Bytes(), &modFile); err != nil {
-		return "", err
-	}
-	if modFile.Module.Path == "" {
-		return "", fmt.Errorf("no module path found for %s", goModFile)
-	}
-	return modFile.Module.Path, nil
 }
