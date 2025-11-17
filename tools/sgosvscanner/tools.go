@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version    = "1.9.2"
+	version    = "2.2.4"
 	binaryName = "osv-scanner"
 )
 
