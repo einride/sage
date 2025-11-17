@@ -3,7 +3,12 @@
 Sage is a Make-like build tool inspired by [Mage](https://magefile.org/) that
 provides a curated and maintained set of build [tools](./tools) for Go projects.
 
+For a detailed and AI-generated documentation on the architecture behind this
+project, which you can chat with, see the
+[DeepWiki documentation](https://deepwiki.com/einride/sage).
+
 [![Release](https://github.com/einride/sage/actions/workflows/release.yml/badge.svg)](https://github.com/einride/sage/actions/workflows/release.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/einride/sage)
 
 ## Requirements
 
