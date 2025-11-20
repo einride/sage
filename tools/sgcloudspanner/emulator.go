@@ -17,7 +17,7 @@ import (
 // https://console.cloud.google.com/gcr/images/cloud-spanner-emulator/global/emulator
 const (
 	url     = "gcr.io/cloud-spanner-emulator/emulator"
-	version = "1.5.29"
+	version = "1.5.45"
 	image   = url + ":" + version
 )
 
