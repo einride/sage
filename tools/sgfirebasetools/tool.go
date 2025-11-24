@@ -32,6 +32,15 @@ type DeployPreviewOptions struct {
 	Expires string
 }
 
+type DeployLiveOptions struct {
+	// Project to deploy in.
+	Project string
+	// Site can be set if the firebase config contains config for multiple sites. Channel will be deployed to this site.
+	Site string
+	// CmdDir can be set if the firebase.json file is not in root of repository.
+	CmdDir string
+}
+
 // DeployPreview deploy static files to a Firebase hosting channel. Returns the generated URL
 // for the hosting channel.
 func DeployPreview(ctx context.Context, opts DeployPreviewOptions) (string, error) {
@@ -78,6 +87,25 @@ func DeployPreview(ctx context.Context, opts DeployPreviewOptions) (string, erro
 		return "", fmt.Errorf("could not resolve preview url. Make sure to specify site in the deploy preview options")
 	}
 	return url, nil
+}
+
+func DeployLive(ctx context.Context, opts DeployLiveOptions) error {
+	args := []string{"deploy", "--project", opts.Project}
+
+	if opts.Site != "" {
+		args = append(args, "--only", opts.Site)
+	}
+
+	cmd := Command(ctx, args...)
+	if opts.CmdDir != "" {
+		cmd.Dir = opts.CmdDir
+	}
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("could not run firebase deploy: %w", err)
+	}
+
+	return nil
 }
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
