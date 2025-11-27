@@ -1,0 +1,51 @@
+name: Check Tool Versions
+
+on:
+  schedule:
+    - cron: "0 9 1 * *" # Monthly on 1st at 9am UTC
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: "Specific tool to check (default: all)"
+        required: false
+        default: "all"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      outdated: ${{ steps.check.outputs.outdated }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check versions
+        id: check
+        run: |
+          tool="${{ github.event.inputs.tool || 'all' }}"
+          make check-tool-versions tool="$tool" apply=false pr=false 2>&1 | tee output.txt
+
+          # Extract tool names marked as [outdated]
+          outdated=$(grep '\[outdated\]' output.txt | awk -F: '{print $1}' | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "outdated=$outdated" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update:
+    needs: check
+    if: needs.check.outputs.outdated != '[]' && needs.check.outputs.outdated != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: ${{ fromJson(needs.check.outputs.outdated) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Update and create PR
+        run: make check-tool-versions tool=${{ matrix.tool }} apply=true pr=true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
