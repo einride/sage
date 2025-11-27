@@ -3,6 +3,7 @@ package version
 import (
 	"go.einride.tech/sage/tools/sgbuf"
 	"go.einride.tech/sage/tools/sggolangcilintv2"
+	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sgprotocgengogrpc"
 )
 
@@ -34,5 +35,12 @@ var Tools = []Tool{
 		SourceType:     SourceGitHub,
 		Repo:           sgprotocgengogrpc.Repo,
 		TagPattern:     sgprotocgengogrpc.TagPattern,
+	},
+	{
+		Name:           sggolicenses.Name,
+		FilePath:       "tools/sggolicenses/tools.go",
+		CurrentVersion: sggolicenses.Version,
+		SourceType:     SourceGoProxy,
+		Module:         sggolicenses.Module,
 	},
 }
