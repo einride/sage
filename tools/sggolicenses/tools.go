@@ -12,13 +12,17 @@ import (
 )
 
 const (
-	name    = "go-licenses"
-	version = "v2.0.1"
+	// Name is the go-licenses binary name.
+	Name = "go-licenses"
+	// Version is the go-licenses version.
+	Version = "v2.0.1"
+	// Module is the Go module path.
+	Module = "github.com/google/go-licenses/v2"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, sg.FromBinDir(name), args...)
+	return sg.Command(ctx, sg.FromBinDir(Name), args...)
 }
 
 // CheckDir checks for disallowed types of Go licenses in a specific directory.
@@ -94,6 +98,6 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses/v2", version)
+	_, err := sgtool.GoInstall(ctx, Module, Version)
 	return err
 }
