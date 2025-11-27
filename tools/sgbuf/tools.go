@@ -15,7 +15,7 @@ import (
 
 const (
 	// Version is the buf version.
-	Version = "1.59.0"
+	Version = "1.61.0"
 	// Name is the buf binary name.
 	Name = "buf"
 	// Repo is the GitHub repository.
