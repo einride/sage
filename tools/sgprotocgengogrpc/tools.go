@@ -13,18 +13,24 @@ import (
 )
 
 const (
-	version = "1.4.0"
-	name    = "protoc-gen-go-grpc"
+	// Version is the protoc-gen-go-grpc version.
+	Version = "1.4.0"
+	// Name is the binary name.
+	Name = "protoc-gen-go-grpc"
+	// Repo is the GitHub repository.
+	Repo = "grpc/grpc-go"
+	// TagPattern matches version tags (monorepo pattern).
+	TagPattern = `^cmd/protoc-gen-go-grpc/v(\d+\.\d+\.\d+)$`
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, sg.FromBinDir(name), args...)
+	return sg.Command(ctx, sg.FromBinDir(Name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	binDir := sg.FromToolsDir(name, version)
-	binary := filepath.Join(binDir, name)
+	binDir := sg.FromToolsDir(Name, Version)
+	binary := filepath.Join(binDir, Name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
 	if hostOS == sgtool.Darwin {
@@ -32,8 +38,8 @@ func PrepareCommand(ctx context.Context) error {
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/grpc/grpc-go/releases/download/cmd/protoc-gen-go-grpc/v%s/protoc-gen-go-grpc.v%s.%s.%s.tar.gz",
-		version,
-		version,
+		Version,
+		Version,
 		hostOS,
 		hostArch,
 	)
@@ -45,10 +51,10 @@ func PrepareCommand(ctx context.Context) error {
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", name, err)
+		return fmt.Errorf("unable to download %s: %w", Name, err)
 	}
 	if err := os.Chmod(binary, 0o755); err != nil {
-		return fmt.Errorf("unable to make %s command: %w", name, err)
+		return fmt.Errorf("unable to make %s command: %w", Name, err)
 	}
 	return nil
 }
