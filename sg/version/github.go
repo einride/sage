@@ -10,10 +10,10 @@ import (
 	"go.einride.tech/sage/tools/sggh"
 )
 
-// GetLatestGitHubVersion fetches the latest version from GitHub tags.
+// getLatestGitHubVersion fetches the latest version from GitHub tags.
 // The tagPattern must be a regex with a capture group for the version.
 // For example: `^v(\d+\.\d+\.\d+)$` matches "v1.2.3" and extracts "1.2.3".
-func GetLatestGitHubVersion(ctx context.Context, repo, tagPattern string) (string, error) {
+func getLatestGitHubVersion(ctx context.Context, repo, tagPattern string) (string, error) {
 	sg.Deps(ctx, sggh.PrepareCommand)
 
 	cmd := sggh.Command(ctx, "api",

@@ -7,11 +7,11 @@ import (
 	"go.einride.tech/sage/tools/sgprotocgengogrpc"
 )
 
-// Tools is the registry of versionable tools.
+// tools is the registry of versionable tools.
 // Tools are added incrementally as they export their metadata.
 //
 //nolint:gochecknoglobals
-var Tools = []Tool{
+var tools = []Tool{
 	{
 		Name:           sgbuf.Name,
 		FilePath:       "tools/sgbuf/tools.go",

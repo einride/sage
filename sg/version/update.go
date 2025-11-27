@@ -35,8 +35,8 @@ func UpdateVersion(filePath, oldVersion, newVersion string) error {
 	return nil
 }
 
-// CloseExistingPRs closes any existing open PRs for the given tool.
-func CloseExistingPRs(ctx context.Context, toolName string) error {
+// closeExistingPRs closes any existing open PRs for the given tool.
+func closeExistingPRs(ctx context.Context, toolName string) error {
 	sg.Deps(ctx, sggh.PrepareCommand)
 
 	branch := fmt.Sprintf("sage/bump-%s", toolName)
@@ -77,7 +77,7 @@ func CreatePR(ctx context.Context, tool Tool, newVersion string) error {
 	sg.Deps(ctx, sggh.PrepareCommand)
 
 	// Close any existing PRs for this tool
-	if err := CloseExistingPRs(ctx, tool.Name); err != nil {
+	if err := closeExistingPRs(ctx, tool.Name); err != nil {
 		return err
 	}
 

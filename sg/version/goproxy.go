@@ -15,10 +15,10 @@ type goModuleInfo struct {
 	Time    time.Time `json:"Time"`
 }
 
-// GetLatestGoModuleVersion fetches the latest version from the Go proxy.
+// getLatestGoModuleVersion fetches the latest version from the Go proxy.
 // The module path should be the full module path (e.g., "github.com/google/go-licenses/v2").
 // Returns the version string (e.g., "v2.0.1").
-func GetLatestGoModuleVersion(ctx context.Context, module string) (string, error) {
+func getLatestGoModuleVersion(ctx context.Context, module string) (string, error) {
 	// Escape module path for URL (slashes become %2F, uppercase letters get escaped)
 	escapedModule := strings.ReplaceAll(module, "/", "%2F")
 	url := fmt.Sprintf("https://proxy.golang.org/%s/@latest", escapedModule)
