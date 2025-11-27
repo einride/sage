@@ -97,25 +97,29 @@ func GitVerifyNoDiff(ctx context.Context) error {
 }
 
 // CheckToolVersions checks for outdated tool versions.
-// Usage: make check-tool-versions tool=NAME apply=true pr=true
+// Usage: make check-tool-versions tool=NAME apply=true verify=true pr=true
 //
 // Parameters:
 //   - tool: tool name, or "all" to check all tools
 //   - apply: "true" to update version in file, "false" for dry-run
+//   - verify: "true" to verify new version installs correctly, "false" to skip
 //   - pr: "true" to create PR after update, "false" to skip
 //
 // Examples:
 //
-//	make check-tool-versions tool=all apply=false pr=false     # check all (dry-run)
-//	make check-tool-versions tool=buf apply=false pr=false     # check single tool
-//	make check-tool-versions tool=buf apply=true pr=false      # update version in file
-//	make check-tool-versions tool=buf apply=true pr=true       # update + create PR
-func CheckToolVersions(ctx context.Context, tool, apply, pr string) error {
+//	make check-tool-versions tool=all apply=false verify=false pr=false   # check all (dry-run)
+//	make check-tool-versions tool=buf apply=true verify=true pr=false     # update + verify
+//	make check-tool-versions tool=buf apply=true verify=true pr=true      # update + verify + PR
+func CheckToolVersions(ctx context.Context, tool, apply, verify, pr string) error {
 	applyBool := apply == "true"
+	verifyBool := verify == "true"
 	prBool := pr == "true"
 
 	if prBool && !applyBool {
 		return fmt.Errorf("pr=true requires apply=true")
+	}
+	if verifyBool && !applyBool {
+		return fmt.Errorf("verify=true requires apply=true")
 	}
 
 	// Get tools to check (tool="all" means check all tools)
@@ -152,6 +156,25 @@ func CheckToolVersions(ctx context.Context, tool, apply, pr string) error {
 					return fmt.Errorf("failed to update %s: %w", result.Tool.Name, err)
 				}
 				sg.Logger(ctx).Printf("%s: updated version in %s\n", result.Tool.Name, result.Tool.FilePath)
+
+				// Verify the new version can be installed
+				if verifyBool && result.Tool.Verify != nil {
+					sg.Logger(ctx).Printf("%s: verifying new version...\n", result.Tool.Name)
+					if err := result.Tool.Verify(ctx); err != nil {
+						// Revert the version change on failure
+						sg.Logger(ctx).Printf("%s: verify failed, reverting: %v\n", result.Tool.Name, err)
+						revertErr := version.UpdateVersion(
+							result.Tool.FilePath,
+							result.LatestVersion,
+							result.Tool.CurrentVersion,
+						)
+						if revertErr != nil {
+							return fmt.Errorf("revert %s failed: %w", result.Tool.Name, revertErr)
+						}
+						return fmt.Errorf("verify %s failed: %w", result.Tool.Name, err)
+					}
+					sg.Logger(ctx).Printf("%s: verified successfully\n", result.Tool.Name)
+				}
 
 				if prBool {
 					sg.Logger(ctx).Printf("%s: creating PR...\n", result.Tool.Name)

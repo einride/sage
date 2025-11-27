@@ -236,3 +236,9 @@ func CreateConfigFromTemplate(ctx context.Context, outputPath string, config Con
 
 	return tmpl.Execute(file, config)
 }
+
+// PrepareCommandNoCfg prepares golangci-lint with default config.
+// Used by version checker to verify tool installation.
+func PrepareCommandNoCfg(ctx context.Context) error {
+	return PrepareCommand(ctx, Config{})
+}
