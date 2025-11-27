@@ -19,8 +19,14 @@ import (
 )
 
 const (
-	name    = "golangci-lint"
-	version = "2.4.0"
+	// Name is the golangci-lint binary name.
+	Name = "golangci-lint"
+	// Version is the golangci-lint version.
+	Version = "2.4.0"
+	// Repo is the GitHub repository.
+	Repo = "golangci/golangci-lint"
+	// TagPattern matches version tags.
+	TagPattern = `^v(\d+\.\d+\.\d+)$`
 
 	RunRelativePathModeGitRoot    = "gitroot"
 	RunRelativePathModeGomod      = "gomod"
@@ -55,11 +61,11 @@ func Command(ctx context.Context, config Config, args ...string) *exec.Cmd {
 	sg.Deps(ctx, func(ctx context.Context) error {
 		return PrepareCommand(ctx, config)
 	})
-	return sg.Command(ctx, sg.FromBinDir(name), args...)
+	return sg.Command(ctx, sg.FromBinDir(Name), args...)
 }
 
 func defaultConfigPath() string {
-	return sg.FromToolsDir(name, ".golangci.yml")
+	return sg.FromToolsDir(Name, ".golangci.yml")
 }
 
 func CommandRunInDirectory(ctx context.Context, config Config, directory string, args ...string) *exec.Cmd {
@@ -179,15 +185,15 @@ func Fmt(ctx context.Context, config Config, args ...string) error {
 }
 
 func PrepareCommand(ctx context.Context, config Config) error {
-	toolDir := sg.FromToolsDir(name)
-	binDir := filepath.Join(toolDir, version, "bin")
-	binary := filepath.Join(binDir, name)
+	toolDir := sg.FromToolsDir(Name)
+	binDir := filepath.Join(toolDir, Version, "bin")
+	binary := filepath.Join(binDir, Name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", version, hostOS, hostArch)
+	golangciLint := fmt.Sprintf("golangci-lint-%s-%s-%s", Version, hostOS, hostArch)
 	binURL := fmt.Sprintf(
 		"https://github.com/golangci/golangci-lint/releases/download/v%s/%s.tar.gz",
-		version,
+		Version,
 		golangciLint,
 	)
 	if err := sgtool.FromRemote(
@@ -195,11 +201,11 @@ func PrepareCommand(ctx context.Context, config Config) error {
 		binURL,
 		sgtool.WithDestinationDir(binDir),
 		sgtool.WithUntarGz(),
-		sgtool.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), name),
+		sgtool.WithRenameFile(fmt.Sprintf("%s/golangci-lint", golangciLint), Name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", name, err)
+		return fmt.Errorf("unable to download %s: %w", Name, err)
 	}
 	configPath := defaultConfigPath()
 	err := CreateConfigFromTemplate(ctx, configPath, config)
