@@ -14,25 +14,31 @@ import (
 )
 
 const (
-	version = "1.59.0"
-	name    = "buf"
+	// Version is the buf version.
+	Version = "1.59.0"
+	// Name is the buf binary name.
+	Name = "buf"
+	// Repo is the GitHub repository.
+	Repo = "bufbuild/buf"
+	// TagPattern matches version tags.
+	TagPattern = `^v(\d+\.\d+\.\d+)$`
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	return sg.Command(ctx, sg.FromBinDir(name), args...)
+	return sg.Command(ctx, sg.FromBinDir(Name), args...)
 }
 
 func PrepareCommand(ctx context.Context) error {
-	toolDir := sg.FromToolsDir(name, version)
-	binary := filepath.Join(toolDir, name, "bin", name)
+	toolDir := sg.FromToolsDir(Name, Version)
+	binary := filepath.Join(toolDir, Name, "bin", Name)
 	arch := runtime.GOARCH
 	if arch == sgtool.AMD64 {
 		arch = sgtool.X8664
 	}
 	binURL := fmt.Sprintf(
 		"https://github.com/bufbuild/buf/releases/download/v%s/buf-%s-%s.tar.gz",
-		version,
+		Version,
 		toInitialCamel(runtime.GOOS),
 		arch,
 	)
@@ -44,7 +50,7 @@ func PrepareCommand(ctx context.Context) error {
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
-		return fmt.Errorf("unable to download %s: %w", name, err)
+		return fmt.Errorf("unable to download %s: %w", Name, err)
 	}
 	return nil
 }

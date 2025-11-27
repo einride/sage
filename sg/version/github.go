@@ -21,6 +21,7 @@ func GetLatestGitHubVersion(ctx context.Context, repo, tagPattern string) (strin
 		"--jq", ".[].name",
 		"--paginate",
 	)
+	cmd.Stdout = nil // Clear stdout set by sg.Command so Output() works
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch tags for %s: %w", repo, err)
