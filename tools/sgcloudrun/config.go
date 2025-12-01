@@ -82,6 +82,7 @@ func LocalDevelop(ctx context.Context, path, configFile, projectID, serviceAccou
 // The environment variables are returned on the format KEY=value and can easily be outputted to a .env file or similar.
 // NOTE: this function creates a temporary creds-xxxxx.json file that is meant to be removed when the service is shut
 // down. Make sure to call CleanUpLocalDevelop after shutting down the service.
+// Deprecated: There was no reason to export this function and it may get removed in the future.
 func LocalDevelopEnv(
 	ctx context.Context,
 	configFile string,
@@ -147,6 +148,7 @@ func LocalDevelopEnv(
 
 // CleanUpLocalDevelop is meant to be called after the Cloud Run service is shut down locally.
 // It removes the temporary creds-xxxxx.json file.
+// Deprecated: There was no reason to export this function and it may get removed in the future.
 func CleanUpLocalDevelop(environ []string) error {
 	for _, env := range environ {
 		if !strings.Contains(env, "GOOGLE_APPLICATION_CREDENTIALS") {
@@ -158,6 +160,12 @@ func CleanUpLocalDevelop(environ []string) error {
 	return fmt.Errorf("clean up local develop: no GOOGLE_APPLICATION_CREDENTIALS environment variable found")
 }
 
+// LocalDevelopCommand returns an *exec.Cmd pre-configured to start the Cloud Run service at the provided Go path.
+// Any environment variables configured in spec.template.spec.containers[0].env are exposed as environment variables.
+// Secrets referred by through through spec.template.spec.containers[0].env.valueFrom.secretKeyRef are first read from
+// secret manager..
+// If serviceAccountEmail is not empty, an attempt to generate an impersonated short-lived credentials for that service
+// account is done. Otherwise the underlying user's access token is used.
 func LocalDevelopCommand(
 	ctx context.Context,
 	path string,
@@ -165,9 +173,34 @@ func LocalDevelopCommand(
 	projectID string,
 	serviceAccountEmail string,
 ) (*exec.Cmd, error) {
-	env, err := LocalDevelopEnv(ctx, configFile, projectID, serviceAccountEmail)
+	var (
+		accessToken string
+		cleanup     = func() error { return nil }
+		credsPath   string
+	)
+	if serviceAccountEmail != "" {
+		var err error
+		accessToken, err = fetchImpersonatedAccessToken(ctx, serviceAccountEmail)
+		if err != nil {
+			return nil, err
+		}
+		credsPath, cleanup, err = delegatedGoogleApplicationCredentials(serviceAccountEmail)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		accessToken, err = fetchAccessToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	env, err := resolveEnvFromConfigFile(ctx, configFile, projectID, accessToken)
 	if err != nil {
 		return nil, err
+	}
+	if credsPath != "" {
+		env = append(env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
 	}
 
 	cmd := sg.Command(ctx, "go", "run", path)
@@ -177,7 +210,7 @@ func LocalDevelopCommand(
 		if err := cmd.Process.Kill(); err != nil {
 			return err
 		}
-		return CleanUpLocalDevelop(cmd.Env)
+		return cleanup()
 	}
 	return cmd, nil
 }
@@ -251,6 +284,9 @@ func resolveEnvFromConfigFile(ctx context.Context, filename, project, accessToke
 			result = append(result, env.Name+"="+secret)
 		}
 	}
+	result = append(result, "K_REVISION=local"+sggit.SHA(ctx))
+	result = append(result, "K_CONFIGURATION="+filename)
+	result = append(result, "GOOGLE_CLOUD_PROJECT="+project)
 	return result, nil
 }
 
@@ -358,7 +394,7 @@ func applicationDefaultCredentials() (string, error) {
 	return string(b), nil
 }
 
-func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail string) (string, error) {
+func fetchAccessToken(ctx context.Context) (string, error) {
 	// Fetch user access token
 	var accessTokenOutput strings.Builder
 	cmd := sggcloud.Command(ctx, "auth", "print-access-token")
@@ -369,6 +405,16 @@ func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail strin
 	accessToken := strings.TrimSpace(accessTokenOutput.String())
 	if accessToken == "" {
 		return "", fmt.Errorf("got empty access token")
+	}
+
+	return accessToken, nil
+}
+
+func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail string) (string, error) {
+	// Grab the local user token to impersonate the service account
+	accessToken, err := fetchAccessToken(ctx)
+	if err != nil {
+		return "", err
 	}
 
 	// Generate access token for delegated service account
@@ -416,6 +462,51 @@ func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail strin
 	}
 
 	return tokens.AccessToken, nil
+}
+
+func delegatedGoogleApplicationCredentials(
+	serviceAccountEmail string,
+) (string, func() error, error) {
+	// Grab the local user token to impersonate the service account
+	currentADC, err := applicationDefaultCredentials()
+	if err != nil {
+		return "", func() error { return nil }, err
+	}
+
+	// Store a local token wrapping the user token in metadata to make a delegated request.
+	// This requires the impersonated service account to have implicitDelegation permissions on itself.
+	// See https://cloud.google.com/iam/docs/create-short-lived-credentials-delegated#sa-credentials-delegated for details
+	serviceAccountImpersonationURL := fmt.Sprintf(
+		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
+		serviceAccountEmail,
+	)
+
+	delegateCreds := struct {
+		Delegates                      []string        `json:"delegates"`
+		Type                           string          `json:"type"`
+		ServiceAccountImpersonationURL string          `json:"service_account_impersonation_url"`
+		SourceCredentials              json.RawMessage `json:"source_credentials"`
+	}{
+		Delegates:                      []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
+		Type:                           "impersonated_service_account",
+		ServiceAccountImpersonationURL: serviceAccountImpersonationURL,
+		SourceCredentials:              json.RawMessage(currentADC),
+	}
+	delegateCredsJSON, err := json.Marshal(delegateCreds)
+	if err != nil {
+		return "", func() error { return nil }, err
+	}
+
+	workDir := sg.FromBuildDir("gcloud")
+	if err := os.MkdirAll(workDir, 0o755); err != nil {
+		return "", func() error { return nil }, fmt.Errorf("unable to create path to store gcloud credentials: %v", err)
+	}
+	credsPath := filepath.Join(workDir, fmt.Sprintf("creds-%s.json", randomLower(5)))
+	if err := os.WriteFile(credsPath, delegateCredsJSON, 0o600); err != nil {
+		return "", func() error { return nil }, err
+	}
+
+	return credsPath, func() error { return os.Remove(credsPath) }, nil
 }
 
 func randomLower(n uint32) string {
