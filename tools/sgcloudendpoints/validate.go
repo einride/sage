@@ -19,7 +19,12 @@ type ValidateOptions struct {
 	// BufModulePath is the path to the Buf module to validate.
 	BufModulePath string
 	// EndpointsConfigPath is the path to the endpoints config to validate.
+	// Deprecated: Use EndpointsConfigPaths instead for multiple config files.
 	EndpointsConfigPath string
+	// EndpointsConfigPaths is the list of endpoints config files to validate.
+	// This can include gRPC service configs (google.api.Service YAML) and/or OpenAPI specs.
+	// If set, this takes precedence over EndpointsConfigPath.
+	EndpointsConfigPaths []string
 }
 
 // Validate a Cloud Endpoints deployment from a Buf proto module and an endpoints config.
@@ -51,16 +56,25 @@ func Validate(ctx context.Context, opts ValidateOptions) (err error) {
 	if err := sggooglecloudprotoscrubber.Command(ctx, "-f", protoDescriptorPath).Run(); err != nil {
 		return fmt.Errorf("scrub protobuf descriptor: %w", err)
 	}
+	// Support both single path (legacy) and multiple paths
+	endpointsConfigs := opts.EndpointsConfigPaths
+	if len(endpointsConfigs) == 0 && opts.EndpointsConfigPath != "" {
+		endpointsConfigs = []string{opts.EndpointsConfigPath}
+	}
+	configFiles := append([]string{protoDescriptorPath}, endpointsConfigs...)
 	cmd = sggcloud.Command(
 		ctx,
-		"endpoints",
-		"services",
-		"deploy",
-		"--project",
-		opts.ProjectID,
-		"--validate-only",
-		protoDescriptorPath,
-		opts.EndpointsConfigPath,
+		append(
+			[]string{
+				"endpoints",
+				"services",
+				"deploy",
+				"--project",
+				opts.ProjectID,
+				"--validate-only",
+			},
+			configFiles...,
+		)...,
 	)
 	var stderr strings.Builder
 	cmd.Stdout, cmd.Stderr = nil, &stderr // suppress noise

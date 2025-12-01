@@ -27,7 +27,13 @@ type DeployOptions struct {
 	// BufModulePath is the path to the Buf module to deploy.
 	BufModulePath string
 	// EndpointsConfigPath is the path to the endpoints config to deploy.
+	// Deprecated: Use EndpointsConfigPaths instead for multiple config files.
 	EndpointsConfigPath string
+	// EndpointsConfigPaths is the list of endpoints config files to deploy.
+	// This can include gRPC service configs (google.api.Service YAML) and/or OpenAPI specs.
+	// The first config file containing a "name:" field will be used to determine the service name.
+	// If set, this takes precedence over EndpointsConfigPath.
+	EndpointsConfigPaths []string
 	// ServiceConfigPath is the path to the Knative YAML service config to deploy.
 	//
 	// The service config will be executed as a Go template, where the following variables are available:
@@ -64,19 +70,20 @@ func Deploy(ctx context.Context, opts DeployOptions) (err error) {
 	if err := sggooglecloudprotoscrubber.Command(ctx, "-f", protoDescriptorPath).Run(); err != nil {
 		return fmt.Errorf("scrub protobuf descriptor: %w", err)
 	}
-	configID, err := DeployConfig(ctx, opts.ProjectID, protoDescriptorPath, opts.EndpointsConfigPath)
+	// Support both single path (legacy) and multiple paths
+	endpointsConfigs := opts.EndpointsConfigPaths
+	if len(endpointsConfigs) == 0 && opts.EndpointsConfigPath != "" {
+		endpointsConfigs = []string{opts.EndpointsConfigPath}
+	}
+	configFiles := append([]string{protoDescriptorPath}, endpointsConfigs...)
+	configID, err := DeployConfig(ctx, opts.ProjectID, configFiles...)
 	if err != nil {
 		return err
 	}
-	endpointsConfigData, err := os.ReadFile(opts.EndpointsConfigPath)
+	serviceName, err := extractServiceName(endpointsConfigs)
 	if err != nil {
-		return fmt.Errorf("read config: %w", err)
+		return err
 	}
-	matches := regexp.MustCompile(`name:(.*)`).FindStringSubmatch(string(endpointsConfigData))
-	if len(matches) == 0 {
-		return fmt.Errorf("match service name: found no match in %s", opts.EndpointsConfigPath)
-	}
-	serviceName := strings.TrimSpace(matches[1])
 	image, err := BuildImage(ctx, opts.ProjectID, opts.Region, opts.ArtifactRegistry, serviceName, configID)
 	if err != nil {
 		return err
@@ -114,4 +121,20 @@ func Deploy(ctx context.Context, opts DeployOptions) (err error) {
 		return fmt.Errorf("replace API gateway service: %w", err)
 	}
 	return nil
+}
+
+// extractServiceName extracts the service name from the first config file that contains a "name:" field.
+func extractServiceName(configPaths []string) (string, error) {
+	nameRegex := regexp.MustCompile(`name:\s*(.+)`)
+	for _, configPath := range configPaths {
+		data, err := os.ReadFile(configPath)
+		if err != nil {
+			return "", fmt.Errorf("read config %s: %w", configPath, err)
+		}
+		matches := nameRegex.FindStringSubmatch(string(data))
+		if len(matches) >= 2 {
+			return strings.TrimSpace(matches[1]), nil
+		}
+	}
+	return "", fmt.Errorf("service name not found in any config file: %v", configPaths)
 }
