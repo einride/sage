@@ -250,10 +250,10 @@ func (s *fileState) downloadBinary(ctx context.Context, url string) (io.ReadClos
 	//nolint:bodyclose // false positive due to cleanup function
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, func() {}, fmt.Errorf("download binary %s: %w", url, err)
+		return nil, func() {}, fmt.Errorf("download binary %q: %w", url, err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, func() {}, fmt.Errorf("download binary %s: status code %d", url, resp.StatusCode)
+		return nil, func() {}, fmt.Errorf("download binary %q: status code %d", url, resp.StatusCode)
 	}
 	return resp.Body, func() { resp.Body.Close() }, nil
 }
