@@ -47,6 +47,22 @@ clean-sage:
 backstage-validate: $(sagefile)
 	@$(sagefile) BackstageValidate
 
+.PHONY: check-tool-versions
+check-tool-versions: $(sagefile)
+ifndef tool
+	 $(error missing argument tool="...")
+endif
+ifndef apply
+	 $(error missing argument apply="...")
+endif
+ifndef verify
+	 $(error missing argument verify="...")
+endif
+ifndef pr
+	 $(error missing argument pr="...")
+endif
+	@$(sagefile) CheckToolVersions "$(tool)" "$(apply)" "$(verify)" "$(pr)"
+
 .PHONY: convco-check
 convco-check: $(sagefile)
 	@$(sagefile) ConvcoCheck
