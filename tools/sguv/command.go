@@ -11,9 +11,6 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-// DefaultPythonVersion is the default Python version used when none is specified.
-const DefaultPythonVersion = "3.10"
-
 const (
 	name    = "uv"
 	version = "0.6.12"

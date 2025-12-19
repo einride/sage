@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	name    = "poetry"
-	version = "2.1.2"
+	name          = "poetry"
+	version       = "2.1.2"
+	pythonVersion = "3.12"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -22,7 +23,8 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	toolDir := sg.FromToolsDir(name, version)
+	// Include pythonVersion in path so changing Python version invalidates cached venvs
+	toolDir := sg.FromToolsDir(name, version, pythonVersion)
 	poetry := filepath.Join(toolDir, "bin", name)
 	if _, err := os.Stat(poetry); err == nil {
 		if _, err := sgtool.CreateSymlink(poetry); err != nil {
@@ -31,7 +33,7 @@ func PrepareCommand(ctx context.Context) error {
 		return nil
 	}
 	// See: https://python-poetry.org/docs/#installing-manually
-	if err := sguv.CreateVenv(ctx, toolDir, sguv.DefaultPythonVersion); err != nil {
+	if err := sguv.CreateVenv(ctx, toolDir, pythonVersion); err != nil {
 		return err
 	}
 	if err := sguv.PipInstall(ctx, toolDir, name+"=="+version); err != nil {
