@@ -9,6 +9,7 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
+	"go.einride.tech/sage/tools/sguv"
 )
 
 const (
@@ -37,44 +38,22 @@ func PrepareCommand(ctx context.Context) error {
 		}
 		return nil
 	}
-	pip := filepath.Join(binDir, "pip")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
 	sg.Logger(ctx).Println("installing packages...")
-	if err := sg.Command(
-		ctx,
-		"python3",
-		"-m",
-		"venv",
-		venvDir,
-	).Run(); err != nil {
+	if err := sguv.CreateVenv(ctx, venvDir, sguv.DefaultPythonVersion); err != nil {
 		return err
 	}
-	if err := sg.Command(
-		ctx,
-		pip,
-		"install",
-		fmt.Sprintf("sqlfluff==%s", version),
-	).Run(); err != nil {
-		return err
-	}
-	// install dbt-bigquery and sqlfluff-templater-dbt to enable using
+	// install sqlfluff, dbt-bigquery, and sqlfluff-templater-dbt to enable using
 	// templater = dbt in .sqlfluff config file
-	if err := sg.Command(
+	if err := sguv.PipInstall(
 		ctx,
-		pip,
-		"install",
+		venvDir,
+		fmt.Sprintf("sqlfluff==%s", version),
 		fmt.Sprintf("dbt-bigquery==%s", dbtBigQueryVersion),
-	).Run(); err != nil {
-		return err
-	}
-	if err := sg.Command(
-		ctx,
-		pip,
-		"install",
 		fmt.Sprintf("sqlfluff-templater-dbt==%s", version),
-	).Run(); err != nil {
+	); err != nil {
 		return err
 	}
 	if _, err := sgtool.CreateSymlink(binary); err != nil {

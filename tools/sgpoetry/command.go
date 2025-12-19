@@ -8,7 +8,7 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
-	"go.einride.tech/sage/tools/sgpython"
+	"go.einride.tech/sage/tools/sguv"
 )
 
 const (
@@ -31,14 +31,10 @@ func PrepareCommand(ctx context.Context) error {
 		return nil
 	}
 	// See: https://python-poetry.org/docs/#installing-manually
-	if err := sgpython.Command(ctx, "-m", "venv", toolDir).Run(); err != nil {
+	if err := sguv.CreateVenv(ctx, toolDir, sguv.DefaultPythonVersion); err != nil {
 		return err
 	}
-	pip := filepath.Join(toolDir, "bin", "pip")
-	if err := sg.Command(ctx, pip, "install", "-U", "pip", "setuptools").Run(); err != nil {
-		return err
-	}
-	if err := sg.Command(ctx, pip, "install", name+"=="+version).Run(); err != nil {
+	if err := sguv.PipInstall(ctx, toolDir, name+"=="+version); err != nil {
 		return err
 	}
 	if _, err := sgtool.CreateSymlink(poetry); err != nil {
