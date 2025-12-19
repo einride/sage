@@ -15,6 +15,7 @@ import (
 const (
 	name                   = "dbt"
 	bigqueryPackageVersion = "1.6.0"
+	pythonVersion          = "3.11" // dbt-bigquery 1.6.0 requires Python <3.12 (distutils dependency)
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -24,7 +25,8 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 
 func PrepareCommand(ctx context.Context) error {
 	toolDir := sg.FromToolsDir(name)
-	venvDir := filepath.Join(toolDir, "venv", bigqueryPackageVersion)
+	// Include pythonVersion in path so changing Python version invalidates cached venvs
+	venvDir := filepath.Join(toolDir, "venv", bigqueryPackageVersion, pythonVersion)
 	binDir := filepath.Join(venvDir, "bin")
 	binary := filepath.Join(binDir, name)
 	if _, err := os.Stat(binary); err == nil {
@@ -37,7 +39,7 @@ func PrepareCommand(ctx context.Context) error {
 		return err
 	}
 	sg.Logger(ctx).Println("installing packages...")
-	if err := sguv.CreateVenv(ctx, venvDir, sguv.DefaultPythonVersion); err != nil {
+	if err := sguv.CreateVenv(ctx, venvDir, pythonVersion); err != nil {
 		return err
 	}
 	if err := sguv.PipInstall(ctx, venvDir, fmt.Sprintf("dbt-bigquery==%s", bigqueryPackageVersion)); err != nil {

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -17,7 +18,8 @@ import (
 )
 
 const (
-	name = "mdformat"
+	name          = "mdformat"
+	pythonVersion = "3.12"
 )
 
 //go:embed requirements.txt
@@ -44,7 +46,9 @@ func setDefaultArgs(ctx context.Context, args []string) []string {
 }
 
 func PrepareCommand(ctx context.Context) error {
-	version := fmt.Sprintf("%x", sha256.Sum256(requirements))
+	// Include pythonVersion in hash so changing Python version invalidates cached venvs
+	hashInput := slices.Concat(requirements, []byte(pythonVersion))
+	version := fmt.Sprintf("%x", sha256.Sum256(hashInput))
 	toolDir := sg.FromToolsDir(name, version)
 	mdformat := filepath.Join(toolDir, "bin", name)
 	if _, err := os.Stat(mdformat); err == nil {
@@ -53,7 +57,7 @@ func PrepareCommand(ctx context.Context) error {
 		}
 		return nil
 	}
-	if err := sguv.CreateVenv(ctx, toolDir, sguv.DefaultPythonVersion); err != nil {
+	if err := sguv.CreateVenv(ctx, toolDir, pythonVersion); err != nil {
 		return err
 	}
 	requirementsFile := filepath.Join(toolDir, "requirements.txt")
