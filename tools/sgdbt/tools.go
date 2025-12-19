@@ -9,6 +9,7 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
+	"go.einride.tech/sage/tools/sguv"
 )
 
 const (
@@ -32,26 +33,14 @@ func PrepareCommand(ctx context.Context) error {
 		}
 		return nil
 	}
-	pip := filepath.Join(binDir, "pip")
 	if err := os.MkdirAll(toolDir, 0o755); err != nil {
 		return err
 	}
 	sg.Logger(ctx).Println("installing packages...")
-	if err := sg.Command(
-		ctx,
-		"python3",
-		"-m",
-		"venv",
-		venvDir,
-	).Run(); err != nil {
+	if err := sguv.CreateVenv(ctx, venvDir, sguv.DefaultPythonVersion); err != nil {
 		return err
 	}
-	if err := sg.Command(
-		ctx,
-		pip,
-		"install",
-		fmt.Sprintf("dbt-bigquery==%s", bigqueryPackageVersion),
-	).Run(); err != nil {
+	if err := sguv.PipInstall(ctx, venvDir, fmt.Sprintf("dbt-bigquery==%s", bigqueryPackageVersion)); err != nil {
 		return err
 	}
 	if _, err := sgtool.CreateSymlink(binary); err != nil {

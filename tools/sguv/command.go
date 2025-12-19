@@ -11,6 +11,9 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// DefaultPythonVersion is the default Python version used when none is specified.
+const DefaultPythonVersion = "3.10"
+
 const (
 	name    = "uv"
 	version = "0.6.12"
@@ -87,4 +90,25 @@ func PrepareCommand(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// CreateVenv creates a Python virtual environment using uv.
+func CreateVenv(ctx context.Context, venvPath, pythonVersion string) error {
+	sg.Deps(ctx, PrepareCommand)
+	return Command(ctx, "venv", "--python", pythonVersion, venvPath).Run()
+}
+
+// PipInstall installs Python packages into a venv using uv pip.
+func PipInstall(ctx context.Context, venvPath string, packages ...string) error {
+	sg.Deps(ctx, PrepareCommand)
+	python := filepath.Join(venvPath, "bin", "python")
+	args := append([]string{"pip", "install", "--python", python}, packages...)
+	return Command(ctx, args...).Run()
+}
+
+// PipInstallRequirements installs Python packages from a requirements.txt file using uv pip.
+func PipInstallRequirements(ctx context.Context, venvPath, requirementsPath string) error {
+	sg.Deps(ctx, PrepareCommand)
+	python := filepath.Join(venvPath, "bin", "python")
+	return Command(ctx, "pip", "install", "--python", python, "-r", requirementsPath).Run()
 }

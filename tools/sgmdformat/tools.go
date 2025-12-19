@@ -13,7 +13,7 @@ import (
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 	"go.einride.tech/sage/tools/sggit"
-	"go.einride.tech/sage/tools/sgpython"
+	"go.einride.tech/sage/tools/sguv"
 )
 
 const (
@@ -53,18 +53,14 @@ func PrepareCommand(ctx context.Context) error {
 		}
 		return nil
 	}
-	if err := sgpython.Command(ctx, "-m", "venv", toolDir).Run(); err != nil {
-		return err
-	}
-	pip := filepath.Join(toolDir, "bin", "pip")
-	if err := sg.Command(ctx, pip, "install", "-U", "pip").Run(); err != nil {
+	if err := sguv.CreateVenv(ctx, toolDir, sguv.DefaultPythonVersion); err != nil {
 		return err
 	}
 	requirementsFile := filepath.Join(toolDir, "requirements.txt")
 	if err := os.WriteFile(requirementsFile, requirements, 0o600); err != nil {
 		return err
 	}
-	if err := sg.Command(ctx, pip, "install", "-r", requirementsFile).Run(); err != nil {
+	if err := sguv.PipInstallRequirements(ctx, toolDir, requirementsFile); err != nil {
 		return err
 	}
 	if _, err := sgtool.CreateSymlink(mdformat); err != nil {
