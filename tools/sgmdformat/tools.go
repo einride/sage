@@ -19,7 +19,7 @@ import (
 
 const (
 	name          = "mdformat"
-	pythonVersion = "3.12"
+	pythonVersion = "3.13"
 )
 
 //go:embed requirements.txt
