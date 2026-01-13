@@ -97,7 +97,7 @@ runs:
 
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ./.sage/tools
