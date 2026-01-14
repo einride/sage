@@ -88,7 +88,9 @@ func Fix(ctx context.Context, args ...string) error {
 		if d.IsDir() || d.Name() != "go.mod" {
 			return nil
 		}
-		cmd := Command(ctx, append([]string{"run", "--allow-serial-runners", "-c", defaultConfigPath(), "--fix"}, args...)...)
+		cmd := Command(
+			ctx,
+			append([]string{"run", "--allow-serial-runners", "-c", defaultConfigPath(), "--fix"}, args...)...)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
 		return cmd.Start()
