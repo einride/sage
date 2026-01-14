@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	name    = "golangci-lint"
+	name = "golangci-lint"
+
+	// renovate: datasource=github-releases depName=golangci/golangci-lint
 	version = "2.4.0"
 
 	RunRelativePathModeGitRoot    = "gitroot"
