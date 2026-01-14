@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=caarlos0/jsonfmt
 	version    = "0.5.0"
 	binaryName = "jsonfmt"
 )

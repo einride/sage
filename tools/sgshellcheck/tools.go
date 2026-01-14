@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=koalaman/shellcheck
 	version = "0.10.0"
 	name    = "shellcheck"
 )

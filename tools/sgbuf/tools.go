@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=bufbuild/buf
 	version = "1.59.0"
 	name    = "buf"
 )

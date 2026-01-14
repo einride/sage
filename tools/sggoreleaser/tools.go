@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "goreleaser"
+	name = "goreleaser"
+	// renovate: datasource=github-releases depName=goreleaser/goreleaser
 	version = "2.0.1"
 )
 

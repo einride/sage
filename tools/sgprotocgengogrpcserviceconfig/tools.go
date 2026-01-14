@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/grpc-service-config-go
 	version = "0.13.0"
 	name    = "protoc-gen-go-grpc-service-config"
 )

@@ -13,6 +13,7 @@ import (
 // https://buf.build/gnostic/gnostic/docs/main:gnostic.openapi.v3
 
 const (
+	// renovate: datasource=go depName=github.com/google/gnostic/cmd/protoc-gen-openapi
 	version = "0.7.0"
 	name    = "protoc-gen-openapi"
 )

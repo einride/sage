@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	name    = "gopls"
+	name = "gopls"
+	// renovate: datasource=go depName=golang.org/x/tools/gopls
 	version = "v0.20.0"
 )
 

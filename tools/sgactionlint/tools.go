@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=rhysd/actionlint
 	version = "1.7.7"
 	name    = "actionlint"
 )

@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=dkorunic/betteralign
 	version = "0.2.5"
 	name    = "betteralign"
 )

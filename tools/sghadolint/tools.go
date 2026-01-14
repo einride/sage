@@ -15,7 +15,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-// version can be found here: https://github.com/hadolint/hadolint
+// renovate: datasource=github-releases depName=hadolint/hadolint
 const version = "2.12.1-beta"
 
 //nolint:gochecknoglobals

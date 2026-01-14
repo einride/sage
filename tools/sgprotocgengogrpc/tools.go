@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=grpc/grpc-go
 	version = "1.4.0"
 	name    = "protoc-gen-go-grpc"
 )

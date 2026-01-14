@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=therootcompany/xz-static
 	version = "5.2.5"
 	name    = "xz"
 )

@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "goreview"
+	name = "goreview"
+	// renovate: datasource=github-releases depName=einride/goreview
 	version = "0.26.0"
 )
 

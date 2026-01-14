@@ -15,7 +15,8 @@ import (
 
 const (
 	toolName = "clang-format"
-	version  = "v1.6.0"
+	// renovate: datasource=github-tags depName=angular/clang-format
+	version = "v1.6.0"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {

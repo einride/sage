@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name    = "gh"
+	name = "gh"
+	// renovate: datasource=github-releases depName=cli/cli
 	version = "2.83.1"
 )
 

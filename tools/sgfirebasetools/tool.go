@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=firebase/firebase-tools
 	version    = "v13.30.0"
 	binaryName = "firebase-tools"
 )

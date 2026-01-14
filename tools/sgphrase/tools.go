@@ -12,6 +12,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// renovate: datasource=github-releases depName=phrase/phrase-cli
 const version = "2.5.3"
 
 //nolint:gochecknoglobals

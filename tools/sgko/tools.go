@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "ko"
+	name = "ko"
+	// renovate: datasource=github-releases depName=google/ko
 	version = "0.17.1"
 )
 

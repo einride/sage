@@ -11,6 +11,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// renovate: datasource=github-releases depName=mozilla/sops
 const version = "3.7.1"
 
 //nolint:gochecknoglobals

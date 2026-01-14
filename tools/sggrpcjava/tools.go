@@ -11,6 +11,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// renovate: datasource=maven depName=io.grpc:protoc-gen-grpc-java
 const version = "1.45.1"
 
 //nolint:gochecknoglobals

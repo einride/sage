@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/protobuf-netlify-cms
 	version    = "0.7.1"
 	binaryName = "protoc-gen-netlify-cms"
 )

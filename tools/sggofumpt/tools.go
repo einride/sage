@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	name    = "gofumpt"
+	name = "gofumpt"
+	// renovate: datasource=github-releases depName=mvdan/gofumpt
 	version = "0.7.0"
 )
 

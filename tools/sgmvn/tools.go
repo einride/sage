@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	name    = "mvn"
+	name = "mvn"
+	// renovate: datasource=maven depName=org.apache.maven:apache-maven versioning=maven
 	version = "3.8.8"
 )
 

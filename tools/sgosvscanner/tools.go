@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=google/osv-scanner
 	version    = "2.2.4"
 	binaryName = "osv-scanner"
 )

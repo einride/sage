@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=GoogleCloudPlatform/cloud-sql-proxy
 	version    = "2.3.0"
 	binaryName = "cloud-sql-proxy"
 )

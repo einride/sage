@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "golines"
+	name = "golines"
+	// renovate: datasource=github-releases depName=segmentio/golines
 	version = "0.12.2"
 )
 
