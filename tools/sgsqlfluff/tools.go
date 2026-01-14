@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	name               = "sqlfluff"
+	name = "sqlfluff"
+	// renovate: datasource=pypi depName=sqlfluff
 	version            = "2.1.4"
 	dbtBigQueryVersion = "1.6.0"
 	pythonVersion      = "3.11" // dbt-bigquery 1.6.0 requires Python <3.12 (distutils dependency)

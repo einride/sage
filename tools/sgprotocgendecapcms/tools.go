@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/protobuf-decap-cms
 	version    = "1.1.0"
 	binaryName = "protoc-gen-decap-cms"
 )

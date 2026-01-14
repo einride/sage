@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	name    = "golangci-lint"
+	name = "golangci-lint"
+	// renovate: datasource=github-releases depName=golangci/golangci-lint
 	version = "1.64.8"
 )
 

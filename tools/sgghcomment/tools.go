@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/ghcomment
 	version    = "0.4.0"
 	binaryName = "ghcomment"
 )

@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "go-semantic-release"
+	name = "go-semantic-release"
+	// renovate: datasource=github-releases depName=go-semantic-release/semantic-release
 	version = "2.30.0"
 )
 

@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/backstage-go
 	version    = "0.6.0"
 	binaryName = "backstage"
 )

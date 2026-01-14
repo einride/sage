@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=mvdan/sh
 	version = "3.7.0"
 	name    = "shfmt"
 )

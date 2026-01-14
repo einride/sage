@@ -18,7 +18,8 @@ import (
 var defaultConfig []byte
 
 const (
-	name              = "yamlfmt"
+	name = "yamlfmt"
+	// renovate: datasource=github-releases depName=google/yamlfmt
 	version           = "0.16.0"
 	defaultConfigName = ".yamlfmt"
 )

@@ -12,7 +12,8 @@ import (
 
 const (
 	toolName = "biome"
-	version  = "1.6.0"
+	// renovate: datasource=github-releases depName=biomejs/biome
+	version = "1.6.0"
 )
 
 func Format(ctx context.Context, paths ...string) error {

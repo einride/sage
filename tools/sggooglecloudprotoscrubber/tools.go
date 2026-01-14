@@ -12,6 +12,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// renovate: datasource=github-releases depName=einride/google-cloud-proto-scrubber
 const version = "1.1.0"
 
 //nolint:gochecknoglobals

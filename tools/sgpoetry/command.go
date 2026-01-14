@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name          = "poetry"
+	name = "poetry"
+	// renovate: datasource=pypi depName=poetry
 	version       = "2.1.2"
 	pythonVersion = "3.12"
 )

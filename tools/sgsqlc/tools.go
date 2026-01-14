@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=sqlc-dev/sqlc
 	version = "1.30.0"
 	name    = "sqlc"
 )

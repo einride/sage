@@ -11,6 +11,14 @@
         "pip_requirements"
       ],
       "enabled": false
+    },
+    {
+      "matchDepNames": ["biomejs/biome"],
+      "extractVersion": "^cli/v(?<version>.*)$"
+    },
+    {
+      "matchDepNames": ["grpc/grpc-go"],
+      "extractVersion": "^cmd/protoc-gen-go-grpc/v(?<version>.*)$"
     }
   ],
   "customManagers": [
@@ -18,7 +26,7 @@
       "customType": "regex",
       "managerFilePatterns": ["/\\.go$/"],
       "matchStrings": [
-        "//\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)\\n\\s*(?:const\\s+)?(?:version|Version)\\s*(?:=|:=)\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+        "//\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)\\n\\s*(?:const\\s+)?\\w*[vV]ersion\\w*\\s*(?:=|:=)\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
       ]
     }
   ]

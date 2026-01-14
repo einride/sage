@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	name                   = "dbt"
+	name = "dbt"
+	// renovate: datasource=pypi depName=dbt-bigquery
 	bigqueryPackageVersion = "1.6.0"
 	pythonVersion          = "3.11" // dbt-bigquery 1.6.0 requires Python <3.12 (distutils dependency)
 )

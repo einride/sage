@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "gcov2lcov"
+	name = "gcov2lcov"
+	// renovate: datasource=github-releases depName=jandelgado/gcov2lcov
 	version = "1.0.6"
 )
 

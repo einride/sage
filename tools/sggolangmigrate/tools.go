@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=golang-migrate/migrate
 	version = "4.17.1"
 	name    = "migrate"
 )

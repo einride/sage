@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name    = "go-licenses"
+	name = "go-licenses"
+	// renovate: datasource=go depName=github.com/google/go-licenses/v2
 	version = "v2.0.1"
 )
 

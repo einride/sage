@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=aquasecurity/tfsec
 	version = "1.28.13"
 	name    = "tfsec"
 )

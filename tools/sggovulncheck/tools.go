@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name    = "govulncheck"
+	name = "govulncheck"
+	// renovate: datasource=go depName=golang.org/x/vuln/cmd/govulncheck
 	version = "v1.1.4"
 )
 

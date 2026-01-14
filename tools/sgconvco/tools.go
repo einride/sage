@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	name    = "convco"
+	name = "convco"
+	// renovate: datasource=github-releases depName=convco/convco
 	version = "0.6.2"
 )
 

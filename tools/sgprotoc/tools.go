@@ -12,6 +12,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// renovate: datasource=github-releases depName=protocolbuffers/protobuf
 const version = "22.2"
 
 //nolint:gochecknoglobals

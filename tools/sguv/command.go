@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name    = "uv"
+	name = "uv"
+	// renovate: datasource=github-releases depName=astral-sh/uv
 	version = "0.6.12"
 
 	// Runtime OS constants.

@@ -16,7 +16,8 @@ import (
 // Cloud Spanner Emulator versions can be found here,
 // https://console.cloud.google.com/gcr/images/cloud-spanner-emulator/global/emulator
 const (
-	url     = "gcr.io/cloud-spanner-emulator/emulator"
+	url = "gcr.io/cloud-spanner-emulator/emulator"
+	// renovate: datasource=docker depName=gcr.io/cloud-spanner-emulator/emulator
 	version = "1.5.29"
 	image   = url + ":" + version
 )

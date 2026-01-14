@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	name    = "yq"
+	name = "yq"
+	// renovate: datasource=github-releases depName=mikefarah/yq
 	version = "4.34.1"
 )
 

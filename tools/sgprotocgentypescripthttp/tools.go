@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=einride/protoc-gen-typescript-http
 	version    = "0.8.2"
 	binaryName = "protoc-gen-typescript-http"
 )

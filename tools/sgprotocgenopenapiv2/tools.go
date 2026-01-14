@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// renovate: datasource=github-releases depName=grpc-ecosystem/grpc-gateway
 	version = "2.10.0"
 	name    = "protoc-gen-openapiv2"
 )
