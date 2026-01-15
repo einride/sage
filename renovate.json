@@ -5,12 +5,18 @@
     {
       "matchManagers": [
         "github-actions",
-        "gomod",
         "dockerfile",
         "npm",
         "pip_requirements"
       ],
       "enabled": false
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "description": "Disable major Go version bumps in go.mod (follow N-1 policy)"
+    },
     }
   ],
   "customManagers": [
