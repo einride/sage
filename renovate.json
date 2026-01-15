@@ -17,6 +17,11 @@
       "enabled": false,
       "description": "Disable major Go version bumps in go.mod (follow N-1 policy)"
     },
+    {
+      "matchManagers": ["regex"],
+      "matchUpdateTypes": ["major"],
+      "enabled": true,
+      "description": "Allow major version updates for Go constants tracked via regex"
     }
   ],
   "customManagers": [

@@ -15,6 +15,7 @@ import (
 	"go.einride.tech/sage/internal/strcase"
 )
 
+// renovate: datasource=golang-version depName=golang
 const defaultGoVersion = "1.25.5"
 
 type Makefile struct {
