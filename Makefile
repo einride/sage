@@ -90,3 +90,7 @@ go-mod-tidy: $(sagefile)
 .PHONY: go-test
 go-test: $(sagefile)
 	@$(sagefile) GoTest
+
+.PHONY: renovate-validate
+renovate-validate: $(sagefile)
+	@$(sagefile) RenovateValidate

@@ -11,6 +11,7 @@ import (
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
 	"go.einride.tech/sage/tools/sgmdformat"
+	"go.einride.tech/sage/tools/sgrenovate"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
@@ -24,7 +25,7 @@ func main() {
 }
 
 func Default(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate)
+	sg.Deps(ctx, ConvcoCheck, GoLint, GoTest, FormatMarkdown, FormatYaml, BackstageValidate, RenovateValidate)
 	sg.SerialDeps(ctx, GoModTidy)
 	sg.SerialDeps(ctx, GoLicenses, GitVerifyNoDiff)
 	return nil
@@ -92,4 +93,9 @@ func BackstageValidate(ctx context.Context) error {
 func GitVerifyNoDiff(ctx context.Context) error {
 	sg.Logger(ctx).Println("verifying that git has no diff...")
 	return sggit.VerifyNoDiff(ctx)
+}
+
+func RenovateValidate(ctx context.Context) error {
+	sg.Logger(ctx).Println("validating Renovate config...")
+	return sgrenovate.ValidateConfig(ctx).Run()
 }
