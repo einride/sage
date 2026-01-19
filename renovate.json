@@ -22,6 +22,18 @@
       "matchUpdateTypes": ["patch"],
       "enabled": true,
       "description": "Enable patch updates for go.mod"
+    },
+    {
+      "matchDepNames": ["golang-patches-only"],
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false,
+      "description": "Disable major and minor Go version bumps for version consts (follow N-1 policy manually)"
+    },
+    {
+      "matchDepNames": ["golang-patches-only"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": true,
+      "description": "Enable patch updates for version consts"
     }
   ],
   "customManagers": [
