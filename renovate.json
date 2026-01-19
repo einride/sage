@@ -21,22 +21,14 @@
       "matchManagers": ["gomod"],
       "matchDepNames": ["go"],
       "matchDepTypes": ["golang"],
-      "matchUpdateTypes": ["patch"],
       "rangeStrategy": "bump",
-      "enabled": true,
-      "description": "Enable patch updates for go.mod"
+      "description": "The 'bump' strategy enables patch updates to be proposed (without it, 'go 1.25' would not update to 'go 1.25.1')"
     },
     {
       "matchDepNames": ["golang-patches-only"],
       "matchUpdateTypes": ["major", "minor"],
       "enabled": false,
       "description": "Disable major and minor Go version bumps for version consts (follow N-1 policy manually)"
-    },
-    {
-      "matchDepNames": ["golang-patches-only"],
-      "matchUpdateTypes": ["patch"],
-      "enabled": true,
-      "description": "Enable patch updates for version consts"
     }
   ],
   "customManagers": [
