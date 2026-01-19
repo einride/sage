@@ -19,7 +19,10 @@
     },
     {
       "matchManagers": ["gomod"],
+      "matchDepNames": ["go"],
+      "matchDepTypes": ["golang"],
       "matchUpdateTypes": ["patch"],
+      "rangeStrategy": "bump",
       "enabled": true,
       "description": "Enable patch updates for go.mod"
     },
