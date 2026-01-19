@@ -15,6 +15,8 @@ import (
 	"go.einride.tech/sage/internal/strcase"
 )
 
+// defaultGoVersion follows Einride's N-1 Go version policy.
+// Renovate is configured to only propose patch updates.
 // renovate: datasource=golang-version depName=golang-patches-only
 const defaultGoVersion = "1.24.12"
 
