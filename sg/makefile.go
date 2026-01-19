@@ -16,7 +16,7 @@ import (
 )
 
 // renovate: datasource=golang-version depName=golang-patches-only
-const defaultGoVersion = "1.25.5"
+const defaultGoVersion = "1.24.12"
 
 type Makefile struct {
 	Namespace     interface{}
