@@ -12,6 +12,11 @@ inputs:
     required: false
     default: 'false'
 
+  restoreCacheOnly:
+    description: Only restore cache if found, do not save a new cache.
+    required: false
+    default: 'false'
+
   go-version:
     description: The Go version to download (if necessary) and use. Supports semver spec and ranges.
     required: false
@@ -96,7 +101,7 @@ runs:
       run: echo "KOCACHE=/home/runner/.ko/cache" >> $GITHUB_ENV
 
     - name: Set up cache
-      if: ${{ inputs.disableCache != 'true' }}
+      if: ${{ inputs.disableCache != 'true' && inputs.restoreCacheOnly != 'true'}}
       uses: actions/cache@v5
       with:
         path: |
@@ -105,6 +110,23 @@ runs:
           /home/runner/.cache/go-build
           /home/runner/.cache/golangci-lint
           /home/runner/.cache/uv
+          /home/runner/go/pkg/mod
+          /home/runner/go/bin
+          /home/runner/.ko/cache
+        key: ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-
+          ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-
+
+    - name: Restore cache
+      if: ${{ inputs.disableCache != 'true' && inputs.restoreCacheOnly == 'true'}}
+      uses: actions/cache/restore@v5
+      with:
+        path: |
+          ./.sage/tools
+          ./.sage/bin
+          /home/runner/.cache/go-build
+          /home/runner/.cache/golangci-lint
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
