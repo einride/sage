@@ -48,6 +48,8 @@ func Run(ctx context.Context, args ...string) error {
 		switch {
 		case err != nil:
 			return err
+		case d.IsDir() && d.Name() == ".terraform":
+			return fs.SkipDir
 		case d.IsDir() || d.Name() != "buf.yaml":
 			return nil
 		}
@@ -61,6 +63,8 @@ func Run(ctx context.Context, args ...string) error {
 			switch {
 			case err != nil:
 				return err
+			case d.IsDir() && d.Name() == ".terraform":
+				return fs.SkipDir
 			case !d.IsDir() && filepath.Ext(path) == ".proto":
 				relPath, err := filepath.Rel(moduleDir, path)
 				if err != nil {
