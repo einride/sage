@@ -104,7 +104,8 @@ runs:
           ./.sage/bin
           /home/runner/.cache/go-build
           /home/runner/.cache/golangci-lint
-          /home/runner/.cache/uv
+          /home/runner/.cache/uv  # uv pip/package cache
+          /home/runner/.local/share/uv  # uv-managed Python interpreters (XDG_DATA_HOME)
           /home/runner/go/pkg/mod
           /home/runner/go/bin
           /home/runner/.ko/cache
