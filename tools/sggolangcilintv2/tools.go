@@ -22,7 +22,7 @@ const (
 	name = "golangci-lint"
 
 	// renovate: datasource=github-releases depName=golangci/golangci-lint
-	version = "2.4.0"
+	version = "2.8.0"
 
 	RunRelativePathModeGitRoot    = "gitroot"
 	RunRelativePathModeGomod      = "gomod"
