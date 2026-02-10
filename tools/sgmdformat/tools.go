@@ -36,11 +36,8 @@ func setDefaultArgs(ctx context.Context, args []string) []string {
 	if len(args) != 0 {
 		return args
 	}
-	args = []string{
-		"--number",
-		"--wrap",
-		"80",
-	}
+	args = make([]string, 0, 10)
+	args = append(args, "--number", "--wrap", "80")
 	args = append(args, listMarkdownFiles(ctx)...)
 	return args
 }

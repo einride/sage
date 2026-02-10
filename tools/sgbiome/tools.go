@@ -17,12 +17,8 @@ const (
 
 func Format(ctx context.Context, paths ...string) error {
 	sg.Deps(ctx, prepareCommand)
-	args := []string{
-		"format",
-		"--write",
-		"--log-kind",
-		"compact",
-	}
+	args := make([]string, 0, 4+len(paths))
+	args = append(args, "format", "--write", "--log-kind", "compact")
 	binDir := sg.FromToolsDir(toolName, version)
 	execDir := filepath.Join(binDir, toolName)
 	args = append(args, paths...)

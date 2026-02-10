@@ -17,7 +17,8 @@ const (
 // gopls only works with paths to go files.
 func Check(ctx context.Context, paths []string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
-	args := []string{"check"}
+	args := make([]string, 0, 1+len(paths))
+	args = append(args, "check")
 	args = append(args, paths...)
 	return sg.Command(
 		ctx,
