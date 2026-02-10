@@ -31,14 +31,16 @@ func defaultConfigPath() string {
 // It includes a default .trivyignore.yaml which can be
 // overridden by setting a .trivyignore.yaml in the git root.
 func CheckTerraformCommand(ctx context.Context, dir string) *exec.Cmd {
-	args := []string{
+	args := make([]string, 0, 8)
+	args = append(
+		args,
 		"config",
 		"--misconfig-scanners",
 		"terraform,terraformplan-json,terraformplan-snapshot",
 		"--exit-code",
 		"1",
 		dir,
-	}
+	)
 
 	configPath := sg.FromGitRoot(".trivyignore")
 	if _, err := os.Lstat(configPath); errors.Is(err, os.ErrNotExist) {

@@ -22,8 +22,9 @@ import (
 )
 
 // Develop starts the Cloud Run service at the provided Go path with the provided service account and config.
-// Deprecated: Develop uses a service account key which are inherently more risky as they are not often rotated.
-// Use LocalDevelop instead.
+//
+// Deprecated: Develop uses a service account key which are inherently more risky as they are not often rotated,
+// use LocalDevelop instead.
 func Develop(ctx context.Context, path, keyFile, configFile string) error {
 	cmd, err := DevelopCommand(ctx, path, keyFile, configFile)
 	if err != nil {
@@ -34,8 +35,9 @@ func Develop(ctx context.Context, path, keyFile, configFile string) error {
 
 // DevelopCommand returns an *exec.Cmd pre-configured to start the Cloud Run service at the provided Go path
 // with the provided service account and config.
-// Deprecated: DevelopCommand uses a service account key which are inherently more risky as they are not often rotated.
-// Use LocalDevelopCommand instead.
+//
+// Deprecated: DevelopCommand uses a service account key which are inherently more risky as they are not often rotated,
+// use LocalDevelopCommand instead.
 func DevelopCommand(ctx context.Context, path, keyFile, configFile string) (*exec.Cmd, error) {
 	var key struct {
 		Type        string
@@ -82,6 +84,7 @@ func LocalDevelop(ctx context.Context, path, configFile, projectID, serviceAccou
 // The environment variables are returned on the format KEY=value and can easily be outputted to a .env file or similar.
 // NOTE: this function creates a temporary creds-xxxxx.json file that is meant to be removed when the service is shut
 // down. Make sure to call CleanUpLocalDevelop after shutting down the service.
+//
 // Deprecated: There was no reason to export this function and it may get removed in the future.
 func LocalDevelopEnv(
 	ctx context.Context,
@@ -148,6 +151,7 @@ func LocalDevelopEnv(
 
 // CleanUpLocalDevelop is meant to be called after the Cloud Run service is shut down locally.
 // It removes the temporary creds-xxxxx.json file.
+//
 // Deprecated: There was no reason to export this function and it may get removed in the future.
 func CleanUpLocalDevelop(environ []string) error {
 	for _, env := range environ {

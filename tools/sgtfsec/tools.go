@@ -20,9 +20,8 @@ const (
 )
 
 func CheckCommand(ctx context.Context, tfvars ...string) *exec.Cmd {
-	args := []string{
-		"--concise-output",
-	}
+	args := make([]string, 0, 1+2*len(tfvars))
+	args = append(args, "--concise-output")
 	for _, tfvar := range tfvars {
 		args = append(args, "--tfvars-file", tfvar)
 	}
