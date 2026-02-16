@@ -13,7 +13,7 @@ import (
 
 const (
 	name    = "uv"
-	version = "0.6.12"
+	version = "0.10.3"
 
 	// Runtime OS constants.
 	windows = "windows"
