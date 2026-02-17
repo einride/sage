@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 permissions: write-all
 
@@ -15,7 +16,7 @@ jobs:
 
       - name: Setup Sage
         uses: ./actions/setup
-        with :
+        with:
           go-version-file: go.mod
 
       - name: Make
@@ -26,3 +27,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           allow-initial-development-versions: true
+          force-bump-patch-version: ${{ github.event_name == 'workflow_dispatch' }}
