@@ -112,4 +112,3 @@ runs:
         key: ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-
-          ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-
