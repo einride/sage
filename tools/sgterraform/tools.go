@@ -230,7 +230,7 @@ Plan Summary: %d to create, %d to update, %d to destroy, %d to forget.
 		update.actionCount,
 		destroy.actionCount,
 		forget.actionCount,
-		mapToHTMLList([]TfChange{create, destroy, update}),
+		mapToHTMLList([]TfChange{create, destroy, update, forget}),
 	)
 
 	return statusIcon, summary
