@@ -18,7 +18,7 @@ import (
 // defaultGoVersion follows Einride's N-1 Go version policy.
 // Renovate is configured to only propose patch updates.
 // renovate: datasource=golang-version depName=golang-patches-only
-const defaultGoVersion = "1.24.12"
+const defaultGoVersion = "1.25.7"
 
 type Makefile struct {
 	Namespace     interface{}
