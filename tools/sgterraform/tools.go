@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
@@ -186,9 +187,14 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 	destroy := TfChange{actionName: "Destroy", changes: make(map[string]int), actionCount: 0}
 	update := TfChange{actionName: "Update", changes: make(map[string]int), actionCount: 0}
 	forget := TfChange{actionName: "Forget", changes: make(map[string]int), actionCount: 0}
+	importChange := TfChange{actionName: "Import", changes: make(map[string]int), actionCount: 0}
 	for _, res := range jsonPlan.ResourceChanges {
 		actions := res.Change.Actions
 		resourceType := res.Type
+		// Track imports separately (imports can also have associated actions)
+		if res.Change.Importing != nil {
+			importChange.add(resourceType)
+		}
 		switch {
 		case actions.Create():
 			create.add(resourceType)
@@ -221,16 +227,32 @@ func getCommentSummary(ctx context.Context, planFilePath string) (statusIcon, su
 		statusIcon = ":red_circle:"
 	}
 
+	importSection := ""
+	if importChange.actionCount > 0 {
+		var b bytes.Buffer
+		w := tabwriter.NewWriter(&b, 0, 0, 3, '.', tabwriter.FilterHTML)
+		for _, key := range slices.Sorted(maps.Keys(importChange.changes)) {
+			fmt.Fprintf(w, "%s\t%d\n", key, importChange.changes[key])
+		}
+		w.Flush()
+		importSection = fmt.Sprintf(
+			"<hr/><i>Resources being imported into state (%d):</i><ul>%s</ul>",
+			importChange.actionCount,
+			b.String(),
+		)
+	}
+
 	summary = fmt.Sprintf(`
 Plan Summary: %d to create, %d to update, %d to destroy, %d to forget.
 <br/>
-%s
+%s%s
 `,
 		create.actionCount,
 		update.actionCount,
 		destroy.actionCount,
 		forget.actionCount,
 		mapToHTMLList([]TfChange{create, destroy, update, forget}),
+		importSection,
 	)
 
 	return statusIcon, summary
@@ -256,15 +278,10 @@ func mapToHTMLList(input []TfChange) string {
 		if v.actionCount == 0 {
 			continue
 		}
-		keys := make([]string, 0, len(input))
-		for k := range v.changes {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
 		var b bytes.Buffer
 		w := tabwriter.NewWriter(&b, 0, 0, 3, '.', tabwriter.FilterHTML)
 		htmlList.WriteString(fmt.Sprintf("<b>%s (%d):</b><ul>", v.actionName, v.actionCount))
-		for _, key := range keys {
+		for _, key := range slices.Sorted(maps.Keys(v.changes)) {
 			fmt.Fprintf(w, "%s\t%d\n", key, v.changes[key])
 		}
 		w.Flush()
