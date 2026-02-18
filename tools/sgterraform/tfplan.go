@@ -18,6 +18,10 @@ type Plan struct {
 		Change *struct {
 			// The action to be carried out by this change.
 			Actions Actions `json:"actions,omitempty"`
+			// Importing is present if the resource is being imported.
+			Importing *struct {
+				ID string `json:"id,omitempty"`
+			} `json:"importing,omitempty"`
 		} `json:"change,omitempty"`
 	} `json:"resource_changes,omitempty"`
 }
