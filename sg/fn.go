@@ -22,7 +22,7 @@ type Target interface {
 }
 
 // Fn creates a Target from a compatible function and args.
-func Fn(target interface{}, args ...interface{}) Target {
+func Fn(target any, args ...any) Target {
 	result, err := newFn(target, args...)
 	if err != nil {
 		panic(err)
@@ -30,12 +30,12 @@ func Fn(target interface{}, args ...interface{}) Target {
 	return result
 }
 
-func newFn(f interface{}, args ...interface{}) (Target, error) {
+func newFn(f any, args ...any) (Target, error) {
 	v := reflect.ValueOf(f)
 	if f == nil || v.Type().Kind() != reflect.Func {
 		return nil, fmt.Errorf("non-function passed to sg.Fn: %T", f)
 	}
-	if v.Type().NumOut() != 1 || v.Type().Out(0) != reflect.TypeOf(func() error { return nil }).Out(0) {
+	if v.Type().NumOut() != 1 || v.Type().Out(0) != reflect.TypeFor[func() error]().Out(0) {
 		return nil, fmt.Errorf("function does not have an error return value: %T", f)
 	}
 	if len(args) > v.Type().NumIn() {
@@ -44,12 +44,12 @@ func newFn(f interface{}, args ...interface{}) (Target, error) {
 	var hasNamespace bool
 	x := 0
 	inputs := v.Type().NumIn()
-	if v.Type().In(0).AssignableTo(reflect.TypeOf(struct{}{})) {
+	if v.Type().In(0).AssignableTo(reflect.TypeFor[struct{}]()) {
 		hasNamespace = true
 		x++
 		inputs--
 	}
-	if v.Type().NumIn() > x && v.Type().In(x) == reflect.TypeOf(func(context.Context) {}).In(0) {
+	if v.Type().NumIn() > x && v.Type().In(x) == reflect.TypeFor[func(context.Context)]().In(0) {
 		inputs--
 		x++
 	} else {
@@ -61,7 +61,7 @@ func newFn(f interface{}, args ...interface{}) (Target, error) {
 	for _, arg := range args {
 		argT := v.Type().In(x)
 		switch argT {
-		case reflect.TypeOf(0), reflect.TypeOf(""), reflect.TypeOf(false):
+		case reflect.TypeFor[int](), reflect.TypeFor[string](), reflect.TypeFor[bool]():
 			// ok
 		default:
 			return nil, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)

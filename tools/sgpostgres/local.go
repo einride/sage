@@ -130,9 +130,9 @@ func inspectPortAddress(ctx context.Context, containerID, containerPort string) 
 		return "", err
 	}
 	output := stdout.String()
-	lines := strings.Split(output, "\n")
+	lines := strings.SplitSeq(output, "\n")
 	// docker port can return ipv6 mapping as well, take the first non ipv6 mapping.
-	for _, line := range lines {
+	for line := range lines {
 		mapping := strings.TrimSpace(line)
 		if _, err := net.ResolveTCPAddr("tcp4", mapping); err == nil {
 			sg.Logger(ctx).Printf("mapping: %s", mapping)

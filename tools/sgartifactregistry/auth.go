@@ -101,8 +101,8 @@ func isGoogleAuthExpired(ctx context.Context) (bool, error) {
 	// gcloud auth describe is an undocumented gcloud API which allows us to get back
 	// information about the currently authenticated user including the token expiration time.
 	authInfo := sg.Output(sg.Command(ctx, "gcloud", "auth", "describe", account))
-	lines := strings.Split(authInfo, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(authInfo, "\n")
+	for line := range lines {
 		if !strings.HasPrefix(line, "expired: ") {
 			continue
 		}

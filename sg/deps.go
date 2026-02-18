@@ -17,7 +17,7 @@ import (
 // Dependencies must be of type func(context.Context) error or Target.
 //
 // Each function will be run exactly once, even across multiple calls to Deps.
-func Deps(ctx context.Context, functions ...interface{}) {
+func Deps(ctx context.Context, functions ...any) {
 	errs := make([]error, len(functions))
 	checkedFunctions := checkFunctions(functions...)
 	var wg sync.WaitGroup
@@ -66,13 +66,13 @@ func Deps(ctx context.Context, functions ...interface{}) {
 }
 
 // SerialDeps works like Deps except running all dependencies serially instead of in parallel.
-func SerialDeps(ctx context.Context, targets ...interface{}) {
+func SerialDeps(ctx context.Context, targets ...any) {
 	for _, target := range targets {
 		Deps(ctx, target)
 	}
 }
 
-func checkFunctions(functions ...interface{}) []Target {
+func checkFunctions(functions ...any) []Target {
 	result := make([]Target, 0, len(functions))
 	for _, f := range functions {
 		if checked, ok := f.(Target); ok {

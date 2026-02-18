@@ -251,7 +251,7 @@ func mapToHTMLList(input []TfChange) string {
 	if len(input) == 0 {
 		return ""
 	}
-	var htmlList string
+	var htmlList strings.Builder
 	for _, v := range input {
 		if v.actionCount == 0 {
 			continue
@@ -263,12 +263,12 @@ func mapToHTMLList(input []TfChange) string {
 		sort.Strings(keys)
 		var b bytes.Buffer
 		w := tabwriter.NewWriter(&b, 0, 0, 3, '.', tabwriter.FilterHTML)
-		htmlList += fmt.Sprintf("<b>%s (%d):</b><ul>", v.actionName, v.actionCount)
+		htmlList.WriteString(fmt.Sprintf("<b>%s (%d):</b><ul>", v.actionName, v.actionCount))
 		for _, key := range keys {
 			fmt.Fprintf(w, "%s\t%d\n", key, v.changes[key])
 		}
 		w.Flush()
-		htmlList += b.String() + "</ul>"
+		htmlList.WriteString(b.String() + "</ul>")
 	}
-	return htmlList
+	return htmlList.String()
 }
