@@ -1,3 +1,3 @@
 module go.einride.tech/sage
 
-go 1.24.9
+go 1.25.7
