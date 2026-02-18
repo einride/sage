@@ -189,7 +189,7 @@ type result struct {
 
 func retryMaxTimes(n int, fn func() error) error {
 	var err error
-	for i := 0; i < n; i++ {
+	for range n {
 		err = fn()
 		if err == nil {
 			break

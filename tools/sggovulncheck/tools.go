@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os/exec"
 	"path/filepath"
+	"slices"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -36,11 +37,8 @@ func RunAll(ctx context.Context, modulePaths ...string) error {
 		}
 		if len(modulePaths) > 0 {
 			var shouldRunInModulePath bool
-			for _, modulePath := range modulePaths {
-				if modulePath == path {
-					shouldRunInModulePath = true
-					break
-				}
+			if slices.Contains(modulePaths, path) {
+				shouldRunInModulePath = true
 			}
 			if !shouldRunInModulePath {
 				return nil

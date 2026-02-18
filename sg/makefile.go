@@ -21,9 +21,9 @@ import (
 const defaultGoVersion = "1.25.7"
 
 type Makefile struct {
-	Namespace     interface{}
+	Namespace     any
 	Path          string
-	DefaultTarget interface{}
+	DefaultTarget any
 }
 
 func (m Makefile) namespaceName() string {

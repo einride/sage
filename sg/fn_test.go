@@ -9,7 +9,7 @@ func TestFn_Name(t *testing.T) {
 	ns := namespace{}
 	for _, tt := range []struct {
 		name     string
-		fn       interface{}
+		fn       any
 		expected string
 	}{
 		{

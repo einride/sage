@@ -2,7 +2,7 @@ package sgcspevaluatorcli
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -14,10 +14,10 @@ type ContentSecurityPolicy map[string][]string
 func (csp ContentSecurityPolicy) String() string {
 	directives := make([]string, 0, len(csp))
 	for directive, rules := range csp {
-		sort.Slice(rules, func(i, j int) bool { return rules[i] < rules[j] })
+		slices.Sort(rules)
 		directives = append(directives, fmt.Sprintf("%s %s", directive, strings.Join(rules, " ")))
 	}
-	sort.Slice(directives, func(i, j int) bool { return directives[i] < directives[j] })
+	slices.Sort(directives)
 	return strings.Join(directives, "; ")
 }
 
@@ -73,8 +73,6 @@ func sortedKeys(m map[string]struct{}) []string {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	slices.Sort(keys)
 	return keys
 }

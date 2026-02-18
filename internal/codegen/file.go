@@ -62,7 +62,7 @@ func NewMakefile(cfg FileConfig) *File {
 }
 
 // P prints args to the generated file.
-func (f *File) P(args ...interface{}) {
+func (f *File) P(args ...any) {
 	for _, arg := range args {
 		_, _ = fmt.Fprint(f, arg)
 	}
