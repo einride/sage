@@ -157,6 +157,34 @@ sg.Makefile{
 will cause whatever value the environment variable `Name` has at the time to be
 hardcoded in the built sage binary.
 
+#### Custom Make target names
+
+By default, Sage converts Go function names from PascalCase to kebab-case for
+Make targets (e.g. `BuildImage` becomes `build-image`). This conversion treats
+every letter-to-number boundary as a word break, so `BuildImageV2` becomes
+`build-image-v-2`.
+
+To override the generated target name, add a `//sage:target` annotation in the
+function's doc comment:
+
+```golang
+//sage:target build-image-v2
+func BuildImageV2(ctx context.Context) error {
+	// ...
+}
+```
+
+This generates:
+
+```makefile
+.PHONY: build-image-v2
+build-image-v2: $(sagefile)
+	@$(sagefile) BuildImageV2
+```
+
+Target names must consist of lowercase letters, digits, hyphens, underscores,
+and dots, and must not start with a dot or hyphen.
+
 #### Dependencies
 
 Dependencies can be defined just by specificing the function, or with `sg.Fn` if

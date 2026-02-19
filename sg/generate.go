@@ -27,7 +27,7 @@ func GenerateMakefiles(mks ...Makefile) {
 	}
 	var pkg *doc.Package
 	for _, p := range pkgs {
-		pkg = doc.New(p, "./", 0)
+		pkg = doc.New(p, "./", doc.PreserveAST)
 	}
 	// update .gitignore file
 	const gitignoreContent = ".gitignore\ntools/\nbin/\nbuild/\n"
