@@ -16,8 +16,18 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 // VerifyNoDiff returns an error if the current working tree has a diff.
-func VerifyNoDiff(ctx context.Context) error {
-	cmd := Command(ctx, "status", "--porcelain")
+// Optional [git pathspecs] can be provided to scope the check to specific files
+// (e.g. "*.md", ":(exclude)vendor"). When no pathspecs are given the entire
+// working tree is checked.
+//
+// [git pathspecs]: https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefpathaborpathspec
+func VerifyNoDiff(ctx context.Context, pathspecs ...string) error {
+	statusArgs := []string{"status", "--porcelain"}
+	if len(pathspecs) > 0 {
+		statusArgs = append(statusArgs, "--")
+		statusArgs = append(statusArgs, pathspecs...)
+	}
+	cmd := Command(ctx, statusArgs...)
 	var status bytes.Buffer
 	cmd.Stdout = &status
 	if err := cmd.Run(); err != nil {
@@ -26,7 +36,12 @@ func VerifyNoDiff(ctx context.Context) error {
 	if status.String() != "" {
 		dirtyDetails := status.String()
 		// attempt to give a nice patch output if the dirty files are tracked by git
-		if patchOutput := sg.Output(Command(ctx, "diff", "--patch")); patchOutput != "" {
+		diffArgs := []string{"diff", "--patch"}
+		if len(pathspecs) > 0 {
+			diffArgs = append(diffArgs, "--")
+			diffArgs = append(diffArgs, pathspecs...)
+		}
+		if patchOutput := sg.Output(Command(ctx, diffArgs...)); patchOutput != "" {
 			dirtyDetails = patchOutput
 		}
 		return fmt.Errorf(
