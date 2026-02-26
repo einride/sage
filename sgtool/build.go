@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -24,6 +25,33 @@ func trimVersionSuffix(pkg string) string {
 func GoInstall(ctx context.Context, pkg, version string) (string, error) {
 	executable := sg.FromToolsDir("go", pkg, version, filepath.Base(trimVersionSuffix(pkg)))
 	// Check if executable already exist
+	if _, err := os.Stat(executable); err == nil {
+		symlink, err := CreateSymlink(executable)
+		if err != nil {
+			return "", err
+		}
+		return symlink, nil
+	}
+	pkgVersion := fmt.Sprintf("%s@%s", pkg, version)
+	sg.Logger(ctx).Printf("building %s...", pkgVersion)
+	cmd := sg.Command(ctx, "go", "install", pkgVersion)
+	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Dir(executable))
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	symlink, err := CreateSymlink(executable)
+	if err != nil {
+		return "", err
+	}
+	return symlink, nil
+}
+
+// GoInstallWithGoVersion is like GoInstall but includes the Go version in the
+// cache key. Use this for tools whose behavior depends on the Go runtime version,
+// such as go-licenses which uses build.Default.GOROOT to detect stdlib packages.
+func GoInstallWithGoVersion(ctx context.Context, pkg, version string) (string, error) {
+	executable := sg.FromToolsDir("go", pkg, version, runtime.Version(), filepath.Base(trimVersionSuffix(pkg)))
+	// Check if executable already exists
 	if _, err := os.Stat(executable); err == nil {
 		symlink, err := CreateSymlink(executable)
 		if err != nil {

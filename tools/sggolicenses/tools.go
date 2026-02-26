@@ -1,3 +1,15 @@
+// Package sggolicenses provides sage integration for the go-licenses tool.
+//
+// Troubleshooting: If go-licenses fails with errors like "Package X does not
+// have module info", this is a known incompatibility between go-licenses and
+// Go toolchain version mismatches (https://github.com/google/go-licenses/pull/329).
+// The go-licenses binary uses build.Default.GOROOT at runtime to detect stdlib
+// packages — if your local Go version differs from the toolchain directive in
+// go.mod, the GOROOT path won't match and stdlib packages are misidentified.
+//
+// To fix this, update your local Go installation to match the version in go.mod,
+// or set GOTOOLCHAIN=go<version>+auto (e.g. GOTOOLCHAIN=go1.25.7+auto) to
+// ensure the correct toolchain is used consistently.
 package sggolicenses
 
 import (
@@ -93,7 +105,10 @@ func Check(ctx context.Context, disallowedTypes ...string) error {
 	return nil
 }
 
+// PrepareCommand installs go-licenses using Go-version-aware caching.
+// go-licenses uses build.Default.GOROOT at runtime to detect stdlib packages,
+// so the binary must be rebuilt when the Go version changes.
 func PrepareCommand(ctx context.Context) error {
-	_, err := sgtool.GoInstall(ctx, "github.com/google/go-licenses/v2", version)
+	_, err := sgtool.GoInstallWithGoVersion(ctx, "github.com/google/go-licenses/v2", version)
 	return err
 }
