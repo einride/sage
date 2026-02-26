@@ -67,7 +67,17 @@ func RunAll(ctx context.Context, modulePaths ...string) error {
 	return nil
 }
 
+// PrepareCommand installs govulncheck using Go-version-aware caching.
+// govulncheck uses go/packages to load and analyze dependencies. When the
+// binary is built with an older Go version than what is currently installed,
+// package loading can fail with errors like:
+//
+//	file requires newer Go version go1.N (application built with go1.M)
+//
+// This happens because dependencies may have //go:build go1.N constraints
+// that are incompatible with the Go version embedded in a stale binary.
+// Rebuilding when the Go version changes ensures compatibility.
 func PrepareCommand(ctx context.Context) error {
-	_, err := sgtool.GoInstall(ctx, "golang.org/x/vuln/cmd/govulncheck", version)
+	_, err := sgtool.GoInstallWithGoVersion(ctx, "golang.org/x/vuln/cmd/govulncheck", version)
 	return err
 }
