@@ -280,7 +280,7 @@ func mapToHTMLList(input []TfChange) string {
 		}
 		var b bytes.Buffer
 		w := tabwriter.NewWriter(&b, 0, 0, 3, '.', tabwriter.FilterHTML)
-		htmlList.WriteString(fmt.Sprintf("<b>%s (%d):</b><ul>", v.actionName, v.actionCount))
+		fmt.Fprintf(&htmlList, "<b>%s (%d):</b><ul>", v.actionName, v.actionCount)
 		for _, key := range slices.Sorted(maps.Keys(v.changes)) {
 			fmt.Fprintf(w, "%s\t%d\n", key, v.changes[key])
 		}
