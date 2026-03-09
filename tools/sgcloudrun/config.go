@@ -384,7 +384,10 @@ func accessSecretVersion(ctx context.Context, accessToken, project, secret, vers
 }
 
 func applicationDefaultCredentials() (string, error) {
-	home := os.Getenv("HOME")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
 	path := filepath.Join(home, ".config/gcloud/application_default_credentials.json")
 	b, err := os.ReadFile(path)
 	if err != nil {
