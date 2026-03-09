@@ -128,6 +128,7 @@ func addToDependabot() error {
 	if hasSageDependabotConfig(dependabotYML) {
 		return nil
 	}
+	//nolint:gosec // sg.FromGitRoot is safe anchor.
 	return os.WriteFile(dependabotYMLPath, appendSageDependabotConfig(dependabotYML), 0o600)
 }
 
