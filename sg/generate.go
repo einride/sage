@@ -18,7 +18,8 @@ func GenerateMakefiles(mks ...Makefile) {
 	if len(mks) == 0 {
 		panic("no makefiles to generate, see https://github.com/einride/sage#readme for more info")
 	}
-	pkgs, err := parser.ParseDir(token.NewFileSet(), FromSageDir(), nil, parser.ParseComments)
+	// TODO: replace the deprecated function call.
+	pkgs, err := parser.ParseDir(token.NewFileSet(), FromSageDir(), nil, parser.ParseComments) //nolint:staticcheck
 	if err != nil {
 		panic(fmt.Errorf("failed to parse directory: %v", err))
 	}
