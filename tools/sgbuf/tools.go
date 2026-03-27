@@ -2,7 +2,9 @@ package sgbuf
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -21,6 +23,18 @@ const (
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
+}
+
+// FormatProto folders which contain directly .proto files
+func FormatProto(ctx context.Context, folders ...string) error {
+	sg.Deps(ctx, PrepareCommand)
+	var errs []error
+	for _, folder := range folders {
+		cmd := sg.Command(ctx, sg.FromBinDir(name), "format", folder, "-w")
+		log.Println(cmd)
+		errs = append(errs, cmd.Run())
+	}
+	return errors.Join(errs...)
 }
 
 func PrepareCommand(ctx context.Context) error {
