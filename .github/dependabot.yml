@@ -6,27 +6,51 @@ updates:
     schedule:
       interval: monthly
 
+    cooldown:
+      default-days: 7
   - package-ecosystem: github-actions
     directory: /actions/setup
     schedule:
       interval: monthly
 
+    cooldown:
+      default-days: 7
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: monthly
 
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
   - package-ecosystem: gomod
     directory: .sage
     schedule:
       interval: monthly
 
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
   - package-ecosystem: pip
     directory: tools/sgmdformat
     schedule:
       interval: monthly
 
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
   - package-ecosystem: npm
     directory: tools/sgcspevaluatorcli
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
