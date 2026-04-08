@@ -21,7 +21,8 @@ import (
 const tripleQuote = "```" // required by goconst since used more than 3
 
 const (
-	version    = "1.10.5"
+	// renovate: datasource=github-releases depName=hashicorp/terraform
+	version    = "1.14.8"
 	binaryName = "terraform"
 )
 
