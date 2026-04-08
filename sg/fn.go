@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -86,6 +87,13 @@ func newFn(f any, args ...any) (Target, error) {
 	// suffix can simply be removed.
 	// See: https://stackoverflow.com/questions/32925344/why-is-there-a-fm-suffix-when-getting-a-functions-name-in-go
 	trimmedName := strings.TrimSuffix(name, "-fm")
+	// Strip anonymous function/closure suffix (.funcN) appended by the
+	// Go runtime. These are not meaningful display names.
+	if i := strings.LastIndex(trimmedName, ".func"); i != -1 {
+		if _, err := strconv.Atoi(trimmedName[i+5:]); err == nil {
+			trimmedName = trimmedName[:i]
+		}
+	}
 	return fn{
 		name: trimmedName,
 		id:   name + "(" + string(argsID) + ")",
