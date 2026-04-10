@@ -20,7 +20,7 @@ func TestFn_Name(t *testing.T) {
 		{
 			name:     "anonymous",
 			fn:       func(_ context.Context) error { return nil },
-			expected: "go.einride.tech/sage/sg.TestFn_Name.func1",
+			expected: "go.einride.tech/sage/sg.TestFn_Name",
 		},
 		{
 			name:     "namespace",
