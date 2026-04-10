@@ -27,8 +27,13 @@ $(go):
 	@chmod +x $(go)
 endif
 
-.PHONY: $(sagefile)
-$(sagefile): $(go)
+ifneq ($(wildcard $(sagefile)),)
+sage_source_files := $(shell $(sagefile) --deps .sage)
+ifeq ($(sage_source_files),)
+$(error sagefile --deps returned empty; run 'make sage' to force rebuild)
+endif
+endif
+$(sagefile): $(go) $(sage_source_files)
 	@cd .sage && $(go) mod tidy && $(go) run .
 
 .PHONY: sage
