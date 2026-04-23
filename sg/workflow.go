@@ -5,6 +5,8 @@ import (
 	_ "embed"
 	"fmt"
 	"go/doc"
+	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"text/template"
@@ -38,13 +40,38 @@ type GitHubWorkflow struct {
 	// SetupWith populates the "with:" block on the "Setup Sage" step of
 	// every job. Each key/value pair becomes one input to the action named
 	// by SetupAction. It does not affect the checkout step or the
-	// `make <target>` step, and the same map is applied identically to
-	// every job (per-job overrides are not supported).
+	// `make <target>` step. Applied identically to every job unless a
+	// JobOverride specifies its own SetupWith (in which case the
+	// workflow-wide map and the per-job map are merged, with per-job
+	// entries taking precedence).
 	// Defaults to {"go-version-file": "go.mod"}.
 	SetupWith map[string]string
 	// RunsOn is the runner label for each job.
 	// Defaults to "ubuntu-latest".
 	RunsOn string
+	// JobOverrides optionally customizes individual jobs. Each entry's
+	// Target is a reference to the sagefile function (e.g. GoTest) whose
+	// generated job should be customized; the function must be reached by
+	// the default target via sg.Deps or sg.SerialDeps. Unknown targets and
+	// duplicate entries cause GenerateMakefiles to fail.
+	JobOverrides []JobOverride
+}
+
+// JobOverride customizes the generated job for a single target.
+// Unset fields inherit the workflow-wide value from GitHubWorkflow.
+type JobOverride struct {
+	// Target is a reference to the sagefile function whose generated job
+	// should be customized, e.g. GoTest. Passing the function itself (not
+	// its name as a string) means the reference is type-checked by the Go
+	// compiler and survives renames via LSP refactors.
+	Target any
+	// RunsOn overrides GitHubWorkflow.RunsOn for this job.
+	RunsOn string
+	// SetupAction overrides GitHubWorkflow.SetupAction for this job.
+	SetupAction string
+	// SetupWith is merged over GitHubWorkflow.SetupWith for this job;
+	// entries here take precedence.
+	SetupWith map[string]string
 }
 
 func (w *GitHubWorkflow) applyDefaults() {
@@ -70,9 +97,12 @@ type workflowGroup struct {
 }
 
 type workflowJob struct {
-	Name   string
-	Target string
-	Needs  []string
+	Name        string
+	Target      string
+	Needs       []string
+	RunsOn      string
+	SetupAction string
+	SetupWith   []workflowSetupKV
 }
 
 type workflowSetupKV struct {
@@ -81,27 +111,22 @@ type workflowSetupKV struct {
 }
 
 type workflowData struct {
-	Name        string
-	RunsOn      string
-	SetupAction string
-	SetupWith   []workflowSetupKV
-	Jobs        []workflowJob
+	Name string
+	Jobs []workflowJob
 }
 
 //go:embed workflow_template.yml
 var workflowTemplate string
 
 // renderWorkflow renders a GitHub Actions workflow YAML from a sequence of
-// resolved groups. Edges: within a serial group each job needs the previous
-// one, and the first job of any group needs all jobs of the preceding group.
-func renderWorkflow(cfg GitHubWorkflow, groups []workflowGroup) ([]byte, error) {
+// resolved groups and per-target overrides keyed by Make target name. Edges:
+// within a serial group each job needs the previous one, and the first job of
+// any group needs all jobs of the preceding group.
+func renderWorkflow(cfg GitHubWorkflow, groups []workflowGroup, overrides map[string]JobOverride) ([]byte, error) {
 	cfg.applyDefaults()
 	data := workflowData{
-		Name:        cfg.Name,
-		RunsOn:      cfg.RunsOn,
-		SetupAction: cfg.SetupAction,
-		SetupWith:   sortedSetupWith(cfg.SetupWith),
-		Jobs:        buildJobs(groups),
+		Name: cfg.Name,
+		Jobs: buildJobs(cfg, groups, overrides),
 	}
 	tmpl, err := template.New("workflow").Parse(workflowTemplate)
 	if err != nil {
@@ -114,12 +139,27 @@ func renderWorkflow(cfg GitHubWorkflow, groups []workflowGroup) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-func buildJobs(groups []workflowGroup) []workflowJob {
+func buildJobs(cfg GitHubWorkflow, groups []workflowGroup, overrides map[string]JobOverride) []workflowJob {
 	var jobs []workflowJob
 	var prev []string
 	for _, g := range groups {
 		for i, target := range g.Targets {
-			job := workflowJob{Name: target, Target: target}
+			ov := overrides[target]
+			runsOn := cfg.RunsOn
+			if ov.RunsOn != "" {
+				runsOn = ov.RunsOn
+			}
+			setupAction := cfg.SetupAction
+			if ov.SetupAction != "" {
+				setupAction = ov.SetupAction
+			}
+			job := workflowJob{
+				Name:        target,
+				Target:      target,
+				RunsOn:      runsOn,
+				SetupAction: setupAction,
+				SetupWith:   sortedSetupWith(mergeSetupWith(cfg.SetupWith, ov.SetupWith)),
+			}
 			switch g.Mode {
 			case PlanModeSerial:
 				if i == 0 {
@@ -137,7 +177,23 @@ func buildJobs(groups []workflowGroup) []workflowJob {
 	return jobs
 }
 
+// mergeSetupWith returns a new map containing base's entries overlaid by
+// override's entries. Either input may be nil.
+func mergeSetupWith(base, override map[string]string) map[string]string {
+	merged := make(map[string]string, len(base)+len(override))
+	for k, v := range base {
+		merged[k] = v
+	}
+	for k, v := range override {
+		merged[k] = v
+	}
+	return merged
+}
+
 func sortedSetupWith(m map[string]string) []workflowSetupKV {
+	if len(m) == 0 {
+		return nil
+	}
 	kvs := make([]workflowSetupKV, 0, len(m))
 	for k, v := range m {
 		kvs = append(kvs, workflowSetupKV{Key: k, Value: v})
@@ -177,4 +233,56 @@ func planTargetToMakeTarget(pkg *doc.Package, planName string) (string, error) {
 		return "", fmt.Errorf("sage: workflow: target %q not found in sagefile package", planName)
 	}
 	return effectiveMakeTarget(f), nil
+}
+
+// targetRefToMakeTarget resolves a function reference to its Make target name,
+// mirroring the name-stripping logic used when recording plan targets so that
+// bound methods and closure-wrapped references resolve to the same name plan
+// mode would record.
+func targetRefToMakeTarget(pkg *doc.Package, target any) (string, error) {
+	if target == nil {
+		return "", fmt.Errorf("target is nil")
+	}
+	v := reflect.ValueOf(target)
+	if v.Kind() != reflect.Func {
+		return "", fmt.Errorf("target is not a function: %T", target)
+	}
+	name := trimRuntimeFuncName(runtime.FuncForPC(v.Pointer()).Name())
+	return planTargetToMakeTarget(pkg, name)
+}
+
+// resolveJobOverrides validates a list of JobOverride entries against the
+// plan's recorded Make targets and returns them keyed by Make target name.
+// Returns an error if any target is unknown, unreachable from the default
+// target, or specified more than once.
+func resolveJobOverrides(
+	pkg *doc.Package,
+	groups []workflowGroup,
+	overrides []JobOverride,
+) (map[string]JobOverride, error) {
+	known := make(map[string]bool)
+	for _, g := range groups {
+		for _, t := range g.Targets {
+			known[t] = true
+		}
+	}
+	result := make(map[string]JobOverride, len(overrides))
+	for _, ov := range overrides {
+		target, err := targetRefToMakeTarget(pkg, ov.Target)
+		if err != nil {
+			return nil, fmt.Errorf("GitHubWorkflow.JobOverrides: %w", err)
+		}
+		if !known[target] {
+			return nil, fmt.Errorf(
+				"GitHubWorkflow.JobOverrides: target %q is not reached by the default target; "+
+					"ensure it is invoked via sg.Deps or sg.SerialDeps",
+				target,
+			)
+		}
+		if _, dup := result[target]; dup {
+			return nil, fmt.Errorf("GitHubWorkflow.JobOverrides: duplicate override for target %q", target)
+		}
+		result[target] = ov
+	}
+	return result, nil
 }

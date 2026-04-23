@@ -1,9 +1,13 @@
 package sg
 
 import (
+	"context"
 	"flag"
+	"go/ast"
+	"go/doc"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -20,7 +24,7 @@ func TestRenderWorkflow_Golden(t *testing.T) {
 		{Mode: PlanModeSerial, Targets: []string{"go-mod-tidy"}},
 		{Mode: PlanModeSerial, Targets: []string{"go-licenses", "git-verify-no-diff"}},
 	}
-	got, err := renderWorkflow(GitHubWorkflow{}, groups)
+	got, err := renderWorkflow(GitHubWorkflow{}, groups, nil)
 	if err != nil {
 		t.Fatalf("renderWorkflow: %v", err)
 	}
@@ -100,9 +104,137 @@ func TestBuildJobs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildJobs(tt.groups)
+			got := buildJobs(GitHubWorkflow{}, tt.groups, nil)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("buildJobs mismatch\n got: %#v\nwant: %#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBuildJobs_Overrides(t *testing.T) {
+	cfg := GitHubWorkflow{
+		RunsOn:      "ubuntu-latest",
+		SetupAction: "./actions/setup",
+		SetupWith:   map[string]string{"go-version-file": "go.mod"},
+	}
+	groups := []workflowGroup{
+		{Mode: PlanModeParallel, Targets: []string{"go-test", "go-lint"}},
+	}
+	overrides := map[string]JobOverride{
+		"go-test": {
+			RunsOn:    "ubuntu-24.04",
+			SetupWith: map[string]string{"go-version-file": "backend/go.mod", "cache": "true"},
+		},
+	}
+	got := buildJobs(cfg, groups, overrides)
+	want := []workflowJob{
+		{
+			Name: "go-test", Target: "go-test",
+			RunsOn:      "ubuntu-24.04",
+			SetupAction: "./actions/setup",
+			SetupWith: []workflowSetupKV{
+				{Key: "cache", Value: "true"},
+				{Key: "go-version-file", Value: "backend/go.mod"},
+			},
+		},
+		{
+			Name: "go-lint", Target: "go-lint",
+			RunsOn:      "ubuntu-latest",
+			SetupAction: "./actions/setup",
+			SetupWith: []workflowSetupKV{
+				{Key: "go-version-file", Value: "go.mod"},
+			},
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("buildJobs overrides mismatch\n got: %#v\nwant: %#v", got, want)
+	}
+}
+
+// workflowTestPlain is referenced by override-resolution tests via its
+// function pointer so runtime.FuncForPC resolves its name.
+func workflowTestPlain(_ context.Context) error     { return nil }
+func workflowTestUnreached(_ context.Context) error { return nil }
+
+func TestResolveJobOverrides(t *testing.T) {
+	pkg := &doc.Package{
+		Funcs: []*doc.Func{
+			{Name: "workflowTestPlain", Decl: &ast.FuncDecl{}},
+			{Name: "workflowTestUnreached", Decl: &ast.FuncDecl{}},
+		},
+	}
+	groups := []workflowGroup{
+		{Mode: PlanModeParallel, Targets: []string{"workflow-test-plain"}},
+	}
+	tests := []struct {
+		name       string
+		overrides  []JobOverride
+		wantKeys   []string
+		wantErrSub string
+	}{
+		{
+			name:     "no overrides",
+			wantKeys: nil,
+		},
+		{
+			name: "valid override",
+			overrides: []JobOverride{
+				{Target: workflowTestPlain, RunsOn: "ubuntu-24.04"},
+			},
+			wantKeys: []string{"workflow-test-plain"},
+		},
+		{
+			name: "nil target",
+			overrides: []JobOverride{
+				{Target: nil},
+			},
+			wantErrSub: "target is nil",
+		},
+		{
+			name: "non-function target",
+			overrides: []JobOverride{
+				{Target: 42},
+			},
+			wantErrSub: "target is not a function",
+		},
+		{
+			name: "unreached target",
+			overrides: []JobOverride{
+				{Target: workflowTestUnreached},
+			},
+			wantErrSub: "is not reached by the default target",
+		},
+		{
+			name: "duplicate override",
+			overrides: []JobOverride{
+				{Target: workflowTestPlain, RunsOn: "ubuntu-24.04"},
+				{Target: workflowTestPlain, RunsOn: "ubuntu-latest"},
+			},
+			wantErrSub: "duplicate override",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := resolveJobOverrides(pkg, groups, tt.overrides)
+			if tt.wantErrSub != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q, got nil", tt.wantErrSub)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrSub) {
+					t.Errorf("error %q does not contain %q", err.Error(), tt.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			var gotKeys []string
+			for k := range got {
+				gotKeys = append(gotKeys, k)
+			}
+			if !reflect.DeepEqual(gotKeys, tt.wantKeys) {
+				t.Errorf("keys mismatch\n got: %v\nwant: %v", gotKeys, tt.wantKeys)
 			}
 		})
 	}

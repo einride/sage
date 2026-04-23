@@ -123,7 +123,11 @@ func generateGitHubWorkflow(ctx context.Context, pkg *doc.Package, mk Makefile) 
 	if err != nil {
 		return err
 	}
-	yaml, err := renderWorkflow(*mk.GitHubWorkflow, groups)
+	overrides, err := resolveJobOverrides(pkg, groups, mk.GitHubWorkflow.JobOverrides)
+	if err != nil {
+		return err
+	}
+	yaml, err := renderWorkflow(*mk.GitHubWorkflow, groups, overrides)
 	if err != nil {
 		return err
 	}
