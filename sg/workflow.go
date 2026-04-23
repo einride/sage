@@ -204,13 +204,14 @@ func sortedSetupWith(m map[string]string) []workflowSetupKV {
 
 // planToWorkflowGroups maps the Go-qualified target names recorded by plan
 // mode onto their corresponding Make target names using the parsed sagefile
-// package (so //sage:target overrides are honored).
-func planToWorkflowGroups(pkg *doc.Package, plan []PlanGroup) ([]workflowGroup, error) {
+// package (so //sage:target overrides are honored) and the namespace proxy
+// map (so namespaced default targets resolve to their root proxy target).
+func planToWorkflowGroups(pkg *doc.Package, namespaces map[string]string, plan []PlanGroup) ([]workflowGroup, error) {
 	groups := make([]workflowGroup, 0, len(plan))
 	for _, g := range plan {
 		targets := make([]string, 0, len(g.Targets))
 		for _, raw := range g.Targets {
-			target, err := planTargetToMakeTarget(pkg, raw)
+			target, err := planTargetToMakeTarget(pkg, namespaces, raw)
 			if err != nil {
 				return nil, err
 			}
@@ -222,24 +223,50 @@ func planToWorkflowGroups(pkg *doc.Package, plan []PlanGroup) ([]workflowGroup, 
 }
 
 // planTargetToMakeTarget resolves a Go-qualified target name (e.g. "main.GoLint")
-// to a Make target name (e.g. "go-lint").
-func planTargetToMakeTarget(pkg *doc.Package, planName string) (string, error) {
-	name := planName
-	if i := strings.LastIndex(name, "."); i != -1 {
-		name = name[i+1:]
+// to a Make target name (e.g. "go-lint"). If the name matches a namespace
+// Makefile's DefaultTarget (see buildNamespaceProxies), it returns the root
+// Makefile's proxy target for that namespace instead (e.g. "proto" for
+// "main.Proto.All").
+func planTargetToMakeTarget(pkg *doc.Package, namespaces map[string]string, planName string) (string, error) {
+	if proxy, ok := namespaces[planName]; ok {
+		return proxy, nil
 	}
-	f := findDocFunc(pkg, name)
+	_, namePart := splitPlanName(planName)
+	if strings.Contains(namePart, ".") {
+		return "", fmt.Errorf(
+			"sage: workflow: target %q appears to be a namespace method that is not any namespace "+
+				"Makefile's DefaultTarget; only namespace default targets can be composed via "+
+				"sg.Deps in the root default - either wrap it in a top-level function or compose "+
+				"the namespace's default method (e.g. Proto.All)",
+			planName,
+		)
+	}
+	f := findDocFunc(pkg, namePart)
 	if f == nil {
 		return "", fmt.Errorf("sage: workflow: target %q not found in sagefile package", planName)
 	}
 	return effectiveMakeTarget(f), nil
 }
 
-// targetRefToMakeTarget resolves a function reference to its Make target name,
-// mirroring the name-stripping logic used when recording plan targets so that
-// bound methods and closure-wrapped references resolve to the same name plan
-// mode would record.
-func targetRefToMakeTarget(pkg *doc.Package, target any) (string, error) {
+// splitPlanName splits a plan-style runtime name into its package path and
+// in-package name. For "main.GoLint" this returns ("main", "GoLint"); for
+// "main.Proto.All" it returns ("main", "Proto.All"); for
+// "github.com/foo/bar.GoLint" it returns ("github.com/foo/bar", "GoLint").
+// The separator is the first "." after the last "/".
+func splitPlanName(planName string) (pkg, name string) {
+	start := 0
+	if i := strings.LastIndex(planName, "/"); i != -1 {
+		start = i + 1
+	}
+	if i := strings.Index(planName[start:], "."); i != -1 {
+		return planName[:start+i], planName[start+i+1:]
+	}
+	return "", planName
+}
+
+// funcPlanName returns the plan-style runtime name of a function reference,
+// mirroring the name-stripping applied by the plan recorder so lookups match.
+func funcPlanName(target any) (string, error) {
 	if target == nil {
 		return "", fmt.Errorf("target is nil")
 	}
@@ -247,8 +274,36 @@ func targetRefToMakeTarget(pkg *doc.Package, target any) (string, error) {
 	if v.Kind() != reflect.Func {
 		return "", fmt.Errorf("target is not a function: %T", target)
 	}
-	name := trimRuntimeFuncName(runtime.FuncForPC(v.Pointer()).Name())
-	return planTargetToMakeTarget(pkg, name)
+	return trimRuntimeFuncName(runtime.FuncForPC(v.Pointer()).Name()), nil
+}
+
+// targetRefToMakeTarget resolves a function reference to its Make target name.
+func targetRefToMakeTarget(pkg *doc.Package, namespaces map[string]string, target any) (string, error) {
+	name, err := funcPlanName(target)
+	if err != nil {
+		return "", err
+	}
+	return planTargetToMakeTarget(pkg, namespaces, name)
+}
+
+// buildNamespaceProxies maps the plan-style name of each namespace Makefile's
+// DefaultTarget (e.g. "main.Proto.All") to the root Makefile's proxy target
+// for that namespace (e.g. "proto"). At runtime the proxy target delegates to
+// the nested Makefile via `make -C <dir>`, so a workflow job that invokes
+// `make proto` is equivalent to invoking Proto.All from the root.
+func buildNamespaceProxies(mks []Makefile) (map[string]string, error) {
+	m := make(map[string]string)
+	for _, mk := range mks {
+		if mk.namespaceName() == "" || mk.DefaultTarget == nil {
+			continue
+		}
+		name, err := funcPlanName(mk.DefaultTarget)
+		if err != nil {
+			return nil, fmt.Errorf("sage: workflow: namespace Makefile %q: %w", mk.namespaceName(), err)
+		}
+		m[name] = toMakeTarget(mk.namespaceName())
+	}
+	return m, nil
 }
 
 // resolveJobOverrides validates a list of JobOverride entries against the
@@ -257,6 +312,7 @@ func targetRefToMakeTarget(pkg *doc.Package, target any) (string, error) {
 // target, or specified more than once.
 func resolveJobOverrides(
 	pkg *doc.Package,
+	namespaces map[string]string,
 	groups []workflowGroup,
 	overrides []JobOverride,
 ) (map[string]JobOverride, error) {
@@ -268,7 +324,7 @@ func resolveJobOverrides(
 	}
 	result := make(map[string]JobOverride, len(overrides))
 	for _, ov := range overrides {
-		target, err := targetRefToMakeTarget(pkg, ov.Target)
+		target, err := targetRefToMakeTarget(pkg, namespaces, ov.Target)
 		if err != nil {
 			return nil, fmt.Errorf("GitHubWorkflow.JobOverrides: %w", err)
 		}

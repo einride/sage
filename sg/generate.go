@@ -89,7 +89,7 @@ func GenerateMakefiles(mks ...Makefile) {
 			panic("GitHubWorkflow.Path must be set")
 		}
 		Logger(ctx).Println("capturing plan and generating workflow", v.GitHubWorkflow.Path)
-		if err := generateGitHubWorkflow(ctx, pkg, v); err != nil {
+		if err := generateGitHubWorkflow(ctx, pkg, mks, v); err != nil {
 			panic(err)
 		}
 	}
@@ -98,7 +98,7 @@ func GenerateMakefiles(mks ...Makefile) {
 // generateGitHubWorkflow invokes the compiled sagefile binary in plan mode,
 // parses the recorded plan, and writes a rendered GitHub Actions workflow
 // YAML to the configured path.
-func generateGitHubWorkflow(ctx context.Context, pkg *doc.Package, mk Makefile) error {
+func generateGitHubWorkflow(ctx context.Context, pkg *doc.Package, mks []Makefile, mk Makefile) error {
 	planFile, err := os.CreateTemp("", "sage-plan-*.jsonl")
 	if err != nil {
 		return fmt.Errorf("create plan temp file: %w", err)
@@ -119,11 +119,15 @@ func generateGitHubWorkflow(ctx context.Context, pkg *doc.Package, mk Makefile) 
 	if err != nil {
 		return err
 	}
-	groups, err := planToWorkflowGroups(pkg, plan)
+	namespaces, err := buildNamespaceProxies(mks)
 	if err != nil {
 		return err
 	}
-	overrides, err := resolveJobOverrides(pkg, groups, mk.GitHubWorkflow.JobOverrides)
+	groups, err := planToWorkflowGroups(pkg, namespaces, plan)
+	if err != nil {
+		return err
+	}
+	overrides, err := resolveJobOverrides(pkg, namespaces, groups, mk.GitHubWorkflow.JobOverrides)
 	if err != nil {
 		return err
 	}

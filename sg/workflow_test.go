@@ -157,6 +157,114 @@ func TestBuildJobs_Overrides(t *testing.T) {
 func workflowTestPlain(_ context.Context) error     { return nil }
 func workflowTestUnreached(_ context.Context) error { return nil }
 
+// workflowTestNamespace is used to exercise namespace-aware resolution.
+type workflowTestNamespace Namespace
+
+func (workflowTestNamespace) All(_ context.Context) error   { return nil }
+func (workflowTestNamespace) Other(_ context.Context) error { return nil }
+
+func TestSplitPlanName(t *testing.T) {
+	tests := []struct {
+		in       string
+		wantPkg  string
+		wantName string
+	}{
+		{"main.GoLint", "main", "GoLint"},
+		{"main.Proto.All", "main", "Proto.All"},
+		{"github.com/foo/bar.GoLint", "github.com/foo/bar", "GoLint"},
+		{"github.com/foo/bar.Type.Method", "github.com/foo/bar", "Type.Method"},
+		{"loose", "", "loose"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			gotPkg, gotName := splitPlanName(tt.in)
+			if gotPkg != tt.wantPkg || gotName != tt.wantName {
+				t.Errorf("splitPlanName(%q) = (%q, %q); want (%q, %q)",
+					tt.in, gotPkg, gotName, tt.wantPkg, tt.wantName)
+			}
+		})
+	}
+}
+
+func TestBuildNamespaceProxies(t *testing.T) {
+	mks := []Makefile{
+		{Path: "/repo/Makefile", DefaultTarget: workflowTestPlain},
+		{
+			Path:          "/repo/ns/Makefile",
+			DefaultTarget: workflowTestNamespace.All,
+			Namespace:     workflowTestNamespace{},
+		},
+	}
+	got, err := buildNamespaceProxies(mks)
+	if err != nil {
+		t.Fatalf("buildNamespaceProxies: %v", err)
+	}
+	want := map[string]string{
+		"go.einride.tech/sage/sg.workflowTestNamespace.All": "workflow-test-namespace",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("buildNamespaceProxies mismatch\n got: %#v\nwant: %#v", got, want)
+	}
+}
+
+func TestPlanTargetToMakeTarget_Namespaces(t *testing.T) {
+	pkg := &doc.Package{
+		Funcs: []*doc.Func{
+			{Name: "workflowTestPlain", Decl: &ast.FuncDecl{}},
+		},
+	}
+	namespaces := map[string]string{
+		"go.einride.tech/sage/sg.workflowTestNamespace.All": "workflow-test-namespace",
+	}
+	tests := []struct {
+		name       string
+		planName   string
+		want       string
+		wantErrSub string
+	}{
+		{
+			name:     "namespace default maps to proxy",
+			planName: "go.einride.tech/sage/sg.workflowTestNamespace.All",
+			want:     "workflow-test-namespace",
+		},
+		{
+			name:       "namespace non-default rejected",
+			planName:   "go.einride.tech/sage/sg.workflowTestNamespace.Other",
+			wantErrSub: "namespace method",
+		},
+		{
+			name:     "top-level target resolves via doc.Func",
+			planName: "go.einride.tech/sage/sg.workflowTestPlain",
+			want:     "workflow-test-plain",
+		},
+		{
+			name:       "unknown top-level target errors",
+			planName:   "go.einride.tech/sage/sg.workflowTestMissing",
+			wantErrSub: "not found in sagefile package",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := planTargetToMakeTarget(pkg, namespaces, tt.planName)
+			if tt.wantErrSub != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q, got nil", tt.wantErrSub)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrSub) {
+					t.Errorf("error %q does not contain %q", err.Error(), tt.wantErrSub)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestResolveJobOverrides(t *testing.T) {
 	pkg := &doc.Package{
 		Funcs: []*doc.Func{
@@ -216,7 +324,7 @@ func TestResolveJobOverrides(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := resolveJobOverrides(pkg, groups, tt.overrides)
+			got, err := resolveJobOverrides(pkg, nil, groups, tt.overrides)
 			if tt.wantErrSub != "" {
 				if err == nil {
 					t.Fatalf("expected error containing %q, got nil", tt.wantErrSub)
