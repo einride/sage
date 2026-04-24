@@ -22,6 +22,26 @@ type Target interface {
 	Run(ctx context.Context) error
 }
 
+// trimRuntimeFuncName strips the -fm (bound method) and .funcN (closure)
+// suffixes that the Go runtime appends to runtime.FuncForPC names.
+//
+// The -fm suffix is appended when a function value is taken from a method
+// bound to a specific receiver. Since no user-defined Go function name can
+// contain a hyphen, stripping it is unambiguous. See
+// https://stackoverflow.com/questions/32925344/why-is-there-a-fm-suffix-when-getting-a-functions-name-in-go
+//
+// The .funcN suffix is appended to anonymous functions/closures and is not
+// a meaningful display name.
+func trimRuntimeFuncName(name string) string {
+	name = strings.TrimSuffix(name, "-fm")
+	if i := strings.LastIndex(name, ".func"); i != -1 {
+		if _, err := strconv.Atoi(name[i+5:]); err == nil {
+			name = name[:i]
+		}
+	}
+	return name
+}
+
 // Fn creates a Target from a compatible function and args.
 func Fn(target any, args ...any) Target {
 	result, err := newFn(target, args...)
@@ -81,22 +101,10 @@ func newFn(f any, args ...any) (Target, error) {
 		return nil, fmt.Errorf("failed to generate JSON name for args: %w", err)
 	}
 	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-	// If f is a method bound to a specific receiver the compiler
-	// will wrap the function and add `-fm` to the end of its name.
-	// Since there is no way to name a function in go with a hyphen, the
-	// suffix can simply be removed.
-	// See: https://stackoverflow.com/questions/32925344/why-is-there-a-fm-suffix-when-getting-a-functions-name-in-go
-	trimmedName := strings.TrimSuffix(name, "-fm")
-	// Strip anonymous function/closure suffix (.funcN) appended by the
-	// Go runtime. These are not meaningful display names.
-	if i := strings.LastIndex(trimmedName, ".func"); i != -1 {
-		if _, err := strconv.Atoi(trimmedName[i+5:]); err == nil {
-			trimmedName = trimmedName[:i]
-		}
-	}
 	return fn{
-		name: trimmedName,
-		id:   name + "(" + string(argsID) + ")",
+		name:    trimRuntimeFuncName(name),
+		id:      name + "(" + string(argsID) + ")",
+		argsLen: len(args),
 		f: func(ctx context.Context) error {
 			callArgs := make([]reflect.Value, 0, argCount)
 			if hasNamespace {
@@ -116,9 +124,15 @@ func newFn(f any, args ...any) (Target, error) {
 }
 
 type fn struct {
-	name string
-	id   string
-	f    func(ctx context.Context) error
+	name    string
+	id      string
+	argsLen int
+	f       func(ctx context.Context) error
+}
+
+// hasArgs implements the argCarrier interface consulted by plan mode.
+func (f fn) hasArgs() bool {
+	return f.argsLen > 0
 }
 
 // ID implements Target.
