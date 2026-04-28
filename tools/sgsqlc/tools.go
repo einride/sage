@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	version = "1.30.0"
+	// renovate: datasource=github-releases depName=sqlc-dev/sqlc
+	version = "1.31.1"
 	name    = "sqlc"
 )
 
@@ -29,7 +30,7 @@ func PrepareCommand(ctx context.Context) error {
 		arch = sgtool.AMD64
 	}
 	binURL := fmt.Sprintf(
-		"https://github.com/kyleconroy/sqlc/releases/download/v%s/sqlc_%s_%s_%s.tar.gz",
+		"https://github.com/sqlc-dev/sqlc/releases/download/v%s/sqlc_%s_%s_%s.tar.gz",
 		version,
 		version,
 		runtime.GOOS,
