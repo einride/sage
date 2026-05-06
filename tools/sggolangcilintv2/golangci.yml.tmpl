@@ -77,7 +77,7 @@ linters:
 
     # Allow and block list linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations.
     # [fast: true, auto-fix: false]
-    - gomodguard
+    - gomodguard_v2
 
     # Check that printf-like functions are named with `f` at the end.
     # [fast: true, auto-fix: false]
@@ -193,7 +193,7 @@ linters:
     gomoddirectives:
       replace-local: true
 
-    gomodguard:
+    gomodguard_v2:
       blocked:
         modules:
           - github.com/sirupsen/logrus:
