@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	version = "0.37.0"
+	// renovate: datasource=github-releases depName=einride/protoc-gen-go-aip-test
+	version = "0.38.0"
 	name    = "protoc-gen-go-aip-test"
 )
 
