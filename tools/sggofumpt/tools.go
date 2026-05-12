@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	name    = "gofumpt"
-	version = "0.7.0"
+	name = "gofumpt"
+	// renovate: datasource=github-releases depName=mvdan/gofumpt
+	version = "0.10.0"
 )
 
 // Command returns an [*exec.Cmd] for golines.
