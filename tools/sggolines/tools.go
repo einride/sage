@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	name    = "golines"
-	version = "0.12.2"
+	name = "golines"
+	// renovate: datasource=github-releases depName=golangci/golines
+	version = "0.15.0"
 )
 
 // Run golines on all Go files in the current git root with gofumpt as default formatter.
@@ -47,8 +48,8 @@ func PrepareCommand(ctx context.Context) error {
 		hostArch = "all"
 	}
 	binURL := fmt.Sprintf(
-		"https://github.com/segmentio/golines/"+
-			"releases/download/v%s/golines_%s_%s_%s.tar.gz",
+		"https://github.com/golangci/golines/"+
+			"releases/download/v%s/golines-%s-%s-%s.tar.gz",
 		version,
 		version,
 		hostOS,
@@ -59,7 +60,7 @@ func PrepareCommand(ctx context.Context) error {
 		binURL,
 		sgtool.WithDestinationDir(binDir),
 		sgtool.WithUntarGz(),
-		sgtool.WithRenameFile(fmt.Sprintf("golines_%s_%s_%s/golines", version, hostOS, hostArch), name),
+		sgtool.WithRenameFile(fmt.Sprintf("golines-%s-%s-%s/golines", version, hostOS, hostArch), name),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {
