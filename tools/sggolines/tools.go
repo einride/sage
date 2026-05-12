@@ -1,3 +1,7 @@
+// Deprecated: sggolines is deprecated. golangci-lint v2 includes a built-in
+// golines formatter, so a standalone tool is no longer needed.
+//
+// See sggolangcilint for a replacement.
 package sggolines
 
 import (
@@ -19,6 +23,8 @@ const (
 )
 
 // Run golines on all Go files in the current git root with gofumpt as default formatter.
+//
+// Deprecated: Use sggolangcilint.Run instead; golangci-lint v2 has a built-in golines formatter.
 func Run(ctx context.Context) error {
 	sg.Deps(ctx, sggofumpt.PrepareCommand)
 	return Command(
@@ -33,11 +39,16 @@ func Run(ctx context.Context) error {
 }
 
 // Command returns an [*exec.Cmd] for golines.
+//
+// Deprecated: Use sggolangcilint.Command instead; golangci-lint v2 has a built-in golines formatter.
 func Command(ctx context.Context, args ...string) *exec.Cmd {
 	sg.Deps(ctx, PrepareCommand)
 	return sg.Command(ctx, sg.FromBinDir(name), args...)
 }
 
+// PrepareCommand downloads the golines binary and adds it to the PATH.
+//
+// Deprecated: Use sggolangcilint.PrepareCommand instead; golangci-lint v2 has a built-in golines formatter.
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
