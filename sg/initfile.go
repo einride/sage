@@ -67,8 +67,8 @@ func generateInitFile(g *codegen.File, pkg *doc.Package, mks []Makefile) error {
 			g.P(
 				`logger.Fatalf("wrong number of arguments to %s, got %v expected %v",`,
 				strconv.Quote(getTargetFunctionName(function)), ",",
-				expected, ",",
-				`len(args))`,
+				`len(args)`, ",",
+				expected, `)`,
 			)
 			g.P(g.Import("os"), ".Exit(1)")
 			g.P("}")
