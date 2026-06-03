@@ -15,11 +15,25 @@ import (
 
 const (
 	imageName         = "postgres"
-	version           = "14"
-	image             = imageName + ":" + version
+	defaultVersion    = "14"
 	pgEnvVariableName = "POSTGRES_URL"
 	dbUser            = "postgres"
 )
+
+// runLocalConfig holds the configurable options for RunLocal.
+type runLocalConfig struct {
+	version string
+}
+
+// Option configures RunLocal.
+type Option func(*runLocalConfig)
+
+// WithVersion sets the postgres image version to run (default "14").
+func WithVersion(version string) Option {
+	return func(c *runLocalConfig) {
+		c.version = version
+	}
+}
 
 // RunLocal runs a postgres instance in Docker on the local host.
 //
@@ -29,12 +43,18 @@ func RunLocal(
 	ctx context.Context,
 	databaseName string,
 	databasePassword string,
+	opts ...Option,
 ) (_ func(), err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("run Postgres local instance: %w", err)
 		}
 	}()
+	cfg := runLocalConfig{version: defaultVersion}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	image := imageName + ":" + cfg.version
 	sg.Logger(ctx).Println("starting Postgres local instance ...")
 	if localHost, ok := os.LookupEnv(pgEnvVariableName); ok {
 		sg.Logger(ctx).Printf("a Postgres local instance is already running on %s", localHost)
