@@ -19,7 +19,7 @@ var defaultConfig []byte
 
 const (
 	// renovate: datasource=github-releases depName=aquasecurity/trivy
-	version = "0.70.0"
+	version = "0.71.0"
 	name    = "trivy"
 )
 
