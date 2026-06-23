@@ -1,0 +1,33 @@
+# rumdl configuration.
+# Docs: https://rumdl.dev/configuration/
+
+[global]
+# MD034 wraps bare URLs and emails in angle brackets (<...>) on fix. Disable it
+# to leave them untouched. https://rumdl.dev/md034/
+#
+# MD036 rewrites any emphasis-only paragraph (e.g. **Example: Something**) into
+# a level-2 heading. Bold lead-in labels are legitimate prose, so disable it to
+# avoid mangling them. https://rumdl.dev/md036/
+#
+# MD040 requires a language on fenced code blocks and fills one in on fix.
+# Guessing the language is often wrong, so disable it. https://rumdl.dev/md040/
+disable = ["MD034", "MD036", "MD040", "MD045"]
+
+# MD013 keeps lines short for better readability by enforcing a maximum line
+# length. https://rumdl.dev/md013/
+[MD013]
+# Maximum number of characters allowed per line.
+line-length = 80
+# Enable automatic reflow, wrapping long lines to fit within line-length.
+reflow = true
+# Ignore code
+code-blocks = false
+code-spans = false
+# Ignore headings
+headings = false
+
+# Disable rules for specific files. https://rumdl.dev/global-settings/
+[per-file-ignores]
+# Only holds the Backstage TechDocs snippet include `--8<-- "README.md"` of the
+# root README.md, so it has no heading.
+"docs/README.md" = ["MD041"]
