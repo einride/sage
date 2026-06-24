@@ -19,6 +19,12 @@ func main() {
 		sg.Makefile{
 			Path:          sg.FromGitRoot("Makefile"),
 			DefaultTarget: Default,
+			GitHubWorkflow: &sg.GitHubWorkflow{
+				Path: sg.FromGitRoot(".github", "workflows", "ci.yml"),
+				// Use the in-repo action so PRs exercise their own version
+				// of ./actions/setup rather than master.
+				SetupAction: "./actions/setup",
+			},
 		},
 	)
 }

@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 
 	"go.einride.tech/sage/internal/codegen"
 )
@@ -76,4 +77,69 @@ func GenerateMakefiles(mks ...Makefile) {
 			panic(err)
 		}
 	}
+	// Generate GitHub Actions workflows
+	for _, v := range mks {
+		if v.GitHubWorkflow == nil {
+			continue
+		}
+		if v.DefaultTarget == nil {
+			panic("GitHubWorkflow requires Makefile.DefaultTarget to be set")
+		}
+		if v.GitHubWorkflow.Path == "" {
+			panic("GitHubWorkflow.Path must be set")
+		}
+		Logger(ctx).Println("capturing plan and generating workflow", v.GitHubWorkflow.Path)
+		if err := generateGitHubWorkflow(ctx, pkg, mks, v); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// generateGitHubWorkflow invokes the compiled sagefile binary in plan mode,
+// parses the recorded plan, and writes a rendered GitHub Actions workflow
+// YAML to the configured path.
+func generateGitHubWorkflow(ctx context.Context, pkg *doc.Package, mks []Makefile, mk Makefile) error {
+	planFile, err := os.CreateTemp("", "sage-plan-*.jsonl")
+	if err != nil {
+		return fmt.Errorf("create plan temp file: %w", err)
+	}
+	planPath := planFile.Name()
+	if err := planFile.Close(); err != nil {
+		return fmt.Errorf("close plan temp file: %w", err)
+	}
+	defer func() { _ = os.Remove(planPath) }()
+
+	planCtx := ContextWithEnv(ctx, PlanOutputEnv+"="+planPath)
+	planCmd := Command(planCtx, FromBinDir(sageFileBinary), mk.defaultTargetName())
+	if err := planCmd.Run(); err != nil {
+		return fmt.Errorf("capture plan for %s: %w", mk.defaultTargetName(), err)
+	}
+
+	plan, err := ReadPlan(planPath)
+	if err != nil {
+		return err
+	}
+	namespaces, err := buildNamespaceProxies(mks)
+	if err != nil {
+		return err
+	}
+	groups, err := planToWorkflowGroups(pkg, namespaces, plan)
+	if err != nil {
+		return err
+	}
+	overrides, err := resolveJobOverrides(pkg, namespaces, groups, mk.GitHubWorkflow.JobOverrides)
+	if err != nil {
+		return err
+	}
+	yaml, err := renderWorkflow(*mk.GitHubWorkflow, groups, overrides)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(mk.GitHubWorkflow.Path), 0o755); err != nil {
+		return fmt.Errorf("create workflow directory: %w", err)
+	}
+	if err := os.WriteFile(mk.GitHubWorkflow.Path, yaml, 0o600); err != nil {
+		return fmt.Errorf("write workflow file: %w", err)
+	}
+	return nil
 }

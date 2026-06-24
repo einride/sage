@@ -20,6 +20,13 @@ import (
 func Deps(ctx context.Context, functions ...any) {
 	errs := make([]error, len(functions))
 	checkedFunctions := checkFunctions(functions...)
+	if planRecording() {
+		if err := recordPlanGroup(PlanModeParallel, checkedFunctions); err != nil {
+			NewLogger("sage-plan").Println(err)
+			os.Exit(1)
+		}
+		return
+	}
 	var wg sync.WaitGroup
 	for i, f := range checkedFunctions {
 		dependencies := getDependencies(ctx)
@@ -67,6 +74,13 @@ func Deps(ctx context.Context, functions ...any) {
 
 // SerialDeps works like Deps except running all dependencies serially instead of in parallel.
 func SerialDeps(ctx context.Context, targets ...any) {
+	if planRecording() {
+		if err := recordPlanGroup(PlanModeSerial, checkFunctions(targets...)); err != nil {
+			NewLogger("sage-plan").Println(err)
+			os.Exit(1)
+		}
+		return
+	}
 	for _, target := range targets {
 		Deps(ctx, target)
 	}
