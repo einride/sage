@@ -39,7 +39,7 @@ runs:
 
   steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         # Needed for conventional commit linting.
         fetch-depth: ${{ inputs.fetch-depth }}
