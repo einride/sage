@@ -25,6 +25,10 @@ type Makefile struct {
 	Namespace     any
 	Path          string
 	DefaultTarget any
+	// GitHubWorkflow, when non-nil, triggers generation of a GitHub Actions
+	// workflow YAML that mirrors the call graph of DefaultTarget. See the
+	// GitHubWorkflow documentation for the constraints on DefaultTarget.
+	GitHubWorkflow *GitHubWorkflow
 }
 
 func (m Makefile) namespaceName() string {
