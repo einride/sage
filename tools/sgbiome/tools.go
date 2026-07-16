@@ -12,7 +12,7 @@ import (
 
 const (
 	toolName = "biome"
-	version  = "1.6.0"
+	version  = "1.9.4"
 )
 
 func Format(ctx context.Context, paths ...string) error {
