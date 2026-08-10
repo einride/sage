@@ -18,7 +18,7 @@ import (
 const (
 	url = "gcr.io/cloud-spanner-emulator/emulator"
 	// renovate: datasource=docker depName=gcr.io/cloud-spanner-emulator/emulator
-	version = "1.5.51"
+	version = "1.5.56"
 	image   = url + ":" + version
 )
 
