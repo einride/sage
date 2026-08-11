@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"go.einride.tech/sage/sg"
@@ -92,37 +92,13 @@ func LocalDevelopEnv(
 	projectID string,
 	serviceAccountEmail string,
 ) ([]string, error) {
-	// Grab the local user token to impersonate the service account
-	currentADC, err := applicationDefaultCredentials()
+	creds, err := resolveCredentials()
 	if err != nil {
 		return nil, err
 	}
+	delegates := impersonationDelegates(creds.credentialType, serviceAccountEmail)
 
-	// Store a local token wrapping the user token in metadata to make a delegated request.
-	// This requires the impersonated service account to have implicitDelegation permissions on itself.
-	// See https://cloud.google.com/iam/docs/create-short-lived-credentials-delegated#sa-credentials-delegated for details
-	serviceAccountImpersonationURL := fmt.Sprintf(
-		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
-		serviceAccountEmail,
-	)
-
-	delegateCreds := struct {
-		Delegates                      []string        `json:"delegates"`
-		Type                           string          `json:"type"`
-		ServiceAccountImpersonationURL string          `json:"service_account_impersonation_url"`
-		SourceCredentials              json.RawMessage `json:"source_credentials"`
-	}{
-		Delegates:                      []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
-		Type:                           "impersonated_service_account",
-		ServiceAccountImpersonationURL: serviceAccountImpersonationURL,
-		SourceCredentials:              json.RawMessage(currentADC),
-	}
-	delegateCredsJSON, err := json.Marshal(delegateCreds)
-	if err != nil {
-		return nil, err
-	}
-
-	accessToken, err := fetchImpersonatedAccessToken(ctx, serviceAccountEmail)
+	accessToken, err := fetchImpersonatedAccessToken(ctx, creds, serviceAccountEmail, delegates)
 	if err != nil {
 		return nil, fmt.Errorf("unable to fetch impersonated service account access token: %v", err)
 	}
@@ -132,19 +108,16 @@ func LocalDevelopEnv(
 		return nil, err
 	}
 
-	workDir := sg.FromBuildDir("gcloud")
-	if err := os.MkdirAll(workDir, 0o755); err != nil {
-		return nil, fmt.Errorf("unable to create path to store gcloud credentials: %v", err)
-	}
-	credsPath := filepath.Join(workDir, fmt.Sprintf("creds-%s.json", randomLower(5)))
-	if err := os.WriteFile(credsPath, delegateCredsJSON, 0o600); err != nil {
+	// The temporary credentials file is removed by CleanUpLocalDevelop, so the cleanup func is not needed here.
+	credsPath, _, err := delegatedGoogleApplicationCredentials(creds, serviceAccountEmail, delegates)
+	if err != nil {
 		return nil, err
 	}
 
 	env = append(env, "K_REVISION=local"+sggit.SHA(ctx))
 	env = append(env, "K_CONFIGURATION="+configFile)
 	env = append(env, "GOOGLE_CLOUD_PROJECT="+projectID)
-	env = append(env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
+	env = append(env, googleApplicationCredentialsEnvVar+"="+credsPath)
 
 	return env, nil
 }
@@ -155,21 +128,29 @@ func LocalDevelopEnv(
 // Deprecated: There was no reason to export this function and it may get removed in the future.
 func CleanUpLocalDevelop(environ []string) error {
 	for _, env := range environ {
-		if !strings.Contains(env, "GOOGLE_APPLICATION_CREDENTIALS") {
+		if !strings.Contains(env, googleApplicationCredentialsEnvVar) {
 			continue
 		}
 		credsPath := strings.Split(env, "=")[1]
 		return os.Remove(credsPath)
 	}
-	return fmt.Errorf("clean up local develop: no GOOGLE_APPLICATION_CREDENTIALS environment variable found")
+	return fmt.Errorf("clean up local develop: no %s environment variable found", googleApplicationCredentialsEnvVar)
 }
 
 // LocalDevelopCommand returns an *exec.Cmd pre-configured to start the Cloud Run service at the provided Go path.
 // Any environment variables configured in spec.template.spec.containers[0].env are exposed as environment variables.
 // Secrets referred by through through spec.template.spec.containers[0].env.valueFrom.secretKeyRef are first read from
 // secret manager..
-// If serviceAccountEmail is not empty, an attempt to generate an impersonated short-lived credentials for that service
-// account is done. Otherwise the underlying user's access token is used.
+// If serviceAccountEmail is not empty, an attempt to generate impersonated short-lived credentials for that
+// service account is done. Otherwise the underlying credentials are used as-is.
+//
+// Impersonation is based on the active Application Default Credentials, which are resolved from
+// GOOGLE_APPLICATION_CREDENTIALS, then CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE, then gcloud's well-known path.
+// The environment variables take precedence so that CI setups pointing at a credential configuration file, such
+// as google-github-actions/auth, are picked up. The resolved identity needs
+// roles/iam.serviceAccountTokenCreator on serviceAccountEmail. A local user credential is additionally
+// self-delegated through serviceAccountEmail, which requires that service account to hold the same role on
+// itself; service account and external account credentials use plain impersonation and do not.
 func LocalDevelopCommand(
 	ctx context.Context,
 	path string,
@@ -183,18 +164,22 @@ func LocalDevelopCommand(
 		credsPath   string
 	)
 	if serviceAccountEmail != "" {
-		var err error
-		accessToken, err = fetchImpersonatedAccessToken(ctx, serviceAccountEmail)
+		creds, err := resolveCredentials()
 		if err != nil {
 			return nil, err
 		}
-		credsPath, cleanup, err = delegatedGoogleApplicationCredentials(serviceAccountEmail)
+		delegates := impersonationDelegates(creds.credentialType, serviceAccountEmail)
+		accessToken, err = fetchImpersonatedAccessToken(ctx, creds, serviceAccountEmail, delegates)
+		if err != nil {
+			return nil, err
+		}
+		credsPath, cleanup, err = delegatedGoogleApplicationCredentials(creds, serviceAccountEmail, delegates)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		accessToken, err = fetchAccessToken(ctx)
+		accessToken, err = fetchAccessToken(ctx, "")
 		if err != nil {
 			return nil, err
 		}
@@ -204,12 +189,11 @@ func LocalDevelopCommand(
 		return nil, err
 	}
 	if credsPath != "" {
-		env = append(env, "GOOGLE_APPLICATION_CREDENTIALS="+credsPath)
+		env = append(env, googleApplicationCredentialsEnvVar+"="+credsPath)
 	}
 
 	cmd := sg.Command(ctx, "go", "run", path)
-	cmd.Env = append(cmd.Env, env...)
-	cmd.Env = append(cmd.Env, os.Environ()...) // allow environment overrides
+	cmd.Env = developEnviron(cmd.Env, env, credsPath)
 	cmd.Cancel = func() error {
 		if err := cmd.Process.Kill(); err != nil {
 			return err
@@ -383,28 +367,174 @@ func accessSecretVersion(ctx context.Context, accessToken, project, secret, vers
 	return string(decodedData), nil
 }
 
-func applicationDefaultCredentials() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	path := filepath.Join(home, ".config/gcloud/application_default_credentials.json")
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", errors.New(
-				"no application default credentials found. Please authenticate using 'gcloud auth application-default login'",
-			)
-		}
-		return "", fmt.Errorf("unable to read application default credentials at %s - %v", path, err)
-	}
-	return string(b), nil
+const (
+	// credentialTypeAuthorizedUser is the "type" of a credentials file holding a local user credential, as
+	// written by 'gcloud auth application-default login'.
+	credentialTypeAuthorizedUser = "authorized_user"
+	// googleApplicationCredentialsEnvVar points the Google Cloud client libraries at a credentials file.
+	googleApplicationCredentialsEnvVar = "GOOGLE_APPLICATION_CREDENTIALS" //nolint:gosec // a variable name
+	// gcloudCredentialFileOverrideEnvVar points gcloud at a credentials file.
+	gcloudCredentialFileOverrideEnvVar = "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" //nolint:gosec // a variable name
+	// gcloudConfigEnvVar overrides the directory holding gcloud's configuration, including the well-known
+	// application default credentials path.
+	gcloudConfigEnvVar = "CLOUDSDK_CONFIG"
+)
+
+// resolvedCredentials is a credentials JSON document together with where it was found.
+type resolvedCredentials struct {
+	// path is the file the credentials were read from.
+	path string
+	// data is the raw credentials JSON document.
+	data []byte
+	// credentialType is the "type" field of the credentials document.
+	credentialType string
+	// fromEnv reports whether the credentials were resolved from an environment variable rather than from
+	// gcloud's well-known path.
+	fromEnv bool
 }
 
-func fetchAccessToken(ctx context.Context) (string, error) {
-	// Fetch user access token
+// gcloudCredentialFileOverride returns the path to pass to gcloud as CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE, so
+// that gcloud mints tokens for the same credentials we resolved. It is empty when the credentials came from
+// gcloud's well-known path, in which case gcloud's own active account is left in charge.
+func (c resolvedCredentials) gcloudCredentialFileOverride() string {
+	if !c.fromEnv {
+		return ""
+	}
+	return c.path
+}
+
+// resolveCredentials locates and reads the active Application Default Credentials.
+//
+// The environment variables take precedence over gcloud's well-known path, matching the Google Cloud client
+// libraries. google-github-actions/auth writes its credential configuration to a temporary file and points
+// these variables at it, so this is what makes impersonation work in CI.
+//
+// A path named by an environment variable must exist and hold valid JSON. Falling back to the well-known path
+// when it does not would silently impersonate from whatever credentials happen to be there, which is the class
+// of surprise this resolution order exists to avoid.
+func resolveCredentials() (resolvedCredentials, error) {
+	type candidate struct {
+		path string
+		// envVar is the environment variable the path came from, empty for gcloud's well-known path.
+		envVar string
+	}
+	candidates := make([]candidate, 0, 3)
+	for _, name := range []string{googleApplicationCredentialsEnvVar, gcloudCredentialFileOverrideEnvVar} {
+		if path := os.Getenv(name); path != "" {
+			candidates = append(candidates, candidate{path: path, envVar: name})
+		}
+	}
+	configDir := os.Getenv(gcloudConfigEnvVar)
+	if configDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return resolvedCredentials{}, err
+		}
+		configDir = filepath.Join(home, ".config", "gcloud")
+	}
+	candidates = append(candidates, candidate{path: filepath.Join(configDir, "application_default_credentials.json")})
+	tried := make([]string, 0, len(candidates))
+	for _, c := range candidates {
+		tried = append(tried, c.path)
+		source := c.path
+		if c.envVar != "" {
+			source = fmt.Sprintf("%s (from %s)", c.path, c.envVar)
+		}
+		data, err := os.ReadFile(c.path)
+		if err != nil {
+			// Only an absent well-known path falls through; gcloud's config dir holding no credentials just
+			// means the developer has not run 'gcloud auth application-default login' yet.
+			if os.IsNotExist(err) && c.envVar == "" {
+				continue
+			}
+			return resolvedCredentials{}, fmt.Errorf(
+				"unable to read application default credentials at %s - %v",
+				source,
+				err,
+			)
+		}
+		var document struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(data, &document); err != nil {
+			return resolvedCredentials{}, fmt.Errorf(
+				"invalid application default credentials JSON at %s - %v",
+				source,
+				err,
+			)
+		}
+		return resolvedCredentials{
+			path:           c.path,
+			data:           data,
+			credentialType: document.Type,
+			fromEnv:        c.envVar != "",
+		}, nil
+	}
+	return resolvedCredentials{}, fmt.Errorf(
+		"no application default credentials found, tried %s. Please authenticate using "+
+			"'gcloud auth application-default login', or point GOOGLE_APPLICATION_CREDENTIALS at a credentials "+
+			"file (google-github-actions/auth does this automatically)",
+		strings.Join(tried, ", "),
+	)
+}
+
+// impersonationDelegates returns the delegation chain to use when impersonating serviceAccountEmail.
+//
+// A local user credential is self-delegated through the impersonated service account, which is how developers
+// reach it without a direct getAccessToken binding. See
+// https://cloud.google.com/iam/docs/create-short-lived-credentials-delegated#sa-credentials-delegated
+// Service account and external account source credentials use plain impersonation instead: they only need
+// roles/iam.serviceAccountTokenCreator on the target, whereas self-delegation would additionally require the
+// target service account to hold that role on itself.
+func impersonationDelegates(credentialType, serviceAccountEmail string) []string {
+	if credentialType != credentialTypeAuthorizedUser {
+		return nil
+	}
+	return []string{"projects/-/serviceAccounts/" + serviceAccountEmail}
+}
+
+// developEnviron builds the environment for a locally running Cloud Run service: the base environment, then the
+// values resolved from the service specification, then the process environment again to allow environment
+// overrides. os/exec keeps the last occurrence of a duplicated key, so the trailing copy normally wins.
+//
+// When credsPath is set, the credential variables are dropped from both the base environment and the overrides,
+// leaving the resolved values in charge. google-github-actions/auth exports GOOGLE_APPLICATION_CREDENTIALS and
+// CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE, which would otherwise take precedence and silently run the service as
+// the CI identity rather than as the impersonated service account.
+func developEnviron(base, resolved []string, credsPath string) []string {
+	overrides := os.Environ()
+	if credsPath != "" {
+		base = withoutEnvVars(base, googleApplicationCredentialsEnvVar, gcloudCredentialFileOverrideEnvVar)
+		overrides = withoutEnvVars(overrides, googleApplicationCredentialsEnvVar, gcloudCredentialFileOverrideEnvVar)
+	}
+	environ := make([]string, 0, len(base)+len(resolved)+len(overrides))
+	environ = append(environ, base...)
+	environ = append(environ, resolved...)
+	environ = append(environ, overrides...)
+	return environ
+}
+
+// withoutEnvVars returns environ without the entries assigning any of the provided variable names.
+func withoutEnvVars(environ []string, names ...string) []string {
+	result := make([]string, 0, len(environ))
+	for _, entry := range environ {
+		if slices.ContainsFunc(names, func(name string) bool { return strings.HasPrefix(entry, name+"=") }) {
+			continue
+		}
+		result = append(result, entry)
+	}
+	return result
+}
+
+// fetchAccessToken prints an access token for the active gcloud credential. When credentialFileOverride is not
+// empty, gcloud is pointed at that credentials file so that the token identity matches the credentials sage
+// resolved rather than whichever account gcloud happens to have active.
+func fetchAccessToken(ctx context.Context, credentialFileOverride string) (string, error) {
 	var accessTokenOutput strings.Builder
 	cmd := sggcloud.Command(ctx, "auth", "print-access-token")
+	if credentialFileOverride != "" {
+		cmd.Env = append(cmd.Env, gcloudCredentialFileOverrideEnvVar+"="+credentialFileOverride)
+	}
 	cmd.Stdout = &accessTokenOutput
 	if err := cmd.Run(); err != nil {
 		return "", err
@@ -417,19 +547,24 @@ func fetchAccessToken(ctx context.Context) (string, error) {
 	return accessToken, nil
 }
 
-func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail string) (string, error) {
-	// Grab the local user token to impersonate the service account
-	accessToken, err := fetchAccessToken(ctx)
+func fetchImpersonatedAccessToken(
+	ctx context.Context,
+	creds resolvedCredentials,
+	serviceAccountEmail string,
+	delegates []string,
+) (string, error) {
+	// Grab the source token to impersonate the service account
+	accessToken, err := fetchAccessToken(ctx, creds.gcloudCredentialFileOverride())
 	if err != nil {
 		return "", err
 	}
 
-	// Generate access token for delegated service account
+	// Generate access token for the impersonated service account
 	body := struct {
-		Delegates []string `json:"delegates"`
+		Delegates []string `json:"delegates,omitempty"`
 		Scope     []string `json:"scope"`
 	}{
-		Delegates: []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
+		Delegates: delegates,
 		Scope:     []string{"https://www.googleapis.com/auth/cloud-platform"},
 	}
 	reqBody, err := json.Marshal(body)
@@ -471,33 +606,28 @@ func fetchImpersonatedAccessToken(ctx context.Context, serviceAccountEmail strin
 	return tokens.AccessToken, nil
 }
 
+// delegatedGoogleApplicationCredentials writes a credentials file that impersonates serviceAccountEmail on top
+// of the provided source credentials, and returns its path along with a func removing it again.
 func delegatedGoogleApplicationCredentials(
+	creds resolvedCredentials,
 	serviceAccountEmail string,
+	delegates []string,
 ) (string, func() error, error) {
-	// Grab the local user token to impersonate the service account
-	currentADC, err := applicationDefaultCredentials()
-	if err != nil {
-		return "", func() error { return nil }, err
-	}
-
-	// Store a local token wrapping the user token in metadata to make a delegated request.
-	// This requires the impersonated service account to have implicitDelegation permissions on itself.
-	// See https://cloud.google.com/iam/docs/create-short-lived-credentials-delegated#sa-credentials-delegated for details
 	serviceAccountImpersonationURL := fmt.Sprintf(
 		"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateAccessToken",
 		serviceAccountEmail,
 	)
 
 	delegateCreds := struct {
-		Delegates                      []string        `json:"delegates"`
+		Delegates                      []string        `json:"delegates,omitempty"`
 		Type                           string          `json:"type"`
 		ServiceAccountImpersonationURL string          `json:"service_account_impersonation_url"`
 		SourceCredentials              json.RawMessage `json:"source_credentials"`
 	}{
-		Delegates:                      []string{"projects/-/serviceAccounts/" + serviceAccountEmail},
+		Delegates:                      delegates,
 		Type:                           "impersonated_service_account",
 		ServiceAccountImpersonationURL: serviceAccountImpersonationURL,
-		SourceCredentials:              json.RawMessage(currentADC),
+		SourceCredentials:              json.RawMessage(creds.data),
 	}
 	delegateCredsJSON, err := json.Marshal(delegateCreds)
 	if err != nil {
