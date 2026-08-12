@@ -1,3 +1,6 @@
+// Package sggolangcilint provides golangci-lint v1 tooling.
+//
+// Deprecated: use go.einride.tech/sage/tools/sggolangcilintv2 instead.
 package sggolangcilint
 
 import (
