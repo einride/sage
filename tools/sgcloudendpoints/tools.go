@@ -19,7 +19,7 @@ import (
 
 // espVersion is the version of ESPv2 used for building images.
 // renovate: datasource=github-releases depName=GoogleCloudPlatform/esp-v2
-const espVersion = "2.55.6"
+const espVersion = "2.55.7"
 
 //go:embed Dockerfile
 var dockerfile []byte
