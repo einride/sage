@@ -100,9 +100,9 @@ func Run(ctx context.Context, config Config, args ...string) error {
 		if err != nil {
 			return err
 		}
-		// ignore this directory and its sub-directories if it's an empty go.mod
+		// ignore if it's an empty go.mod
 		if fileInfo.Size() == 0 {
-			return filepath.SkipDir
+			return nil
 		}
 		cmd := CommandRunInDirectory(ctx, config, filepath.Dir(path), args...)
 		commands = append(commands, cmd)
