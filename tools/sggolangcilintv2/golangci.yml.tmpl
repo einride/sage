@@ -275,7 +275,10 @@ formatters:
 
   settings:
     gofumpt:
-      extra-rules: true
+      extra:
+        group-params: true
+        clothe-returns: true
+        balance-calls: true
     golines:
       max-len: 120
       reformat-tags: false
