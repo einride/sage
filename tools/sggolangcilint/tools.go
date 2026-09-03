@@ -93,7 +93,8 @@ func Fix(ctx context.Context, args ...string) error {
 		}
 		cmd := Command(
 			ctx,
-			append([]string{"run", "--allow-serial-runners", "-c", defaultConfigPath(), "--fix"}, args...)...)
+			append([]string{"run", "--allow-serial-runners", "-c", defaultConfigPath(), "--fix"}, args...)...,
+		)
 		cmd.Dir = filepath.Dir(path)
 		commands = append(commands, cmd)
 		return cmd.Start()
