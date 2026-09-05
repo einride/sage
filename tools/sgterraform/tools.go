@@ -22,7 +22,7 @@ const tripleQuote = "```" // required by goconst since used more than 3
 
 const (
 	// renovate: datasource=github-releases depName=hashicorp/terraform
-	version    = "1.16.0"
+	version    = "1.16.1"
 	binaryName = "terraform"
 )
 
