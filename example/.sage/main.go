@@ -10,7 +10,6 @@ import (
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
-	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
@@ -25,7 +24,7 @@ func main() {
 
 func Default(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, BackstageValidate)
-	sg.Deps(ctx, FormatMarkdown, FormatYaml)
+	sg.Deps(ctx, FormatYaml)
 	sg.Deps(ctx, GoLint)
 	sg.Deps(ctx, GoTest)
 	sg.Deps(ctx, GoModTidy)
@@ -61,11 +60,6 @@ func GoFormat(ctx context.Context) error {
 func GoLicenses(ctx context.Context) error {
 	sg.Logger(ctx).Println("checking Go licenses...")
 	return sggolicenses.Check(ctx)
-}
-
-func FormatMarkdown(ctx context.Context) error {
-	sg.Logger(ctx).Println("formatting Markdown files...")
-	return sgmdformat.Command(ctx).Run()
 }
 
 func FormatYaml(ctx context.Context) error {

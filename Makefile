@@ -55,10 +55,6 @@ convco-check: $(sagefile)
 default: $(sagefile)
 	@$(sagefile) Default
 
-.PHONY: format-markdown
-format-markdown: $(sagefile)
-	@$(sagefile) FormatMarkdown
-
 .PHONY: format-yaml
 format-yaml: $(sagefile)
 	@$(sagefile) FormatYaml
