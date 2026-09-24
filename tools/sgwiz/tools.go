@@ -184,6 +184,11 @@ func scanArgs() []string {
 	}
 	// Keep scan results local instead of publishing them to the Wiz portal.
 	args = append(args, "--no-publish")
+	// The CLI's own default, --by-policy-hits=BLOCK, hides everything except findings that
+	// would fail the build, which in practice looks like an empty scan. AUDIT also surfaces
+	// findings that only warn, without pulling in every raw scanner finding that never
+	// matched a policy rule at all (--by-policy-hits=DISABLED would do that).
+	args = append(args, "--by-policy-hits=AUDIT")
 	return append(args, commonArgs()...)
 }
 

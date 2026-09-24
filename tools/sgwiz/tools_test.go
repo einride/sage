@@ -84,7 +84,7 @@ func TestScanArgs(t *testing.T) {
 		t.Setenv("CI", "")
 		t.Setenv("GITHUB_ACTIONS", "")
 		actual := scanArgs()
-		for _, arg := range []string{"--use-device-code", "--no-publish"} {
+		for _, arg := range []string{"--use-device-code", "--no-publish", "--by-policy-hits=AUDIT"} {
 			if !slices.Contains(actual, arg) {
 				t.Errorf("scanArgs() = %v, expected it to contain %s", actual, arg)
 			}
@@ -96,7 +96,7 @@ func TestScanArgs(t *testing.T) {
 	t.Run("in a CI pipeline", func(t *testing.T) {
 		t.Setenv("CI", "true")
 		actual := scanArgs()
-		for _, arg := range []string{"--no-publish", "--no-color", "--no-style"} {
+		for _, arg := range []string{"--no-publish", "--by-policy-hits=AUDIT", "--no-color", "--no-style"} {
 			if !slices.Contains(actual, arg) {
 				t.Errorf("scanArgs() = %v, expected it to contain %s", actual, arg)
 			}
