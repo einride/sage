@@ -93,7 +93,20 @@ runs:
 
     - name: Set KOCACHE environment variable
       shell: bash
-      run: echo "KOCACHE=/home/runner/.ko/cache" >> $GITHUB_ENV
+      run: echo "KOCACHE=${HOME}/.ko/cache" >> "$GITHUB_ENV"
+
+    # hashFiles() resolves the runner workspace (/home/runner/work/...), which
+    # is not mounted when the job runs in a container. Hash from the workspace
+    # shell instead. Cache paths use ~ so they follow HOME (/home/runner on a
+    # hosted runner, /github/home inside a container).
+    - name: Hash go.sum files
+      id: go-sum
+      if: ${{ inputs.disableCache != 'true' }}
+      shell: bash
+      run: |
+        hash="$(find . -name go.sum -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | awk '{print $1}')"
+        echo "hash=${hash}" >> "$GITHUB_OUTPUT"
+        echo "go.sum hash: ${hash}"
 
     - name: Set up cache
       if: ${{ inputs.disableCache != 'true' }}
@@ -102,13 +115,13 @@ runs:
         path: |
           ./.sage/tools
           ./.sage/bin
-          /home/runner/.cache/go-build
-          /home/runner/.cache/golangci-lint
-          /home/runner/.cache/uv
-          /home/runner/.local/share/uv
-          /home/runner/go/pkg/mod
-          /home/runner/go/bin
-          /home/runner/.ko/cache
-        key: ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-${{ hashFiles('**/go.sum') }}
+          ~/.cache/go-build
+          ~/.cache/golangci-lint
+          ~/.cache/uv
+          ~/.local/share/uv
+          ~/go/pkg/mod
+          ~/go/bin
+          ~/.ko/cache
+        key: ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-${{ steps.go-sum.outputs.hash }}
         restore-keys: |
           ${{ runner.os }}-${{ steps.cache-key.outputs.key }}-${{ steps.cache-go-version.outputs.version }}-
