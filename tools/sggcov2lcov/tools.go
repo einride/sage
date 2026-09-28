@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -15,7 +14,7 @@ import (
 
 const (
 	name    = "gcov2lcov"
-	version = "1.0.6"
+	version = "1.1.1"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -35,25 +34,17 @@ func Convert(ctx context.Context, inFile, outFile string) error {
 func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(name, version)
 	binary := filepath.Join(binDir, name)
-	var hostOS string
-	switch strings.Split(runtime.GOOS, "/")[0] {
-	case "linux":
-		hostOS = "linux-amd64"
-	case sgtool.Darwin:
-		hostOS = "darwin-amd64"
-	default:
-		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
-	}
 	binURL := fmt.Sprintf(
-		"https://github.com/jandelgado/gcov2lcov/releases/download/v%s/gcov2lcov-%s.tar.gz",
+		"https://github.com/jandelgado/gcov2lcov/releases/download/v%s/gcov2lcov_%s_%s_%s.tar.gz",
 		version,
-		hostOS,
+		version,
+		runtime.GOOS,
+		runtime.GOARCH,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithRenameFile("bin/"+name+"-"+hostOS, name),
 		sgtool.WithUntarGz(),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
