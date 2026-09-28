@@ -154,10 +154,11 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	binURL := fmt.Sprintf(
-		"https://github.com/googleapis/api-linter/releases/download/v%s/api-linter-%s-%s-amd64.tar.gz",
+		"https://github.com/googleapis/api-linter/releases/download/v%s/api-linter-%s-%s-%s.tar.gz",
 		version,
 		version,
 		hostOS,
+		runtime.GOARCH,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
