@@ -114,6 +114,10 @@ func Command(ctx context.Context, args ...string) *exec.Cmd {
 }
 
 func PrepareCommand(ctx context.Context) error {
+	// TODO: Upstream has no arm64 macOS binary. Install via npm (like sgprettier) to support darwin/arm64.
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		return fmt.Errorf("%s %s has no arm64 macOS binary", binaryName, version)
+	}
 	binOS := "linux"
 	if runtime.GOOS == "darwin" {
 		binOS = "macos"
