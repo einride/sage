@@ -16,7 +16,7 @@ import (
 )
 
 // version can be found here: https://github.com/hadolint/hadolint
-const version = "2.12.1-beta"
+const version = "2.13.1"
 
 //nolint:gochecknoglobals
 var commandPath string
@@ -47,11 +47,14 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(toolName, version)
 	binary := filepath.Join(binDir, toolName)
 	hostOS := runtime.GOOS
+	if hostOS == sgtool.Darwin {
+		hostOS = "macos"
+	}
 	hostArch := runtime.GOARCH
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	hadolint := fmt.Sprintf("hadolint-%s-%s", strings.ToTitle(hostOS), hostArch)
+	hadolint := fmt.Sprintf("hadolint-%s-%s", hostOS, hostArch)
 	binURL := fmt.Sprintf(
 		"https://github.com/hadolint/hadolint/releases/download/v%s/%s",
 		version,
