@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "2.10.0"
+	version = "2.10.2"
 	name    = "protoc-gen-openapiv2"
 )
 
