@@ -13,6 +13,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
+// Upstream has no x86_64 macOS build since 0.5.2; convco-macos.zip is arm64-only.
 const (
 	name    = "convco"
 	version = "0.6.2"
