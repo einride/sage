@@ -21,7 +21,7 @@ import (
 
 const (
 	// renovate: datasource=github-releases depName=googleapis/api-linter
-	version = "2.3.1"
+	version = "2.4.0"
 	name    = "api-linter"
 )
 
