@@ -1,6 +1,4 @@
-// Deprecated: tfsec is deprecated and has been replaced by trivy.
-//
-// See sgtrivy package for a replacement.
+// Deprecated: tfsec is no longer maintained. IaC scanning is provided by Wiz.
 package sgtfsec
 
 import (
