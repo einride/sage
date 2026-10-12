@@ -23,6 +23,10 @@ func Command(ctx context.Context) *exec.Cmd {
 
 func PrepareCommand(ctx context.Context) error {
 	const binaryName = "protoc-gen-grpc-java"
+	// TODO: Releases up to 1.75.0 ship x86_64 under osx-aarch_64. Bump to 1.76.0+ (universal) and remove this check.
+	if runtime.GOOS == sgtool.Darwin && runtime.GOARCH == sgtool.ARM64 {
+		return fmt.Errorf("%s %s has no arm64 macOS binary", binaryName, version)
+	}
 	binDir := sg.FromToolsDir("grpc-java", version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS

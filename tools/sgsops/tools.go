@@ -11,7 +11,7 @@ import (
 	"go.einride.tech/sage/sgtool"
 )
 
-const version = "3.7.1"
+const version = "3.7.2"
 
 //nolint:gochecknoglobals
 var commandPath string
@@ -26,11 +26,13 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(binaryName, version)
 	binary := filepath.Join(binDir, binaryName)
 	hostOS := runtime.GOOS
+	hostArch := runtime.GOARCH
 	binURL := fmt.Sprintf(
-		"https://github.com/mozilla/sops/releases/download/v%s/sops-v%s.%s",
+		"https://github.com/mozilla/sops/releases/download/v%s/sops-v%s.%s.%s",
 		version,
 		version,
 		hostOS,
+		hostArch,
 	)
 	if err := sgtool.FromRemote(
 		ctx,

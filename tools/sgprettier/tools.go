@@ -91,7 +91,7 @@ func PrepareCommand(ctx context.Context) error {
 		toolDir,
 		"--no-save",
 		"--no-audit",
-		"--ignore-script",
+		"--ignore-scripts",
 	).Run(); err != nil {
 		return err
 	}

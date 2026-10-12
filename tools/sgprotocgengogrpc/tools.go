@@ -27,9 +27,6 @@ func PrepareCommand(ctx context.Context) error {
 	binary := filepath.Join(binDir, name)
 	hostOS := runtime.GOOS
 	hostArch := runtime.GOARCH
-	if hostOS == sgtool.Darwin {
-		hostArch = sgtool.AMD64
-	}
 	binURL := fmt.Sprintf(
 		"https://github.com/grpc/grpc-go/releases/download/cmd/protoc-gen-go-grpc/v%s/protoc-gen-go-grpc.v%s.%s.%s.tar.gz",
 		version,

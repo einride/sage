@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
@@ -15,7 +14,8 @@ import (
 
 const (
 	toolName = "clang-format"
-	version  = "v1.6.0"
+	version  = "14"
+	release  = "master-796e77c"
 )
 
 func Command(ctx context.Context, args ...string) *exec.Cmd {
@@ -47,26 +47,29 @@ func FormatProto(ctx context.Context) error {
 
 func PrepareCommand(ctx context.Context) error {
 	var osArch string
-	switch strings.Split(runtime.GOOS, "/")[0] {
-	case "linux":
-		osArch = "linux_x64"
-	case sgtool.Darwin:
-		osArch = "darwin_x64"
+	switch runtime.GOOS + "/" + runtime.GOARCH {
+	case "linux/amd64":
+		osArch = "linux-amd64"
+	case "darwin/amd64":
+		osArch = "macosx-amd64"
+	case "darwin/arm64":
+		osArch = "macos-arm-arm64"
 	default:
-		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
+		return fmt.Errorf("unsupported platform: %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
-	toolDir := sg.FromToolsDir(toolName, version)
+	toolDir := sg.FromToolsDir(toolName, version, release)
 	binary := filepath.Join(toolDir, toolName)
+	asset := fmt.Sprintf("%s-%s_%s", toolName, version, osArch)
 	binURL := fmt.Sprintf(
-		"https://github.com/angular/clang-format/blob/%s/bin/%s/clang-format?raw=true",
-		version,
-		osArch,
+		"https://github.com/muttleyxd/clang-tools-static-binaries/releases/download/%s/%s",
+		release,
+		asset,
 	)
 	if err := sgtool.FromRemote(
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(toolDir),
-		sgtool.WithRenameFile("clang-format?raw=true", toolName),
+		sgtool.WithRenameFile(asset, toolName),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {

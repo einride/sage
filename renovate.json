@@ -4,7 +4,7 @@
   "minimumReleaseAge": "3 days",
   "postUpdateOptions": ["gomodTidy"],
   "semanticCommits": "enabled",
-  "semanticCommitType": "feat",
+  "labels": ["dependencies"],
   "packageRules": [
     {
       "matchManagers": [
@@ -33,6 +33,11 @@
       "matchUpdateTypes": ["major", "minor"],
       "enabled": false,
       "description": "Disable major and minor Go version bumps for version consts (follow N-1 policy manually)"
+    },
+    {
+      "matchPackageNames": ["*"],
+      "semanticCommitType": "feat",
+      "description": "Override config:recommended's chore/fix split so all Renovate PRs use feat and trigger a release"
     }
   ],
   "customManagers": [

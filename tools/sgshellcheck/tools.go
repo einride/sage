@@ -57,8 +57,8 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	if hostOS == sgtool.Darwin && hostArch == sgtool.ARM64 {
-		hostArch = sgtool.X8664
+	if hostArch == sgtool.ARM64 {
+		hostArch = "aarch64"
 	}
 	shellcheck := fmt.Sprintf("shellcheck-v%s", version)
 	binURL := fmt.Sprintf(

@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	version = "2.1.0"
+	// renovate: datasource=github-releases depName=googleapis/api-linter
+	version = "2.3.1"
 	name    = "api-linter"
 )
 
@@ -153,10 +154,11 @@ func PrepareCommand(ctx context.Context) error {
 	binDir := sg.FromToolsDir(binaryName, version, "bin")
 	binary := filepath.Join(binDir, binaryName)
 	binURL := fmt.Sprintf(
-		"https://github.com/googleapis/api-linter/releases/download/v%s/api-linter-%s-%s-amd64.tar.gz",
+		"https://github.com/googleapis/api-linter/releases/download/v%s/api-linter-%s-%s-%s.tar.gz",
 		version,
 		version,
 		hostOS,
+		runtime.GOARCH,
 	)
 	if err := sgtool.FromRemote(
 		ctx,

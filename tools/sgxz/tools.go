@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version = "5.2.5"
+	version = "5.8.4"
 	name    = "xz"
 )
 
@@ -31,9 +31,6 @@ func PrepareCommand(ctx context.Context) error {
 	if hostArch == sgtool.AMD64 {
 		hostArch = sgtool.X8664
 	}
-	if hostOS == sgtool.Darwin && hostArch == sgtool.ARM64 {
-		hostArch = sgtool.X8664
-	}
 	xz := fmt.Sprintf("%s-%s-%s-%s", binaryName, version, hostOS, hostArch)
 	binURL := fmt.Sprintf(
 		"https://github.com/therootcompany/xz-static/releases/download/v%s/%s.tar.gz",
@@ -44,8 +41,8 @@ func PrepareCommand(ctx context.Context) error {
 		ctx,
 		binURL,
 		sgtool.WithDestinationDir(binDir),
-		sgtool.WithUntar(),
-		sgtool.WithRenameFile(fmt.Sprintf("./%s/xz", xz), binaryName),
+		sgtool.WithUntarGz(),
+		sgtool.WithRenameFile(fmt.Sprintf("%s/xz", xz), binaryName),
 		sgtool.WithSkipIfFileExists(binary),
 		sgtool.WithSymlink(binary),
 	); err != nil {

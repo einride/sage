@@ -44,7 +44,7 @@ func PrepareCommand(ctx context.Context) error {
 		toolDir,
 		"--no-save",
 		"--no-audit",
-		"--ignore-script",
+		"--ignore-scripts",
 	)
 	if err := cmd.Run(); err != nil {
 		return err
