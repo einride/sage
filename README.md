@@ -201,3 +201,5 @@ sg.SerialDeps(
 	GitVerifyNoDiff,
 )
 ```
+
+2026-10-12
