@@ -8,7 +8,7 @@
 // go.mod, the GOROOT path won't match and stdlib packages are misidentified.
 //
 // To fix this, update your local Go installation to match the version in go.mod,
-// or set GOTOOLCHAIN=go<version>+auto (e.g. GOTOOLCHAIN=go1.25.7+auto) to
+// or set GOTOOLCHAIN=go<version>+auto (e.g. GOTOOLCHAIN=go1.26.10+auto) to
 // ensure the correct toolchain is used consistently.
 package sggolicenses
 
