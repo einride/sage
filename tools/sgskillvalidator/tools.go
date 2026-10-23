@@ -13,7 +13,7 @@ import (
 
 const (
 	// renovate: datasource=github-releases depName=agent-ecosystem/skill-validator
-	version = "1.7.0"
+	version = "1.8.0"
 	name    = "skill-validator"
 )
 
