@@ -1,64 +1,10 @@
 ARG esp_version=2
 FROM gcr.io/endpoints-release/endpoints-runtime-serverless:${esp_version}
-USER root
-# Distrust the eMudhra intermediate CAs with compromised keys, and the roots chaining to them.
-# See https://emudhra.we-have-a-problem.com/
-# The base image is distroless (no shell, no update-ca-certificates), so filter the bundle with python.
-COPY <<'EOF' /filter_certs.py
-import base64
-import hashlib
-import os
-import re
 
-BUNDLE = "/etc/ssl/certs/ca-certificates.crt"
-DISTRUSTED = {
-    # AAA Certificate Services (cross-signer).
-    "D7A7A0FB5D7E2731D771E9484EBCDEF71D5F0C3E0A2948782BC83EE0EA699EF4",
-    # emSign ECC Root CA - G3 (cross-signer).
-    "86A1ECBA089C4A8D3BBE2734C612BA341D813E043CF9E8A862CD5C57A36BBE6B",
-    # emSign Root TLS CA - G3.
-    "7DD78D5F4F13459A83DFF9ABBBA62EDBAF6F2D102BF257FD712F4D9F2746ED8D",
-    # emSign Root CS CA - G3.
-    "F2EDAAFF3D9B701FB4D14C9F285F8C0BAD90FC3BCC1FA07D47F4718EDABA34A5",
-    # EM {DV,OV,EV} TLS CA - G3B, direct and cross-signed.
-    "42C4ACCD12C4F59597925E1A08A7A90102608543809308D50EC427E118BA1493",
-    "45A883F349AEDFD5F3A649B5498FFB121712BA8B448F3F2A91DBC5A766FCDDBE",
-    "98B896625C0C230ADEEC3EB2CF6AAD5001ECF9156A68644E82374CE5833BC25B",
-    "5F1DED4DD590AF74631290CF073B122A2AAC6A1FA479778A0BD43579BD832699",
-    "E7568FE6E12331F4FD7DE61DA4C7559D0F8EB192A218D4741A3BA75184333838",
-    "579480AEA166290BD3C643589E795FC0D0E54E86505D180F1DFF99EFD3199512",
-    # EM {DV,OV,EV} TLS CA - G3C, direct and cross-signed.
-    "0164D7CEAE5BB909C272AF151FF44B1177AE9B47D9424B94F1D9558C30934D19",
-    "62B7F9868263F72F6911FC78CEAF72C1979158B7368BF648683BB2AA39B02E72",
-    "CB6E15165AC802E9B3F993F16C25D41F4E81C21EBDE71AE1B012AC00BF9C7C3F",
-    "7485B51C0ED192878FA1D2F948FB529AE1842CC5086C4B67F7BE5B2039DE9489",
-    "432EC25F0D28DE9006D97BF752F17BBB2CD41F669933FCB072D9A1148D0261F3",
-    "FD9D5C2DBBD4995AB69B8D50C439D9527B00529199C2FD01B2174EB58F07021F",
-    # EM OV CS CA - G3B and G3C, direct and cross-signed.
-    "9E39DE2881273ACC225A149C72BA3E0F51424963669AB633EE1DC7DF5DB067B4",
-    "A496E23AC0CAB8155FC9B117B97EAE368EFCBB9041AEC8804D5A308D2D01C2D8",
-    "4B2460A466F95FD40113BCDCCA2CEB29B3B093921DE45474DA7DF48874C630B1",
-    "84112972B8E59D14560AE7E7119654474AAD119990CF3722BFC1E3B91615E1FD",
-}
+# The CA bundle is pre-filtered by sage to distrust the eMudhra intermediate CAs with compromised keys,
+# and the roots chaining to them. See https://emudhra.we-have-a-problem.com/
+# The base image is distroless (no shell, no Python), so the bundle can't be filtered in the image build.
+COPY --chown=root:root --chmod=644 ./ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-with open(BUNDLE) as f:
-    bundle = f.read()
-kept = []
-removed = 0
-for match in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----\n?", bundle, re.S):
-    pem = match.group(0)
-    der = base64.b64decode("".join(pem.strip().splitlines()[1:-1]))
-    if hashlib.sha256(der).hexdigest().upper() in DISTRUSTED:
-        removed += 1
-    else:
-        kept.append(pem)
-assert kept, "no certificates left in bundle"
-with open(BUNDLE, "w") as f:
-    f.write("".join(kept))
-print(f"removed {removed} distrusted certificates, kept {len(kept)}")
-os.remove(__file__)
-EOF
-RUN ["/usr/bin/python3", "/filter_certs.py"]
 ENV ENDPOINTS_SERVICE_PATH=/etc/endpoints/service.json
 COPY --chown=nonroot:nonroot --chmod=755 ./service.json ${ENDPOINTS_SERVICE_PATH}
-USER nonroot
