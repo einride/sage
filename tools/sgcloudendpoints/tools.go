@@ -109,6 +109,10 @@ func BuildImage(ctx context.Context, project, region, repo, service, configID st
 	if err := os.WriteFile(filepath.Join(buildDir, "service.json"), []byte(config), 0o600); err != nil {
 		return "", err
 	}
+	espImage := "gcr.io/endpoints-release/endpoints-runtime-serverless:" + espVersion
+	if err := writeFilteredCABundle(ctx, espImage, filepath.Join(buildDir, "ca-certificates.crt")); err != nil {
+		return "", err
+	}
 	image := fmt.Sprintf(
 		"%s-docker.pkg.dev/%s/%s/endpoints-runtime-serverless:%s-%s-%s",
 		region,
