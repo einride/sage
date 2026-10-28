@@ -10,7 +10,7 @@ import (
 	"go.einride.tech/sage/tools/sggo"
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggolicenses"
-	"go.einride.tech/sage/tools/sgmdformat"
+	"go.einride.tech/sage/tools/sgrumdl"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
 
@@ -71,7 +71,7 @@ func GoLicenses(ctx context.Context) error {
 
 func FormatMarkdown(ctx context.Context) error {
 	sg.Logger(ctx).Println("formatting Markdown files...")
-	return sgmdformat.Command(ctx).Run()
+	return sgrumdl.Command(ctx).Run()
 }
 
 func FormatYaml(ctx context.Context) error {
