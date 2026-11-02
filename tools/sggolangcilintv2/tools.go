@@ -51,6 +51,27 @@ type Config struct {
 	// - allow you to optionally use regexps here, like ".*\\.my\\.go$".
 	// - treat paths relative to the setting of RunRelativePathMode.
 	FormattersExclusionsPaths []string
+	// Which directories to skip when walking the git repo for Go modules to lint, fix and format.
+	// The paths are relative to the root of the git repo, and all sub-directories are skipped as well.
+	// Directories named .claude are always skipped, since they may contain worktrees of the repo.
+	IgnoreDirs []string
+}
+
+// shouldSkipDir reports whether the directory at path should be skipped when walking the git repo.
+func shouldSkipDir(config Config, root, path string) (bool, error) {
+	if filepath.Base(path) == ".claude" {
+		return true, nil
+	}
+	relPath, err := filepath.Rel(root, path)
+	if err != nil {
+		return false, err
+	}
+	for _, dir := range config.IgnoreDirs {
+		if relPath == filepath.Clean(filepath.FromSlash(dir)) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func Command(ctx context.Context, config Config, args ...string) *exec.Cmd {
@@ -89,11 +110,22 @@ func CommandFmtInDirectory(ctx context.Context, config Config, directory string,
 // Run GolangCI-Lint in every Go module from the root of the current git repo.
 func Run(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	root := sg.FromGitRoot()
+	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || d.Name() != "go.mod" {
+		if d.IsDir() {
+			skip, err := shouldSkipDir(config, root, path)
+			if err != nil {
+				return err
+			}
+			if skip {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if d.Name() != "go.mod" {
 			return nil
 		}
 		fileInfo, err := d.Info()
@@ -120,11 +152,22 @@ func Run(ctx context.Context, config Config, args ...string) error {
 // Run GolangCI-Lint --fix in every Go module from the root of the current git repo.
 func Fix(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	root := sg.FromGitRoot()
+	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || d.Name() != "go.mod" {
+		if d.IsDir() {
+			skip, err := shouldSkipDir(config, root, path)
+			if err != nil {
+				return err
+			}
+			if skip {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if d.Name() != "go.mod" {
 			return nil
 		}
 		fileInfo, err := d.Info()
@@ -158,11 +201,22 @@ func Fix(ctx context.Context, config Config, args ...string) error {
 // This writes the formatting to the files. Add the `--diff` argument if you don't want it to write to the files.
 func Fmt(ctx context.Context, config Config, args ...string) error {
 	var commands []*exec.Cmd
-	if err := filepath.WalkDir(sg.FromGitRoot(), func(path string, d fs.DirEntry, err error) error {
+	root := sg.FromGitRoot()
+	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || d.Name() != "go.mod" {
+		if d.IsDir() {
+			skip, err := shouldSkipDir(config, root, path)
+			if err != nil {
+				return err
+			}
+			if skip {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if d.Name() != "go.mod" {
 			return nil
 		}
 		cmd := Command(ctx, config, append([]string{"fmt", "-c", defaultConfigPath()}, args...)...)
