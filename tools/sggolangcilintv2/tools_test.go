@@ -15,8 +15,7 @@ func TestShouldSkipDir(t *testing.T) {
 	}{
 		{name: "root", path: "/repo", want: false},
 		{name: "module", path: "/repo/foo", want: false},
-		{name: "claude at root", path: "/repo/.claude", want: true},
-		{name: "nested claude", path: "/repo/foo/.claude", want: true},
+		{name: "dot dir not ignored", path: "/repo/.claude", want: false},
 		{name: "ignored dir", ignoreDirs: []string{"foo/bar"}, path: "/repo/foo/bar", want: true},
 		{name: "ignored dir trailing slash", ignoreDirs: []string{"foo/bar/"}, path: "/repo/foo/bar", want: true},
 		{name: "parent of ignored dir", ignoreDirs: []string{"foo/bar"}, path: "/repo/foo", want: false},

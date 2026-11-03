@@ -53,15 +53,11 @@ type Config struct {
 	FormattersExclusionsPaths []string
 	// Which directories to skip when walking the git repo for Go modules to lint, fix and format.
 	// The paths are relative to the root of the git repo, and all sub-directories are skipped as well.
-	// Directories named .claude are always skipped, since they may contain worktrees of the repo.
 	IgnoreDirs []string
 }
 
 // shouldSkipDir reports whether the directory at path should be skipped when walking the git repo.
 func shouldSkipDir(config Config, root, path string) (bool, error) {
-	if filepath.Base(path) == ".claude" {
-		return true, nil
-	}
 	relPath, err := filepath.Rel(root, path)
 	if err != nil {
 		return false, err
