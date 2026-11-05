@@ -2,32 +2,38 @@ version: 2
 
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /actions/setup
     schedule:
-      interval: monthly
-
+      interval: cron
+      cronjob: "0 6 1 * *"
     cooldown:
       default-days: 7
       exclude:
         - github.com/einride/*
         - github.com/einride-autonomous/*
         - github.com/einride-labs/*
-  - package-ecosystem: github-actions
-    directory: /actions/setup
-    schedule:
-      interval: monthly
+    groups:
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
-    cooldown:
-      default-days: 7
-      exclude:
-        - github.com/einride/*
-        - github.com/einride-autonomous/*
-        - github.com/einride-labs/*
   - package-ecosystem: gomod
-    directory: /
+    directories:
+      - "**/*"
     schedule:
-      interval: monthly
-
+      interval: cron
+      cronjob: "0 6 1 * *"
+    allow:
+      - dependency-type: direct
     cooldown:
       default-days: 7
       semver-major-days: 30
@@ -37,38 +43,23 @@ updates:
         - github.com/einride/*
         - github.com/einride-autonomous/*
         - github.com/einride-labs/*
-  - package-ecosystem: gomod
-    directory: .sage
-    schedule:
-      interval: monthly
+    groups:
+      go-dependencies-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      go-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
-    cooldown:
-      default-days: 7
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
-      exclude:
-        - github.com/einride/*
-        - github.com/einride-autonomous/*
-        - github.com/einride-labs/*
-  - package-ecosystem: pip
-    directory: tools/sgmdformat
-    schedule:
-      interval: monthly
-
-    cooldown:
-      default-days: 7
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
-      exclude:
-        - github.com/einride/*
-        - github.com/einride-autonomous/*
-        - github.com/einride-labs/*
   - package-ecosystem: npm
     directory: tools/sgcspevaluatorcli
     schedule:
-      interval: monthly
+      interval: cron
+      cronjob: "0 6 1 * *"
     cooldown:
       default-days: 7
       semver-major-days: 30
@@ -78,3 +69,40 @@ updates:
         - github.com/einride/*
         - github.com/einride-autonomous/*
         - github.com/einride-labs/*
+    groups:
+      npm-dependencies-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      npm-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: tools/sgmdformat
+    schedule:
+      interval: cron
+      cronjob: "0 6 1 * *"
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+      exclude:
+        - github.com/einride/*
+        - github.com/einride-autonomous/*
+        - github.com/einride-labs/*
+    groups:
+      python-dependencies-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      python-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
