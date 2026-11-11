@@ -1,6 +1,6 @@
 module github.com/einride/sage/.sage
 
-go 1.26.10
+go 1.26.11
 
 require go.einride.tech/sage v0.0.0-00010101000000-000000000000
 
