@@ -16,7 +16,7 @@ const (
 	name = "govulncheck"
 
 	// renovate: datasource=go depName=golang.org/x/vuln
-	version = "v1.9.0"
+	version = "v1.10.0"
 )
 
 // Command returns an [*exec.Cmd] for govulncheck.
