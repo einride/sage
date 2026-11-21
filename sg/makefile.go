@@ -152,8 +152,17 @@ func generateMakefile(_ context.Context, g *codegen.File, pkg *doc.Package, mk M
 	g.P("\t@chmod +x $(go)")
 	g.P("endif")
 	g.P()
-	g.P(".PHONY: $(sagefile)")
-	g.P("$(sagefile): $(go)")
+	// When the sagefile binary already exists, ask it for its own source deps
+	// so Make can skip the rebuild when nothing changed. On first build the
+	// binary doesn't exist yet, so sage_source_files stays empty and Make
+	// builds unconditionally because the target file is missing.
+	g.P("ifneq ($(wildcard $(sagefile)),)")
+	g.P("sage_source_files := $(shell $(sagefile) --deps ", includePath, ")")
+	g.P("ifeq ($(sage_source_files),)")
+	g.P("$(error sagefile --deps returned empty; run 'make sage' to force rebuild)")
+	g.P("endif")
+	g.P("endif")
+	g.P("$(sagefile): $(go) $(sage_source_files)")
 	g.P("\t@cd ", includePath, " && $(go) mod tidy && $(go) run .")
 	g.P()
 	g.P(".PHONY: sage")
